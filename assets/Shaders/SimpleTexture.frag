@@ -1,0 +1,11 @@
+// Ouput data
+layout(location = 0) out vec4 color;
+
+uniform sampler2D texture1;
+
+in vec2 UV;
+
+void main()
+{
+	color = texture(texture1, UV);
+}

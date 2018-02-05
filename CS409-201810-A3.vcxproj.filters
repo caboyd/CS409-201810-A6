@@ -1,0 +1,288 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ObjLibrary">
+      <UniqueIdentifier>{cfb72eb0-8842-4e07-92e5-e8a3e059f94a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Glut">
+      <UniqueIdentifier>{5c25dd00-799c-4220-9b3a-1fc6a88b02f8}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Sleep.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\DisplayList.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\LightingManager.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\Material.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\MaterialForShader.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\MeshWithShader.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\ModelWithShader.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\MtlLibrary.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\MtlLibraryManager.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\ObjModel.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\ObjShader.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\ObjStringParsing.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\ObjVao.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\SpriteFont.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\Texture.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\TextureBmp.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\TextureManager.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\Vector2.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\Vector3.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="lib\gl3w.c">
+      <Filter>Glut</Filter>
+    </ClCompile>
+    <ClCompile Include="main.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="RedRockDisk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="LeafyDisk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MathHelper.h">
+      <Filter>Header Files</Filter>
+    </ClCompile>
+    <ClCompile Include="GreyRockDisk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="IcyDisk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="SandyDisk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="CoordinateSystem.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="World.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Disk.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="NoiseField.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Random.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="DepthTexture.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Sleep.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\DisplayList.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\LightingManager.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\Material.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\MaterialForShader.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\MeshWithShader.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ModelWithShader.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\MtlLibrary.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\MtlLibraryManager.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ObjModel.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ObjSettings.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ObjShader.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ObjStringParsing.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ObjVao.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\ObjVbo.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\SpriteFont.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\Texture.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\TextureBmp.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\TextureManager.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\Vector2.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\Vector3.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\VertexDataFormat.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\glcorearb.h">
+      <Filter>Glut</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\gl3w.h">
+      <Filter>Glut</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GetGlutWithShaders.h">
+      <Filter>Glut</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\GetGlut.h">
+      <Filter>Glut</Filter>
+    </ClInclude>
+    <ClInclude Include="RedRockDisk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Disk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="LeafyDisk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="GreyRockDisk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SandyDisk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="CoordinateSystem.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="World.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ShadowBox.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="IcyDisk.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="NoiseField.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PerformanceCounter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="SIMD.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Random.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="DepthTexture.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="main.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="lib\ObjLibrary\ObjVbo.inl">
+      <Filter>ObjLibrary</Filter>
+    </None>
+    <None Include="lib\freeglut.dll">
+      <Filter>Glut</Filter>
+    </None>
+    <None Include="assets\Shaders\Passthrough.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="assets\Shaders\SimpleTexture.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="lib\ObjLibrary\ObjShaderShadow.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="lib\ObjLibrary\ObjShader1Light1Shadow.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="lib\ObjLibrary\ObjShaderManyLights1Shadow.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="assets\Shaders\depthRTT.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="assets\Shaders\depthRTT.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="lib\ObjLibrary\ObjLibrary-development-log.txt">
+      <Filter>ObjLibrary</Filter>
+    </Text>
+  </ItemGroup>
+  <ItemGroup>
+    <Library Include="lib\freeglut.lib">
+      <Filter>Glut</Filter>
+    </Library>
+  </ItemGroup>
+</Project>
