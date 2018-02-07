@@ -8,7 +8,7 @@
 //The world class loads in all of the disks and is able to draw itself.
 class World
 {
-private:
+public:
 	//The Models we want to load
 	const std::string REDROCKMODEL_FILENAME = "assets/Models/DiskA.obj";
 	const std::string LEAFYMODEL_FILENAME = "assets/Models/DiskB.obj";

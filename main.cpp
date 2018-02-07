@@ -484,6 +484,21 @@ void update()
 	{
 		player.moveForward(player_distance);
 	}
+
+
+	Vector3 player_position = player.getPosition();
+	float y = 0;
+	for (auto const& disk : world.disks)
+	{
+		
+		float h = disk->getHeightAtPosition(player.getPosition().x, player.getPosition().z);
+		if(h != 0) {
+			y = h;
+			break;
+		}
+	}
+	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_INIT_POS);
+
 	
 	//CAMERA STUFF
 	bool player_moved = false;
@@ -572,6 +587,10 @@ void update()
 
 	//Overview camera follows player position
 	overview_camera.lookAt(player.getPosition());
+
+
+
+
 
 }
 

@@ -9,7 +9,7 @@ using namespace ObjLibrary;
 class RedRockDisk: public Disk
 {
 private:
-	const unsigned int HEIGHTMAP_SIZE = 16;
+	const unsigned int HEIGHTMAP_SIZE = 8;
 public:
 	RedRockDisk(ModelWithShader* model, Vector3 postion, float radius);
 	~RedRockDisk() override = default;

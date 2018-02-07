@@ -45,5 +45,7 @@ public:
 	//Draws the model and heightmap model to the depth render to texture shader.
 	//The depthMatrixID is the uniform location for the MVP.
 	virtual void drawDepth(const unsigned int depth_matrix_id, const glm::mat4x4& depth_view_projection_matrix) const;
+
+	virtual float getHeightAtPosition(float x, float z) const;
 };
 

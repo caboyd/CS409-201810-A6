@@ -122,6 +122,7 @@ void World::destroy()
 
 void World::draw(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix)
 {
+	
 	//Call draw on each disk
 	for (auto const& disk : disks)
 	{
@@ -135,6 +136,8 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 }
 void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix, glm::vec3 camera_pos)
 {
+
+
 	//For each disk draw all the black cylinder bases
 	//Setup to draw the black disk cylinders for all disks
 	const MaterialForShader& base = disks[0]->model->getMaterial(1);
@@ -148,6 +151,7 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 	//Call draw on each black disk base
 	for (auto const& disk : disks)
 	{
+
 		glm::mat4x4 model_matrix = glm::mat4();
 		model_matrix = glm::translate(model_matrix, glm::vec3(disk->position));
 		model_matrix = glm::scale(model_matrix, glm::vec3(disk->radius, 1, disk->radius));

@@ -2,6 +2,7 @@
 #include "lib/ObjLibrary/VertexDataFormat.h"
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "PerformanceCounter.h"
+#include "MathHelper.h"
 
 void Disk::generateHeightMapModel()
 {
@@ -17,7 +18,7 @@ void Disk::generateHeightMapModel()
 		for (unsigned int z = 0; z < (heightMapSize + 1); z++)
 		{
 			//Position
-			verts[count].m_x = (float)x0 - float(heightMapSize/2); verts[count].m_y = heightMap[x0][z]; verts[count].m_z = (float)z - float(heightMapSize/2);
+			verts[count].m_x = (float)x0 - float(heightMapSize / 2); verts[count].m_y = heightMap[x0][z]; verts[count].m_z = (float)z - float(heightMapSize / 2);
 			//Texture coords
 			verts[count].m_s = (float)x0 / 16.0f; verts[count].m_t = (float)z / 16.0f;
 			//Normals are 0, will be calculated later
@@ -173,4 +174,54 @@ void Disk::drawDepth(const unsigned int depth_matrix_id, const glm::mat4x4& dept
 
 		}
 	}
+}
+
+float Disk::getHeightAtPosition(float x, float z) const
+{
+	//get x,z within the height map centered on the bottom left corner
+	float cx = (x - position.x) * (heightMapSize / 2) / (radius * MathHelper::M_SQRT2_2) + (heightMapSize / 2);
+	float cz = (z - position.z) * (heightMapSize / 2) / (radius * MathHelper::M_SQRT2_2) + (heightMapSize / 2);
+
+	//If outside heightmap return 0
+	if ((cx > heightMapSize || cx < 0) || (cz > heightMapSize || cz < 0))
+		return 0.0f;
+
+	//Index in height map
+	const unsigned int ix = floor(cx);
+	const unsigned int kz = floor(cz);
+
+	const float fx = cx - ix;
+	const float fz = cz - kz;
+
+	Vector3 p0;
+	const Vector3 p1(ix, heightMap[ix][kz], kz);
+	const Vector3 p2(ix + 1, heightMap[ix + 1][kz + 1], kz + 1);
+
+	//Upper right triangle
+	if (fx > fz)
+	{
+		p0 = Vector3(ix + 1, heightMap[ix + 1][kz], kz);
+	} else
+	{
+		//Lower right triangle
+		p0 = Vector3(ix, heightMap[ix][kz + 1], kz + 1);
+	}
+	float height = 0;
+
+	//Non - Barycentric**
+	//Vector3 normal = (p1 - p0).crossProduct(p2 - p0);
+	//height = (-normal.x*ix - normal.z*kz + normal.dotProduct(p0)) / normal.y;
+	//**
+
+	//Barycentric**
+	float u, v, w;
+	Vector2 p(cx, cz);
+	Vector2 p00(p0.x, p0.z);
+	Vector2 p11(p1.x, p1.z);
+	Vector2 p22(p2.x, p2.z);
+	MathHelper::Barycentric(p, p00, p11, p22, u, v, w);
+	height = u * p0.y + v * p1.y + w * p2.y;
+	//**
+
+	return height;
 }
