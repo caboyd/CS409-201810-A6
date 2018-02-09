@@ -21,7 +21,7 @@
  *	    O: Hold to change to overview camera.
  *		H: to toggle between full and half speed time scale.
  *		L: Toggles Lighting
- *		
+ *
  *
  */
 
@@ -153,14 +153,14 @@ void init()
 
 
 	LightingManager::setLightEnabled(2, true);
-	LightingManager::setLightColour(2, V3(0.4, 0.4, 0.4));
+	LightingManager::setLightColour(2, V3(1.0, 1.0, 1.0));
 
 
 	//Set a position light at the players location
-	//LightingManager::setLightEnabled(1, false);
-	//LightingManager::setLightPositional(1, PLAYER_INIT_POS);
-	//LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
-	//LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
+	LightingManager::setLightEnabled(1, false);
+	LightingManager::setLightPositional(1, PLAYER_INIT_POS);
+	LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
+	LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
 
 	//Pass the light view matrix to the shadow box
 	light_view_matrix = glm::mat4();
@@ -170,7 +170,7 @@ void init()
 
 	last_time = glutGet(GLUT_ELAPSED_TIME);
 
-	
+
 }
 
 
@@ -236,7 +236,7 @@ void keyboard(unsigned char key, int x, int y)
 	case 27: // on [ESC]
 		exit(0); // normal exit
 		break;
-	default: 
+	default:
 		break;
 	}
 
@@ -393,7 +393,7 @@ void mouseButton(const int button, const int state, const int x, const int y)
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 		break;
-	default: 
+	default:
 		break;
 	}
 
@@ -416,7 +416,7 @@ void update()
 
 	//Multiple delta time by time_scale to slow or speed up game
 	const float scaled_time = delta_time * time_scale;
-	
+
 	//Multiply player speed/turn by scaled time.
 	float player_distance = PLAYER_SPEED * scaled_time;
 	//Shift moves faster
@@ -432,7 +432,7 @@ void update()
 	const V3 last_player_pos = player.getPosition();
 	const V3 last_player_forward = player.getForward();
 
-	Vector2 player_velocity(0.0,0.0);
+	Vector2 player_velocity(0.0, 0.0);
 
 	//vector for diagonal movement
 	if (key_pressed['D'])
@@ -444,7 +444,7 @@ void update()
 	if (key_pressed['S'])
 		player_velocity.y -= 1.0;
 
-	if(player_velocity.getNorm() > 1.0)
+	if (player_velocity.getNorm() > 1.0)
 		player_distance *= float(MathHelper::M_SQRT2_2);
 
 	//move player
@@ -495,7 +495,7 @@ void update()
 	float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
 	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_OFFSET);
 
-	
+
 	//CAMERA STUFF
 	bool player_moved = false;
 
@@ -549,7 +549,7 @@ void update()
 			if (log_factor > 10.0) log_factor = 10.0;
 
 			const V3 target = player.getPosition() + PLAYER_CAMERA_OFFSET;
-			player_camera.rotateAroundTargetToPosition(target,new_cam_position, glm::radians(log_factor*0.05*scaled_time));
+			player_camera.rotateAroundTargetToPosition(target, new_cam_position, glm::radians(log_factor*0.05*scaled_time));
 		} else
 		{
 			//If camera is near the origin point we can snap it back.
@@ -653,7 +653,7 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	light_view_matrix = glm::translate(light_view_matrix, glm::vec3(center.x, center.y, center.z));
 
 	depth_vp = depthProjectionMatrix * light_view_matrix;
-	
+
 
 	glm::mat4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
@@ -704,7 +704,7 @@ void display()
 	LightingManager::setShadowMap(depth_texture.getTexture());
 	LightingManager::setShadowMapSpaceMatrix(shadow_map_space_matrix);
 
-	
+
 	const V3& player_forward = player.getForward();
 	const V3& player_position = player.getPosition();
 	const V3& camera_position = active_camera->getPosition();
@@ -721,12 +721,12 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Positional light at player position
-	//LightingManager::setLightPositional(1, player.getPosition());
+	LightingManager::setLightPositional(1, player.getPosition());
 
 	// Get the current camera view matrix
 	glm::mat4 view_matrix = active_camera->getViewMatrix();
 
-	
+
 	//Draw the skybox
 	glm::mat4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(camera_position));
@@ -734,7 +734,7 @@ void display()
 
 	glDepthMask(GL_FALSE);
 	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
-	glDepthMask(GL_TRUE);	
+	glDepthMask(GL_TRUE);
 
 	//Draw the world
 	world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());

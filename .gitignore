@@ -260,3 +260,6 @@ paket-files/
 __pycache__/
 *.pyc
 /CS409-201810-A2.zip
+
+
+!assets/**

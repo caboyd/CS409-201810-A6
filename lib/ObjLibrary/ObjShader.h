@@ -96,7 +96,7 @@ struct ShaderUniforms;  // forwrd declaration
 //    OpenGL.
 //
 
-const unsigned int SHADER_MAJOR_VERSION = 4;
+const unsigned int SHADER_MAJOR_VERSION = 3;
 
 //
 //  SHADER_MINOR_VERSION
@@ -109,7 +109,7 @@ const unsigned int SHADER_MAJOR_VERSION = 4;
 //    OpenGL.
 //
 
-	const unsigned int SHADER_MINOR_VERSION = 4;
+	const unsigned int SHADER_MINOR_VERSION = 3;
 
 
 
