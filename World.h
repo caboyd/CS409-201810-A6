@@ -43,6 +43,10 @@ public:
 	//Load the 5 models
 	void loadModels();
 
+	//Looks through all the disks in the world and if the position is on
+	//a disk then get the height at the position on the disk
+	float getHeightAtPointPosition(float x, float y);
+	float getHeightAtCirclePosition(float x, float y, float r);
 	//Draw all of the disks
 	void draw(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix);
 
@@ -54,5 +58,5 @@ public:
 	void drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix, glm::vec3 camera_pos);
 	//Draw all of the disks to the depthRTT Shader
 	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
-	void drawDepth(const unsigned int depth_matrix_id, glm::mat4x4& view_perspective_matrix);
+	void drawDepth(unsigned int depth_matrix_id, glm::mat4x4& view_perspective_matrix);
 };

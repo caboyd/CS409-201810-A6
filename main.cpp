@@ -486,18 +486,9 @@ void update()
 	}
 
 
-	Vector3 player_position = player.getPosition();
-	float y = 0;
-	for (auto const& disk : world.disks)
-	{
-		
-		float h = disk->getHeightAtPosition(player.getPosition().x, player.getPosition().z);
-		if(h != 0) {
-			y = h;
-			break;
-		}
-	}
-	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_INIT_POS);
+	const Vector3 player_position = player.getPosition();
+	float y = world.getHeightAtCirclePosition(player_position.x, player_position.z, 0.25f);
+	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_OFFSET);
 
 	
 	//CAMERA STUFF

@@ -10,6 +10,7 @@
 #include "MathHelper.h"
 #include "PerformanceCounter.h"
 #include "lib/glm/gtc/matrix_transform.hpp"
+#include "Collision.h"
 
 using namespace ObjLibrary;
 
@@ -240,4 +241,28 @@ void World::loadModels()
 	model.load(GREYROCKMODEL_FILENAME);
 	this->GreyRockModel = model.getModelWithShader();
 
+}
+
+float World::getHeightAtPointPosition(const float x, const float y)
+{
+	for (auto &disk: disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if(pointCircleIntersection( x , y, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getHeightAtPosition(x,y);
+	}
+	//No collision with a disk
+	return -1.0f;
+}
+
+float World::getHeightAtCirclePosition(const float x, const float y, const float r)
+{
+	for (auto &disk: disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if(circleIntersection( x , y, r, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getHeightAtPosition(x,y);
+	}
+	//No collision with a disk
+	return -1.0f;
 }

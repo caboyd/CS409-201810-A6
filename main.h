@@ -58,7 +58,8 @@ const float PLAYER_TURN_BOOST_MULT = 1.5f;
 //Sun Dir is the direction the sun is on the skybox
 const V3 SUN_DIR(0.34, 0.83, 0.44);
 const V3 CAMERA_INIT_FORWARD = V3(-1, 0, -1).getNormalized();
-const V3 PLAYER_INIT_POS = V3(0.0f, 0.8f, 0.0f);
+const V3 PLAYER_OFFSET = V3(0.0f, 0.8f, 0.0f);
+const V3 PLAYER_INIT_POS = V3(0.0f, 0.0f, 0.0f) + PLAYER_OFFSET;
 const V3 PLAYER_INIT_FORWARD = V3(SUN_DIR.x, 0, SUN_DIR.z).getNormalized();
 const V3 PLAYER_CAMERA_OFFSET = V3(0, 0.75f, 0);
 const V3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;

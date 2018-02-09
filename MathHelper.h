@@ -40,15 +40,15 @@ namespace MathHelper
 	inline void Barycentric(Vector2 p, Vector2 a, Vector2 b, Vector2 c, float &u, float &v, float &w)
 	{
 		Vector2 v0 = b - a, v1 = c - a, v2 = p - a;
-		float d00 = v0.dotProduct(v0);
-		float d01 = v0.dotProduct(v1);
-		float d11 = v1.dotProduct(v1);
-		float d20 = v2.dotProduct(v0);
-		float d21 = v2.dotProduct(v1);
-		float inv_denom = 1 / (d00 * d11 - d01 * d01);
-		v = (d11 * d20 - d01 * d21) * inv_denom;
-		w = (d00 * d21 - d01 * d20) * inv_denom;
-		u = 1.0f - v - w;
+		double d00 = v0.dotProduct(v0);
+		double d01 = v0.dotProduct(v1);
+		double d11 = v1.dotProduct(v1);
+		double d20 = v2.dotProduct(v0);
+		double d21 = v2.dotProduct(v1);
+		double inv_denom = 1 / (d00 * d11 - d01 * d01);
+		v = float((d11 * d20 - d01 * d21) * inv_denom);
+		w = float((d00 * d21 - d01 * d20) * inv_denom);
+		u = float(1.0f - v - w);
 	}
 }
 
