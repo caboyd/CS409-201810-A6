@@ -123,17 +123,25 @@ void World::destroy()
 
 void World::draw(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix)
 {
-	
+
 	//Call draw on each disk
 	for (auto const& disk : disks)
 	{
 		disk->draw(view_matrix, projection_matrix);
+		glm::mat4x4 model_matrix = glm::mat4();
+		Vector3 pos = disk->position;
+		model_matrix = glm::translate(model_matrix, glm::vec3(pos));
+		float h = disk->getHeightAtPosition(float(pos.x), float(pos.z));
+		model_matrix[3][1] += h + 1.0f;
+		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+		RodModel.draw(model_matrix, view_matrix, mvp_matrix);
+		RingModel.draw(model_matrix, view_matrix, mvp_matrix);
 	}
 }
 
 void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix)
 {
-	drawOptimized(view_matrix,projection_matrix, glm::vec3(0,0,0));
+	drawOptimized(view_matrix, projection_matrix, glm::vec3(0, 0, 0));
 }
 void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix, glm::vec3 camera_pos)
 {
@@ -161,6 +169,42 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
 		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
 		disk->model->drawCurrentMaterial(1);
+	}
+
+	const MaterialForShader& rod = RodModel.getMaterial(0);
+	rod.activate(uniforms);
+	//Call draw on each rod
+	for (auto const& disk : disks)
+	{
+
+		glm::mat4x4 model_matrix = glm::mat4();
+		Vector3 pos = disk->position;
+		model_matrix = glm::translate(model_matrix, glm::vec3(pos));
+		float h = disk->getHeightAtPosition(float(pos.x), float(pos.z));
+		model_matrix[3][1] += h + 1.0f;
+		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+
+		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
+		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
+		RodModel.drawCurrentMaterial(0);
+	}
+
+	const MaterialForShader& ring = RingModel.getMaterial(0);
+	ring.activate(uniforms);
+	//Call draw on each ring
+	for (auto const& disk : disks)
+	{
+
+		glm::mat4x4 model_matrix = glm::mat4();
+		Vector3 pos = disk->position;
+		model_matrix = glm::translate(model_matrix, glm::vec3(pos));
+		float h = disk->getHeightAtPosition(float(pos.x), float(pos.z));
+		model_matrix[3][1] += h + 0.1f;
+		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+
+		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
+		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
+		RingModel.drawCurrentMaterial(0);
 	}
 
 	//For each disk draw the other stuff as groups
@@ -201,7 +245,7 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 				model_matrix = glm::mat4();
 				glm::vec3 pos = disk->position;
 				const float corner = float(disk->radius * 0.70710678118);
-				
+
 				//Fix for overlapping faces causing flicker
 				pos.y += 0.00001f;
 				model_matrix = glm::translate(model_matrix, pos);
@@ -240,16 +284,20 @@ void World::loadModels()
 	this->SandyModel = model.getModelWithShader();
 	model.load(GREYROCKMODEL_FILENAME);
 	this->GreyRockModel = model.getModelWithShader();
+	model.load(ROD_FILENAME);
+	this->RodModel = model.getModelWithShader();
+	model.load(RING_FILENAME);
+	this->RingModel = model.getModelWithShader();
 
 }
 
 float World::getHeightAtPointPosition(const float x, const float y)
 {
-	for (auto &disk: disks)
+	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		if(pointCircleIntersection( x , y, float(disk->position.x), float(disk->position.z), disk->radius))
-			return disk->getHeightAtPosition(x,y);
+		if (pointCircleIntersection(x, y, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getHeightAtPosition(x, y);
 	}
 	//No collision with a disk
 	return -1.0f;
@@ -257,11 +305,11 @@ float World::getHeightAtPointPosition(const float x, const float y)
 
 float World::getHeightAtCirclePosition(const float x, const float y, const float r)
 {
-	for (auto &disk: disks)
+	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		if(circleIntersection( x , y, r, float(disk->position.x), float(disk->position.z), disk->radius))
-			return disk->getHeightAtPosition(x,y);
+		if (circleIntersection(x, y, r, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getHeightAtPosition(x, y);
 	}
 	//No collision with a disk
 	return -1.0f;

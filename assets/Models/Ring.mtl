@@ -1,5 +1,8 @@
 newmtl ring
-illum 0
-Kd 1.00 1.00 1.00
+illum 1
+Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
+Ke 1.00 1.00 1.00
 map_Kd Ring.bmp
+map_Ka Ring.bmp
+map_Ke Ring.bmp

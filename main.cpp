@@ -149,7 +149,12 @@ void init()
 	//Set the shadow light to be a direction light where the sun is
 	LightingManager::setLightEnabled(0, true);
 	LightingManager::setLightDirectional(0, SUN_DIR);
-	LightingManager::setLightColour(0, V3(1, 1, 1));
+	LightingManager::setLightColour(0, V3(1.0, 1.0, 1.0));
+
+
+	LightingManager::setLightEnabled(2, true);
+	LightingManager::setLightColour(2, V3(0.4, 0.4, 0.4));
+
 
 	//Set a position light at the players location
 	//LightingManager::setLightEnabled(1, false);
@@ -487,7 +492,7 @@ void update()
 
 
 	const Vector3 player_position = player.getPosition();
-	float y = world.getHeightAtCirclePosition(player_position.x, player_position.z, 0.25f);
+	float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
 	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_OFFSET);
 
 	
@@ -673,6 +678,7 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	}
 
 	//Draw the world to the depth texture
+	//TODO RINGS?
 	world.drawDepth(depth_matrix_id, depth_vp);
 
 
@@ -732,6 +738,7 @@ void display()
 
 	//Draw the world
 	world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());
+	//world.draw(view_matrix, projection_matrix);
 
 	//Draw the player
 	model_matrix = glm::mat4();

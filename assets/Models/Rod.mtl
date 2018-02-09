@@ -1,5 +1,8 @@
 newmtl rod
-illum 0
-Kd 1.00 1.00 1.00
+illum 1
+Kd 0.00 0.00 0.00
 Ka 0.00 0.00 0.00
+Ke 1.00 1.00 1.00
 map_Kd Rod.bmp
+map_Ka Rod.bmp
+map_Ke Rod.bmp

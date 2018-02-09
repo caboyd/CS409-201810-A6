@@ -5,9 +5,10 @@
 newmtl skybox1
 illum 1
 Kd 0.00 0.00 0.00
-Ka 1.00 1.00 1.00
+Ka 0.00 0.00 0.00
+Ke 1.00 1.00 1.00
 map_Kd skybox1.bmp
-map_Ka skybox1.bmp
+map_Ke skybox1.bmp
 
 newmtl skybox2
 illum 0
