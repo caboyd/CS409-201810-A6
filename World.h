@@ -55,14 +55,14 @@ public:
 	float getHeightAtPointPosition(float x, float y);
 	float getHeightAtCirclePosition(float x, float y, float r);
 	//Draw all of the disks
-	void draw(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix);
-
+	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
+	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
 	//Draws the disks faster by grouping each disk by its materials
 	//Draws all of the disks blacks bases first
 	//For each disk type it draws all the disks sides
 	//For each disk type it draws all the disks tops and height maps
-	void drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix);
-	void drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix, glm::vec3 camera_pos);
+	void drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
+	void drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
 	//Draw all of the disks to the depthRTT Shader
 	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
 	void drawDepth(unsigned int depth_matrix_id, glm::mat4x4& view_perspective_matrix);

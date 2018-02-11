@@ -745,8 +745,8 @@ void display()
 	glDepthMask(GL_TRUE);
 
 	//Draw the world
-	world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());
-	//world.draw(view_matrix, projection_matrix);
+	//world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());
+	world.draw(view_matrix, projection_matrix, active_camera->getPosition());
 
 	//Draw the player
 	model_matrix = glm::mat4();
@@ -755,8 +755,8 @@ void display()
 	mvp_matrix = projection_matrix * view_matrix * model_matrix;
 	player_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
 
-	std::string text = "Score: " + std::to_string(world.pickupManager.score);
-	textRenderer.draw(text, 10, win_height - 40, 0.75, glm::vec3(1, 1, 1));
+	const std::string text = "Score: " + std::to_string(world.pickupManager.score);
+	textRenderer.draw(text, 10.0f, float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);

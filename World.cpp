@@ -82,7 +82,7 @@ void World::init(const std::string& filename)
 		if (radius < 8)
 		{
 			type = RED_ROCK;
-			disks.push_back(std::make_unique<RedRockDisk>(&this->RedRockModel, pos, radius));	
+			disks.push_back(std::make_unique<RedRockDisk>(&this->RedRockModel, pos, radius));
 		} else if (radius <= 12)
 		{
 			type = LEAFY;
@@ -101,7 +101,7 @@ void World::init(const std::string& filename)
 			disks.push_back(std::make_unique<GreyRockDisk>(&this->GreyRockModel, pos, radius));
 		}
 		disksSorted[type].push_back(disks.back().get());
-		pos.y = double(disks.back()->getHeightAtPosition(float(pos.x),float(pos.z)));
+		pos.y = double(disks.back()->getHeightAtPosition(float(pos.x), float(pos.z)));
 		pickupManager.addRod(pos, type + 1);
 		pickupManager.addRing(pos);
 
@@ -128,29 +128,47 @@ void World::destroy()
 	pickupManager.destroy();
 }
 
-void World::draw(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix)
+void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
+{
+
+	draw(view_matrix,projection_matrix, glm::vec3(0,0,0));
+}
+
+void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos)
 {
 
 	//Call draw on each disk
 	for (auto const& disk : disks)
 	{
-		disk->draw(view_matrix, projection_matrix);
+		disk->draw(view_matrix, projection_matrix, camera_pos);
+	}
+
+	//Call draw on each rod
+	for (auto const& rod : pickupManager.rods)
+	{
+		if (rod.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		Vector3 pos = disk->position;
-		model_matrix = glm::translate(model_matrix, glm::vec3(pos));
-		float h = disk->getHeightAtPosition(float(pos.x), float(pos.z));
-		model_matrix[3][1] += h + 1.0f;
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
 		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
-		RodModel.draw(model_matrix, view_matrix, mvp_matrix);
-		RingModel.draw(model_matrix, view_matrix, mvp_matrix);
+
+		RodModel.draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
+	}
+	for (auto const& ring : pickupManager.rings)
+	{
+		if (ring.pickedUp) continue;
+		glm::mat4x4 model_matrix = glm::mat4();
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
+		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+		RingModel.draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
 	}
 }
 
-void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix)
+void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
 {
 	drawOptimized(view_matrix, projection_matrix, glm::vec3(0, 0, 0));
 }
-void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix, glm::vec3 camera_pos)
+void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos)
 {
 
 
@@ -198,10 +216,10 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 	//Call draw on each ring
 	for (auto const& ring : pickupManager.rings)
 	{
-		if(ring.pickedUp) continue;
+		if (ring.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
 		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0,1,0));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
 		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));

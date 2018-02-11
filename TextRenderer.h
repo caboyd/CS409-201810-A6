@@ -3,7 +3,6 @@
 #include <iostream>
 #include <map>
 
-#include "lib/ObjLibrary/Vector2.h"
 #include "lib/GetGlutWithShaders.h"
 
 //GLM inclues
@@ -107,7 +106,7 @@ public:
 				texture,
 				glm::ivec2(face->glyph->bitmap.width, face->glyph->bitmap.rows),
 				glm::ivec2(face->glyph->bitmap_left, face->glyph->bitmap_top),
-				face->glyph->advance.x
+				GLuint(face->glyph->advance.x)
 			};
 			Characters.insert(std::pair<GLchar, Character>(c, character));
 		}
@@ -130,7 +129,7 @@ public:
 
 	}
 
-	void draw(std::string text, GLfloat x, GLfloat y, GLfloat scale, glm::vec3 color)
+	void draw(std::string text, float x, float y, float scale, glm::vec3 color)
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

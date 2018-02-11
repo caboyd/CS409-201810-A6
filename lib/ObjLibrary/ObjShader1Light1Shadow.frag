@@ -98,11 +98,8 @@ void main()
 	vec3 n = normalize( normal_cameraspace);
     vec3 l = normalize( light_direction_cameraspace );
 	float cosTheta = clamp( dot( n,l ), 0.0,1.0 );
-	float bias = 0.005*tan(acos(cosTheta));
+	float bias = 0.002*tan(acos(cosTheta));
 	bias = clamp(bias, 0.0, 0.005);
-
-	//Trick to make the flat terrain not have as much peter panning
-	if(normalized_normal.y > 0.995 ) bias = 0.001;
 
 	// Sample the shadow map up to 16 times
 	// TODO - Should implement early bailing

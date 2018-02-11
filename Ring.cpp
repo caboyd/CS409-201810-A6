@@ -28,7 +28,7 @@ inline void Ring::update(float delta_time)
 	float rot = rotVelocity * distance;
 	forward.rotateY(rot);
 
-	position.y = world->getHeightAtCirclePosition(position.x,position.z, radius) + 0.1f;
+	position.y = world->getHeightAtCirclePosition(float(position.x),float(position.z), radius) + 0.1f;
 
 	//If on center of disk get new target
 	if (pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), radius))

@@ -104,11 +104,16 @@ void Disk::generateHeightMapModel()
 
 void Disk::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix) const
 {
+	draw(view_matrix, projection_matrix, glm::vec3(0, 0, 0));
+}
+
+void Disk::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos) const
+{
 	glm::mat4x4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(position));
 	model_matrix = glm::scale(model_matrix, glm::vec3(radius, 1, radius));
 	glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
-	model->draw(model_matrix, view_matrix, mvp_matrix);
+	model->draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
 
 	if (heightMapModel.getMeshCountTotal() > 0)
 	{
@@ -122,7 +127,7 @@ void Disk::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_ma
 		model_matrix = glm::scale(model_matrix, glm::vec3(corner * 2 / heightMapSize, 1, corner * 2 / heightMapSize));
 		mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 
-		heightMapModel.draw(model_matrix, view_matrix, mvp_matrix);
+		heightMapModel.draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
 	}
 
 }
@@ -179,16 +184,16 @@ void Disk::drawDepth(const unsigned int depth_matrix_id, const glm::mat4x4& dept
 float Disk::getHeightAtPosition(float x, float z) const
 {
 	//get x,z within the height map centered on the bottom left corner
-	float cx = (x - position.x) * (heightMapSize / 2) / (radius * MathHelper::M_SQRT2_2) + (heightMapSize / 2);
-	float cz = (z - position.z) * (heightMapSize / 2) / (radius * MathHelper::M_SQRT2_2) + (heightMapSize / 2);
+	float cx = (x - float(position.x)) * (heightMapSize / 2.0f) / (radius * float(MathHelper::M_SQRT2_2)) + (heightMapSize / 2.0f);
+	float cz = (z - float(position.z)) * (heightMapSize / 2.0f) / (radius * float(MathHelper::M_SQRT2_2)) + (heightMapSize / 2.0f);
 
 	//If outside heightmap return 0
 	if ((cx > heightMapSize || cx < 0) || (cz > heightMapSize || cz < 0))
 		return 0.0f;
 
 	//Index in height map
-	const unsigned int ix = floor(cx);
-	const unsigned int kz = floor(cz);
+	const unsigned int ix = unsigned int(floor(cx));
+	const unsigned int kz = unsigned int(floor(cz));
 
 	const float fx = cx - ix;
 	const float fz = cz - kz;
@@ -220,7 +225,7 @@ float Disk::getHeightAtPosition(float x, float z) const
 	Vector2 p11(p1.x, p1.z);
 	Vector2 p22(p2.x, p2.z);
 	MathHelper::Barycentric(p, p00, p11, p22, u, v, w);
-	height = u * p0.y + v * p1.y + w * p2.y;
+	height = float(u * p0.y + v * p1.y + w * p2.y);
 	//**
 
 	return height;

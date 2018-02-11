@@ -107,12 +107,11 @@ void main()
 	//Computes a z-bias to remove z-fighting and shadow acne
 	vec3 n = normalize( normal_cameraspace);
     vec3 l = normalize( light_direction_cameraspace ) ;
+	//l = normalize(light_position[0].xyz);
+	//n = normalized_normal;
 	float cosTheta = clamp( dot( n,l ), 0,1 );
-	float bias = 0.005*tan(acos(cosTheta));
+	float bias = 0.002*tan(acos(cosTheta));
 	bias = clamp(bias, 0.0, 0.005);
-
-	//Trick to make the flat terrain not have as much peter panning
-	if(normalized_normal.y > 0.97 ) bias = 0.001;
 
 	// Sample the shadow map up to 16 times
 	// TODO - Should implement early bailing

@@ -41,6 +41,7 @@ public:
 
 	//Draws the model and heightmap model using the given view and projection matrices
 	virtual void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix) const;
+	virtual void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos) const;
 
 	//Draws the model and heightmap model to the depth render to texture shader.
 	//The depthMatrixID is the uniform location for the MVP.
