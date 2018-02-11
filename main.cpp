@@ -745,8 +745,8 @@ void display()
 	glDepthMask(GL_TRUE);
 
 	//Draw the world
-	//world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());
-	world.draw(view_matrix, projection_matrix, active_camera->getPosition());
+	world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());
+	//world.draw(view_matrix, projection_matrix, active_camera->getPosition());
 
 	//Draw the player
 	model_matrix = glm::mat4();
