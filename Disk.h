@@ -47,5 +47,7 @@ public:
 	virtual void drawDepth(const unsigned int depth_matrix_id, const glm::mat4x4& depth_view_projection_matrix) const;
 
 	virtual float getHeightAtPosition(float x, float z) const;
+
+	float getSpeedFactor() const;
 };
 

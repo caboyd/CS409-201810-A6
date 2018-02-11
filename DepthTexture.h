@@ -4,15 +4,16 @@
 
 using namespace ObjLibrary;
 
-const std::string shader_folder = "assets/shaders/";
-const std::string quad_shader_vert = "passthrough.vert";
-const std::string quad_shader_frag = "simpletexture.frag";
-const std::string depthRTT_vert = "depthRTT.vert";
-const std::string depthRTT_frag = "depthRTT.frag";
-
 //Manages the depth buffer and texture for use with generating shadows
 class DepthTexture
 {
+private:
+	const std::string shader_folder = "assets/shaders/";
+	const std::string quad_shader_vert = "passthrough.vert";
+	const std::string quad_shader_frag = "simpletexture.frag";
+	const std::string depthRTT_vert = "depthRTT.vert";
+	const std::string depthRTT_frag = "depthRTT.frag";
+
 	GLuint quad_program_id;
 	GLuint depth_program_id;
 	GLuint quad_vertexbuffer;
@@ -46,7 +47,7 @@ public:
 	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	//and Change shader to Sampler2D
 	void renderDepthTextureToQuad(unsigned int offsetX, unsigned int offsetY, unsigned int width,
-	                              unsigned int height) const;
+		unsigned int height) const;
 
 	void init(const unsigned int shadow_map_size);
 };

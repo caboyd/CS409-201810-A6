@@ -120,6 +120,12 @@
     <ClCompile Include="DepthTexture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Ring.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="PickupManager.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sleep.h">
@@ -248,13 +254,25 @@
     <ClInclude Include="Collision.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Entity.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Rod.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Ring.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PickupManager.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TextRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\ObjLibrary\ObjVbo.inl">
       <Filter>ObjLibrary</Filter>
-    </None>
-    <None Include="lib\freeglut.dll">
-      <Filter>Glut</Filter>
     </None>
     <None Include="assets\Shaders\Passthrough.vert">
       <Filter>Resource Files</Filter>
@@ -277,6 +295,12 @@
     <None Include="assets\Shaders\depthRTT.vert">
       <Filter>Resource Files</Filter>
     </None>
+    <None Include="text.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="text.frag">
+      <Filter>Resource Files</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <Text Include="lib\ObjLibrary\ObjLibrary-development-log.txt">
@@ -285,6 +309,9 @@
   </ItemGroup>
   <ItemGroup>
     <Library Include="lib\freeglut.lib">
+      <Filter>Glut</Filter>
+    </Library>
+    <Library Include="freetype\freetype.lib">
       <Filter>Glut</Filter>
     </Library>
   </ItemGroup>

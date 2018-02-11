@@ -225,3 +225,16 @@ float Disk::getHeightAtPosition(float x, float z) const
 
 	return height;
 }
+
+float Disk::getSpeedFactor() const
+{
+	switch (type)
+	{
+	case RED_ROCK: return 1.0f;
+	case LEAFY: return 0.5f;
+	case ICY: return 0.25f;
+	case SANDY: return 0.75f;
+	case GREY_ROCK: return 1.0f;
+	}
+	return 1.0f;
+}

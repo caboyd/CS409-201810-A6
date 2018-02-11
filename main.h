@@ -119,3 +119,4 @@ global DepthTexture depth_texture;
 
 global glm::mat4x4 light_view_matrix;
 
+global TextRenderer textRenderer;

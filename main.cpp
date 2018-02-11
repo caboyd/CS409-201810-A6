@@ -40,6 +40,7 @@
 #include "lib/ObjLibrary/ObjShader.h"
 #include "lib/ObjLibrary/ModelWithShader.h"
 #include "lib/ObjLibrary/LightingManager.h"
+#include "lib/ObjLibrary/SpriteFont.h"
 
 //My includes
 #include "CoordinateSystem.h"
@@ -49,6 +50,7 @@
 #include "PerformanceCounter.h"
 #include "Random.h"
 #include "DepthTexture.h"
+#include "TextRenderer.h"
 #include "main.h"
 
 
@@ -118,6 +120,8 @@ void init()
 	glEnable(GL_DEPTH_TEST);
 
 	glEnable(GL_CULL_FACE);
+
+	textRenderer.init();
 
 	//Load up all the models and grab the models with shader from them
 	ObjShader::load();
@@ -495,6 +499,10 @@ void update()
 	float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
 	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_OFFSET);
 
+	world.update(scaled_time);
+	world.pickupManager.checkForPickups(player.getPosition());
+	
+
 
 	//CAMERA STUFF
 	bool player_moved = false;
@@ -746,6 +754,9 @@ void display()
 	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
 	mvp_matrix = projection_matrix * view_matrix * model_matrix;
 	player_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
+
+	std::string text = "Score: " + std::to_string(world.pickupManager.score);
+	textRenderer.draw(text, 10, win_height - 40, 0.75, glm::vec3(1, 1, 1));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);

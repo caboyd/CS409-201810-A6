@@ -11,6 +11,7 @@
 #include "PerformanceCounter.h"
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "Collision.h"
+#include "Random.h"
 
 using namespace ObjLibrary;
 
@@ -22,6 +23,7 @@ World::~World()
 void World::init(const std::string& filename)
 {
 	loadModels();
+	pickupManager.init(this, &RodModel, &RingModel);
 
 	std::ifstream input_file;
 
@@ -43,7 +45,7 @@ void World::init(const std::string& filename)
 
 	//Get the world radus
 	getline(input_file, line);
-	this->worldRadius = (float)atof(line.c_str());
+	this->worldRadius = float(atof(line.c_str()));
 
 	//Get the number of disks and reserve memory for them
 	getline(input_file, line);
@@ -51,7 +53,7 @@ void World::init(const std::string& filename)
 	disks.reserve(atoi(line.c_str()) * sizeof(Disk*));
 
 	//Read and Create Disks
-	PerformanceCounter p;
+	PerformanceCounter p{};
 	p.start();
 	while (getline(input_file, line))//While getting a line
 	{
@@ -67,37 +69,41 @@ void World::init(const std::string& filename)
 			index = 0;
 
 		//Reads the x, z, and radius from the line
-		float y = 0.0f;
-		float x = (float)atof(line.c_str() + index);
+		const float y = 0.0f;
+		const float x = float(atof(line.c_str() + index));
 		index = ObjStringParsing::nextToken(line, index);
-		float z = (float)atof(line.c_str() + index);
+		const float z = float(atof(line.c_str() + index));
 		index = ObjStringParsing::nextToken(line, index);
-		float radius = (float)atof(line.c_str() + index);
+		const float radius = float(atof(line.c_str() + index));
+		Vector3 pos(x, y, z);
 
 		std::unique_ptr<Disk> disk;
-
+		DiskType type = RED_ROCK;
 		if (radius < 8)
 		{
-			disks.push_back(std::make_unique<RedRockDisk>(&this->RedRockModel, Vector3(x, y, z), radius));
-			disksSorted[0].push_back(disks.back().get());
+			type = RED_ROCK;
+			disks.push_back(std::make_unique<RedRockDisk>(&this->RedRockModel, pos, radius));	
 		} else if (radius <= 12)
 		{
-			disks.push_back(std::make_unique<LeafyDisk>(&this->LeafyModel, Vector3(x, y, z), radius));
-			disksSorted[1].push_back(disks.back().get());
+			type = LEAFY;
+			disks.push_back(std::make_unique<LeafyDisk>(&this->LeafyModel, pos, radius));
 		} else if (radius <= 20)
 		{
-			disks.push_back(std::make_unique<IcyDisk>(&this->IcyModel, Vector3(x, y, z), radius));
-			disksSorted[2].push_back(disks.back().get());
+			type = ICY;
+			disks.push_back(std::make_unique<IcyDisk>(&this->IcyModel, pos, radius));
 		} else if (radius <= 30)
 		{
-			disks.push_back(std::make_unique<SandyDisk>(&this->SandyModel, Vector3(x, y, z), radius));
-			disksSorted[3].push_back(disks.back().get());
+			type = SANDY;
+			disks.push_back(std::make_unique<SandyDisk>(&this->SandyModel, pos, radius));
 		} else if (radius > 30)
 		{
-			disks.push_back(std::make_unique<GreyRockDisk>(&this->GreyRockModel, Vector3(x, y, z), radius));
-			disksSorted[4].push_back(disks.back().get());
+			type = GREY_ROCK;
+			disks.push_back(std::make_unique<GreyRockDisk>(&this->GreyRockModel, pos, radius));
 		}
-
+		disksSorted[type].push_back(disks.back().get());
+		pos.y = double(disks.back()->getHeightAtPosition(float(pos.x),float(pos.z)));
+		pickupManager.addRod(pos, type + 1);
+		pickupManager.addRing(pos);
 
 
 	}
@@ -119,6 +125,7 @@ void World::destroy()
 	disksSorted[2].clear();
 	disksSorted[3].clear();
 	disksSorted[4].clear();
+	pickupManager.destroy();
 }
 
 void World::draw(glm::mat4x4& view_matrix, glm::mat4x4& projection_matrix)
@@ -171,17 +178,14 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 		disk->model->drawCurrentMaterial(1);
 	}
 
-	const MaterialForShader& rod = RodModel.getMaterial(0);
-	rod.activate(uniforms);
-	//Call draw on each rod
-	for (auto const& disk : disks)
-	{
+	RodModel.getMaterial(0).activate(uniforms);;
 
+	//Call draw on each rod
+	for (auto const& rod : pickupManager.rods)
+	{
+		if (rod.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		Vector3 pos = disk->position;
-		model_matrix = glm::translate(model_matrix, glm::vec3(pos));
-		float h = disk->getHeightAtPosition(float(pos.x), float(pos.z));
-		model_matrix[3][1] += h + 1.0f;
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
 		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
@@ -192,14 +196,12 @@ void World::drawOptimized(glm::mat4x4& view_matrix, glm::mat4x4& projection_matr
 	const MaterialForShader& ring = RingModel.getMaterial(0);
 	ring.activate(uniforms);
 	//Call draw on each ring
-	for (auto const& disk : disks)
+	for (auto const& ring : pickupManager.rings)
 	{
-
+		if(ring.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		Vector3 pos = disk->position;
-		model_matrix = glm::translate(model_matrix, glm::vec3(pos));
-		float h = disk->getHeightAtPosition(float(pos.x), float(pos.z));
-		model_matrix[3][1] += h + 0.1f;
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0,1,0));
 		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
@@ -270,6 +272,60 @@ void World::drawDepth(const unsigned int depth_matrix_id, glm::mat4x4& depth_vie
 	}
 }
 
+float World::getSpeedFactorAtPosition(float x, float z)
+{
+	return getSpeedFactorAtPosition(x, z, 0);
+}
+
+float World::getSpeedFactorAtPosition(float x, float z, float r)
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if (circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getSpeedFactor();
+	}
+	//No collision with a disk
+	return 1.0f;
+}
+
+Vector3& World::getRandomDiskPosition()
+{
+	const unsigned int i = Random::randu(disks.size() - 1);
+	return disks[i]->position;
+}
+
+void World::update(const float delta_time)
+{
+	pickupManager.update(delta_time);
+}
+
+
+float World::getHeightAtPointPosition(const float x, const float z)
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if (pointCircleIntersection(x, z, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getHeightAtPosition(x, z);
+	}
+	//No collision with a disk
+	return 0.0f;
+}
+
+float World::getHeightAtCirclePosition(const float x, const float z, const float r)
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if (circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getHeightAtPosition(x, z);
+	}
+	//No collision with a disk
+	return 0.0f;
+}
+
+
 void World::loadModels()
 {
 	//Load the model with shaders for each type
@@ -289,28 +345,4 @@ void World::loadModels()
 	model.load(RING_FILENAME);
 	this->RingModel = model.getModelWithShader();
 
-}
-
-float World::getHeightAtPointPosition(const float x, const float y)
-{
-	for (auto &disk : disks)
-	{
-		//If colliding with this disk return the height at the position on the disk
-		if (pointCircleIntersection(x, y, float(disk->position.x), float(disk->position.z), disk->radius))
-			return disk->getHeightAtPosition(x, y);
-	}
-	//No collision with a disk
-	return -1.0f;
-}
-
-float World::getHeightAtCirclePosition(const float x, const float y, const float r)
-{
-	for (auto &disk : disks)
-	{
-		//If colliding with this disk return the height at the position on the disk
-		if (circleIntersection(x, y, r, float(disk->position.x), float(disk->position.z), disk->radius))
-			return disk->getHeightAtPosition(x, y);
-	}
-	//No collision with a disk
-	return -1.0f;
 }

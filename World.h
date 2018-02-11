@@ -4,6 +4,7 @@
 #include "Disk.h"
 #include <vector>
 #include "memory"
+#include "PickupManager.h"
 
 //The world class loads in all of the disks and is able to draw itself.
 class World
@@ -36,6 +37,8 @@ public:
 	std::vector<std::unique_ptr<Disk>> disks;
 
 	std::vector<Disk*> disksSorted[5];
+
+	PickupManager pickupManager;
 public:
 	World() = default;
 	~World();
@@ -63,4 +66,12 @@ public:
 	//Draw all of the disks to the depthRTT Shader
 	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
 	void drawDepth(unsigned int depth_matrix_id, glm::mat4x4& view_perspective_matrix);
+
+
+	//TODO COMMENTS
+	float getSpeedFactorAtPosition(float x, float z);
+	float getSpeedFactorAtPosition(float x, float z, float r);
+	Vector3& getRandomDiskPosition();
+	void update(float delta_time);
+
 };

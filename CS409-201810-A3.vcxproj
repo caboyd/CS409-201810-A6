@@ -23,13 +23,13 @@
     <ProjectGuid>{2540246D-895F-46ED-A153-52A979115E6F}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>CS409201810A1</RootNamespace>
-    <WindowsTargetPlatformVersion>10.0.16299.0</WindowsTargetPlatformVersion>
+    <WindowsTargetPlatformVersion>10.0.14393.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v141</PlatformToolset>
+    <PlatformToolset>v140</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -72,6 +72,7 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <LinkIncremental>true</LinkIncremental>
+    <IncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath);$(SolutionDir);</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -175,8 +176,10 @@
     <ClCompile Include="MathHelper.h" />
     <ClCompile Include="LeafyDisk.cpp" />
     <ClCompile Include="NoiseField.cpp" />
+    <ClCompile Include="PickupManager.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="RedRockDisk.cpp" />
+    <ClCompile Include="Ring.cpp" />
     <ClCompile Include="SandyDisk.cpp" />
     <ClCompile Include="Sleep.cpp" />
     <ClCompile Include="World.cpp" />
@@ -186,6 +189,7 @@
     <ClInclude Include="CoordinateSystem.h" />
     <ClInclude Include="DepthTexture.h" />
     <ClInclude Include="Disk.h" />
+    <ClInclude Include="Entity.h" />
     <ClInclude Include="GreyRockDisk.h" />
     <ClInclude Include="IcyDisk.h" />
     <ClInclude Include="lib\GetGlut.h" />
@@ -217,12 +221,16 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="NoiseField.h" />
     <ClInclude Include="PerformanceCounter.h" />
+    <ClInclude Include="PickupManager.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RedRockDisk.h" />
+    <ClInclude Include="Ring.h" />
+    <ClInclude Include="Rod.h" />
     <ClInclude Include="SandyDisk.h" />
     <ClInclude Include="ShadowBox.h" />
     <ClInclude Include="SIMD.h" />
     <ClInclude Include="Sleep.h" />
+    <ClInclude Include="TextRenderer.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
   <ItemGroup>
@@ -230,16 +238,18 @@
     <None Include="assets\Shaders\depthRTT.vert" />
     <None Include="assets\Shaders\Passthrough.vert" />
     <None Include="assets\Shaders\SimpleTexture.frag" />
-    <None Include="lib\freeglut.dll" />
     <None Include="lib\ObjLibrary\ObjShader1Light1Shadow.frag" />
     <None Include="lib\ObjLibrary\ObjShaderManyLights1Shadow.frag" />
     <None Include="lib\ObjLibrary\ObjShaderShadow.vert" />
     <None Include="lib\ObjLibrary\ObjVbo.inl" />
+    <None Include="text.frag" />
+    <None Include="text.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="lib\ObjLibrary\ObjLibrary-development-log.txt" />
   </ItemGroup>
   <ItemGroup>
+    <Library Include="freetype\freetype.lib" />
     <Library Include="lib\freeglut.lib" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
