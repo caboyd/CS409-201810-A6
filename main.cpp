@@ -51,6 +51,7 @@
 #include "Random.h"
 #include "DepthTexture.h"
 #include "TextRenderer.h"
+#include "LineRenderer.h"
 #include "main.h"
 
 
@@ -122,6 +123,7 @@ void init()
 	glEnable(GL_CULL_FACE);
 
 	textRenderer.init();
+	lineRenderer.init();
 
 	//Load up all the models and grab the models with shader from them
 	ObjShader::load();
@@ -581,12 +583,12 @@ void update()
 	{
 		V3 new_cam_position = player.getPosition();
 		const V3& player_forward = player.getForward();
-		player_camera.setOrientation(player_forward);
+		player_camera.setOrientation(player_forward, Vector3(0,1,0));
 		new_cam_position.x -= 4.0f * player_forward.x;
 		new_cam_position.z -= 4.0f * player_forward.z;
 		new_cam_position += PLAYER_CAMERA_OFFSET;
 		player_camera.setPosition(new_cam_position);
-		player_camera.setOrientation(player.getForward());
+		//player_camera.setOrientation(player.getForward());
 	}
 
 	//Overview camera follows player position

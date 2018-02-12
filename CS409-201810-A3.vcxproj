@@ -219,6 +219,7 @@
     <ClInclude Include="lib\ObjLibrary\Vector3.h" />
     <ClInclude Include="lib\ObjLibrary\VertexDataFormat.h" />
     <ClInclude Include="LeafyDisk.h" />
+    <ClInclude Include="LineRenderer.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="NoiseField.h" />
     <ClInclude Include="PerformanceCounter.h" />
@@ -237,14 +238,16 @@
   <ItemGroup>
     <None Include="assets\Shaders\depthRTT.frag" />
     <None Include="assets\Shaders\depthRTT.vert" />
+    <None Include="assets\Shaders\line.frag" />
+    <None Include="assets\Shaders\line.vert" />
     <None Include="assets\Shaders\Passthrough.vert" />
     <None Include="assets\Shaders\SimpleTexture.frag" />
+    <None Include="assets\Shaders\text.frag" />
+    <None Include="assets\Shaders\text.vert" />
     <None Include="lib\ObjLibrary\ObjShader1Light1Shadow.frag" />
     <None Include="lib\ObjLibrary\ObjShaderManyLights1Shadow.frag" />
     <None Include="lib\ObjLibrary\ObjShaderShadow.vert" />
     <None Include="lib\ObjLibrary\ObjVbo.inl" />
-    <None Include="text.frag" />
-    <None Include="text.vert" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="lib\ObjLibrary\ObjLibrary-development-log.txt" />

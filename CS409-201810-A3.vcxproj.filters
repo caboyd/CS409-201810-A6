@@ -269,6 +269,9 @@
     <ClInclude Include="TextRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="LineRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\ObjLibrary\ObjVbo.inl">
@@ -295,10 +298,16 @@
     <None Include="assets\Shaders\depthRTT.vert">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="text.vert">
+    <None Include="assets\Shaders\line.frag">
       <Filter>Resource Files</Filter>
     </None>
-    <None Include="text.frag">
+    <None Include="assets\Shaders\line.vert">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="assets\Shaders\text.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="assets\Shaders\text.vert">
       <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>

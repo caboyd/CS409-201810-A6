@@ -119,4 +119,5 @@ global DepthTexture depth_texture;
 
 global glm::mat4x4 light_view_matrix;
 
-global TextRenderer textRenderer;
+global_extern TextRenderer textRenderer;
+global_extern LineRenderer lineRenderer;

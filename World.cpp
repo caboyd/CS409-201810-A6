@@ -12,6 +12,9 @@
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "Collision.h"
 #include "Random.h"
+#include "LineRenderer.h"
+
+extern LineRenderer lineRenderer;
 
 using namespace ObjLibrary;
 
@@ -131,7 +134,7 @@ void World::destroy()
 void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
 {
 
-	draw(view_matrix,projection_matrix, glm::vec3(0,0,0));
+	draw(view_matrix, projection_matrix, glm::vec3(0, 0, 0));
 }
 
 void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos)
@@ -173,7 +176,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 
 
 	//For each disk draw all the black cylinder bases
-	//Setup to draw the black disk cylinders for all disks
+//Setup to draw the black disk cylinders for all disks
 	const MaterialForShader& base = disks[0]->model->getMaterial(1);
 
 	const ObjShader::ShaderUniforms& uniforms = ObjShader::activateShader();
@@ -181,6 +184,9 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 
 	glUniformMatrix4fv(uniforms.m_view_matrix, 1, false, &(view_matrix[0][0]));
 	glUniform3fv(uniforms.m_camera_pos, 1, &(camera_pos.x));
+
+
+
 
 	//Call draw on each black disk base
 	for (auto const& disk : disks)
@@ -279,6 +285,20 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 		}
 
 	}
+	std::vector<Vector3> points;
+	
+	Vector3 pos = pickupManager.rings[0].position;
+	points.push_back(pos);
+	pos.y += 1.0f;
+	points.push_back(pos);
+	Vector3 tar = pickupManager.rings[0].targetPosition;
+	tar.y += 1.0f;
+	points.push_back(tar);
+	tar.y -= 1.0f;
+	points.push_back(tar);
+	
+	glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
+	lineRenderer.draw(points, glm::vec4(1.0,1.0,1.0,1.0), mvp_matrix);
 }
 
 void World::drawDepth(const unsigned int depth_matrix_id, glm::mat4x4& depth_view_projection_matrix)
