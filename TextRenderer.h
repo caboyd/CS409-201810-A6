@@ -54,8 +54,7 @@ public:
 		text_color_id = glGetUniformLocation(text_program_id, "textColor");
 
 		glUseProgram(text_program_id);
-		glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(win_width), 0.0f, static_cast<GLfloat>(win_height));
-		glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection));
+		
 
 		FT_Library  ft;
 		//Init freetype
@@ -131,11 +130,14 @@ public:
 
 	void draw(std::string text, float x, float y, float scale, glm::vec3 color)
 	{
+		glDepthFunc(GL_ALWAYS);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		// Activate corresponding render state	
 		glUseProgram(text_program_id);
+		glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(win_width), 0.0f, static_cast<GLfloat>(win_height));
+		glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniform3f(text_color_id, color.x, color.y, color.z);
 		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(VAO);
@@ -175,8 +177,20 @@ public:
 		}
 		glBindVertexArray(0);
 		glBindTexture(GL_TEXTURE_2D, 0);
-
+		glDepthFunc(GL_LESS);
 		glDisable(GL_BLEND);
 	}
 
+
+	float getWidth(std::string text, float scale)
+	{
+		float width = 0;
+		std::string::const_iterator c;
+		for (c = text.begin(); c != text.end(); c++)
+		{
+			Character ch = Characters[*c];
+			width += ch.Size.x * scale;
+		}
+		return width;
+	}
 };

@@ -10,7 +10,7 @@ struct Point
 {
 	glm::vec3 pos;
 	glm::vec4 color;
-	Point(){};
+	Point() = default;
 	Point(glm::vec3 pos, glm::vec4 color) :pos(pos), color(color) {}
 };
 
@@ -46,9 +46,9 @@ public:
 inline void LineRenderer::init()
 {
 	//Init shader
-	line_program_id = ObjLibrary::ObjShader::initProgramStart(shader_folder + line_shader_vert,
-	                                                          shader_folder + line_shader_frag);
-	ObjLibrary::ObjShader::initProgramEnd(line_program_id);
+	line_program_id = ObjShader::initProgramStart(shader_folder + line_shader_vert,
+		shader_folder + line_shader_frag);
+	ObjShader::initProgramEnd(line_program_id);
 	mvp_id = glGetUniformLocation(line_program_id, "model_view_projection_matrix");
 
 	// generate and bind the vao
@@ -63,11 +63,11 @@ inline void LineRenderer::init()
 
 inline void LineRenderer::draw(const Point& p1, const Point& p2, glm::mat4& mvp_matrix) const
 {
-	std::vector<Point> vertexData;
-	vertexData.push_back(p1);
-	vertexData.push_back(p2);
+	std::vector<Point> vertex_data;
+	vertex_data.push_back(p1);
+	vertex_data.push_back(p2);
 	// fill with data
-	draw(vertexData, mvp_matrix);
+	draw(vertex_data, mvp_matrix);
 }
 
 inline void LineRenderer::draw(std::vector<Point> vertexData, glm::mat4& mvp_matrix) const
@@ -82,12 +82,12 @@ inline void LineRenderer::draw(std::vector<Point> vertexData, glm::mat4& mvp_mat
 	glVertexAttribPointer(1, 4, GL_FLOAT, GL_FALSE, sizeof(Point), (void*)12);
 
 	// fill with data
-	size_t numVerts = vertexData.size();
-	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * numVerts, &vertexData[0], GL_STATIC_DRAW);
+	const size_t num_verts = vertexData.size();
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * num_verts, &vertexData[0], GL_STATIC_DRAW);
 	glUniformMatrix4fv(mvp_id, 1, false, &(mvp_matrix[0][0]));
 
 	glLineWidth(2.0f);
-	glDrawArrays(GL_LINES, 0, numVerts);
+	glDrawArrays(GL_LINES, 0, num_verts);
 	glBindVertexArray(0);
 }
 
@@ -98,17 +98,10 @@ inline void LineRenderer::draw(const Vector3& p1, const Vector3& p2, glm::mat4& 
 
 inline void LineRenderer::draw(std::vector<Vector3> points, glm::vec4 color, glm::mat4& mvp_matrix) const
 {
-	std::vector<Point> vertexData;
-	vertexData.resize(points.size() * 2 - 2);
-	unsigned int count = 0;
+	std::vector<Point> vertex_data;
+	vertex_data.resize(points.size());
 	for (unsigned int i = 0; i < points.size(); i++)
-	{
-		vertexData[count++] = Point(glm::vec3(points[i]), color);
-		if (i > 0 && i != points.size() - 1)
-		{
-			vertexData[count++] = Point(glm::vec3(points[i]), color);
-		}
-	}
+		vertex_data[i] = Point(glm::vec3(points[i]), color);
 
-	draw(vertexData, mvp_matrix);
+	draw(vertex_data, mvp_matrix);
 }

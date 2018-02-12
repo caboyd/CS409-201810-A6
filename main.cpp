@@ -758,8 +758,9 @@ void display()
 	player_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
 
 	const std::string text = "Score: " + std::to_string(world.pickupManager.score);
-	textRenderer.draw(text, 10.0f, float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
-
+	float text_width = textRenderer.getWidth("Score: XXX", 0.75f);
+	textRenderer.draw(text, float(win_width - text_width - 20.0f), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
+	
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
 
