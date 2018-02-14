@@ -18,8 +18,14 @@ void DepthTexture::startRenderToDepthTexture() const
 	assert(initialized);
 	glBindFramebuffer(GL_FRAMEBUFFER, depth_frame_buffer);
 	glViewport(0, 0, texture_size, texture_size);
+	glClear(GL_DEPTH_BUFFER_BIT);
 	// Render on the whole framebuffer, complete from the lower left corner to the upper right
 	glUseProgram(depth_program_id);
+}
+
+void DepthTexture::setDepthMVP(glm::mat4& depth_mvp) const
+{
+	glUniformMatrix4fv(depth_matrix_id, 1, GL_FALSE, &depth_mvp[0][0]);
 }
 
 unsigned DepthTexture::getDepthMatrixUniformLocation() const
@@ -64,7 +70,7 @@ void DepthTexture::renderDepthTextureToQuad(unsigned offsetX, unsigned offsetY, 
 	glDisableVertexAttribArray(0);
 }
 
-void DepthTexture::init(const unsigned shadow_map_size)
+void DepthTexture::init(unsigned shadow_map_size)
 {
 	initialized = true;
 	this->texture_size = shadow_map_size;

@@ -52,8 +52,8 @@ public:
 
 	//Looks through all the disks in the world and if the position is on
 	//a disk then get the height at the position on the disk
-	float getHeightAtPointPosition(float x, float y);
-	float getHeightAtCirclePosition(float x, float y, float r);
+	float getHeightAtPointPosition(float x, float z) const ;
+	float getHeightAtCirclePosition(float x, float z, float r) const;
 	//Draw all of the disks
 	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
 	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
@@ -65,13 +65,18 @@ public:
 	void drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
 	//Draw all of the disks to the depthRTT Shader
 	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
-	void drawDepth(unsigned int depth_matrix_id, glm::mat4x4& view_perspective_matrix);
+	void drawDepth(glm::mat4x4& view_perspective_matrix);
 
 
-	//TODO COMMENTS
+	//Gets the speed multiplier based on the disk type
+	//Sandy 0.75, Icy 0.25, Leafy 0.5, other 1.0
 	float getSpeedFactorAtPosition(float x, float z);
 	float getSpeedFactorAtPosition(float x, float z, float r);
+
+	//Returns the center position of a random disk
 	Vector3& getRandomDiskPosition();
+
+	//Call Update on the pickup manager
 	void update(float delta_time);
 
 };

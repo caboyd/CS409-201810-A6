@@ -26,6 +26,8 @@
 #include "CoordinateSystem.h"
 using namespace ObjLibrary;
 
+#define DEFAULT_SHADOW_DISTANCE 35.0
+
 extern const double CLIP_NEAR;
 extern const double CLIP_FAR;
 extern const double FOV;
@@ -36,8 +38,11 @@ class ShadowBox
 {
 
 private:
+	double SHADOW_DISTANCE;
+
+
 	float OFFSET = 7.0;
-	float SHADOW_DISTANCE;
+
 	glm::vec4 UP = glm::vec4(0, 1, 0, 0);
 	glm::vec4 FORWARD = glm::vec4(0, 0, -1, 0);
 
@@ -66,7 +71,7 @@ public:
 	*			 a higher value will have lower quality shadows.
 	*/
 	ShadowBox() {}
-	void init(glm::mat4x4* light_view_matrix, CoordinateSystem** camera, const float shadow_distance)
+	void init(glm::mat4x4* light_view_matrix, CoordinateSystem** camera, const float shadow_distance = DEFAULT_SHADOW_DISTANCE)
 	{
 		this->SHADOW_DISTANCE = shadow_distance;
 		this->lightViewMatrix = light_view_matrix;
@@ -277,5 +282,10 @@ public:
 	void setShadowDistance(const float d)
 	{
 		SHADOW_DISTANCE = d;
+	}
+
+	float getShadowDistance() const
+	{
+		return SHADOW_DISTANCE;
 	}
 };

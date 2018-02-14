@@ -3,6 +3,10 @@
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "PerformanceCounter.h"
 #include "MathHelper.h"
+#include "DepthTexture.h"
+
+extern DepthTexture depth_texture;
+
 
 void Disk::generateHeightMapModel()
 {
@@ -132,14 +136,14 @@ void Disk::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_ma
 
 }
 
-void Disk::drawDepth(const unsigned int depth_matrix_id, const glm::mat4x4& depth_view_projection_matrix) const
+void Disk::drawDepth(const glm::mat4x4& depth_view_projection_matrix) const
 {
 	glm::mat4x4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(position));
 	model_matrix = glm::scale(model_matrix, glm::vec3(radius, 1, radius));
 
 	glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
-	glUniformMatrix4fv(depth_matrix_id, 1, GL_FALSE, &depth_mvp[0][0]);
+	depth_texture.setDepthMVP(depth_mvp);
 
 	unsigned int mat_count = model->getMaterialCount();
 	for (unsigned int i = 0; i < mat_count; i++)
@@ -165,7 +169,7 @@ void Disk::drawDepth(const unsigned int depth_matrix_id, const glm::mat4x4& dept
 		model_matrix = glm::scale(model_matrix, glm::vec3(corner * 2 / heightMapSize, 1, corner * 2 / heightMapSize));
 
 		depth_mvp = depth_view_projection_matrix * model_matrix;
-		glUniformMatrix4fv(depth_matrix_id, 1, GL_FALSE, &depth_mvp[0][0]);
+		depth_texture.setDepthMVP(depth_mvp);
 
 		mat_count = heightMapModel.getMaterialCount();
 		for (unsigned int i = 0; i < mat_count; i++)

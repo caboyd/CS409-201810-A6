@@ -2,7 +2,7 @@
 
 #define V3 Vector3
 
-#define global static
+#define global_local static
 #define global_extern
 
 //Helper function to get all the files in a folder on windows
@@ -24,7 +24,16 @@ void specialUp(int special_key, int x, int y);
 void mouseMove(int x, int y);
 void mouseButton(int button, int state, int x, int y);
 
-//Consts
+
+//Global External constants available to all files
+//***************************************
+//ShadowBox.h uses these globals
+global_extern const double FOV = 60.0;
+global_extern const double CLIP_NEAR = 0.1;
+global_extern const double CLIP_FAR = 1600.0;
+
+//Global local Constants
+//***************************************
 const unsigned int KEY_UP_ARROW = 256;
 const unsigned int KEY_DOWN_ARROW = 257;
 const unsigned int KEY_LEFT_ARROW = 258;
@@ -36,23 +45,19 @@ const unsigned int MOUSE_LEFT = 263;
 const unsigned int MOUSE_RIGHT = 264;
 const unsigned int KEY_COUNT = 265;
 
+//Framerate and Frame time
 const double FPS = 144.0;
-
-//ShadowBox.h uses these globals
-global_extern const double FOV = 60.0;
-global_extern const double CLIP_NEAR = 0.1;
-global_extern const double CLIP_FAR = 1600.0;
-const double SHADOW_DISTANCE = 35.0;
-const unsigned int SHADOW_MAP_SIZE = 4096;
-
 const double MIN_FRAME_TIME = 1000.0 / FPS;
-//3 degrees per second
+
+//Players turns 3 degrees per second
 const float TURNING_DEGREES = 3.0f / 1000.0f;
-//10 metres per second
+//Player moves 10 metres per second
 const float PLAYER_SPEED = 10.0f / 1000.0f;;
-//Boost constants
+
+//Player speed multiplier constants
 const float PLAYER_SPEED_BOOST_MULT = 4.0f;
 const float PLAYER_TURN_BOOST_MULT = 1.5f;
+
 
 //Initial Camera/Player vectors
 //Sun Dir is the direction the sun is on the skybox
@@ -72,52 +77,61 @@ const glm::mat4 BIAS_MATRIX(
 	0.5, 0.5, 0.5, 1.0
 );
 
-//Globals
+//Globals Externals available to all files
+//***************************************
+
+//Windows width and height
 global_extern int win_width = 1280;
 global_extern int win_height = 960;
-global bool full_screen = false;
-global bool fullscreen_toggle_allowed = true;
-global bool key_pressed[KEY_COUNT] = { false };
+
+//Renderers for rendering text and lines
+global_extern TextRenderer text_renderer;
+global_extern LineRenderer line_renderer;
+global_extern DepthTexture depth_texture;
+
+//Global Locals available in main.cpp
+//***************************************
+global_local bool full_screen = false;
+global_local bool fullscreen_toggle_allowed = true;
+global_local bool key_pressed[KEY_COUNT] = { false };
 
 //Current mouse location
-global int mouse_x = 0, mouse_y = 0;
+global_local int mouse_x = 0, mouse_y = 0;
 
 //The change in mouse since the last time the mouse data was processed
-global int mouse_dx = 0, mouse_dy = 0;
+global_local int mouse_dx = 0, mouse_dy = 0;
 
 //The location of the mouse when the mouse was click. 
 //This is used to snap the mouse back to its position
-global int mouse_locked_x = 0, mouse_locked_y;
+global_local int mouse_locked_x = 0, mouse_locked_y;
 
 //Set this to true to float the camera when the game starts
-global bool camera_float = false;
+global_local bool camera_float = false;
 
 //Current level
-global unsigned int level = 0;
+global_local unsigned int level = 0;
 //list of level file names to load
-global std::vector<std::string> levels;
+global_local std::vector<std::string> levels;
 
-global std::string world_folder;
+global_local std::string world_folder;
 
-global int last_time;
-global float time_scale = 1.0f;
+global_local int last_time;
+global_local float time_scale = 1.0f;
 
 //Global Game Objects
-global ModelWithShader player_model;
-global ModelWithShader skybox_model;
+global_local ModelWithShader player_model;
+global_local ModelWithShader skybox_model;
 
-global glm::mat4 projection_matrix;
-global CoordinateSystem player_camera(PLAYER_CAMERA_INIT_POS, CAMERA_INIT_FORWARD);
-global CoordinateSystem overview_camera(OVERVIEW_CAMERA_INIT_POS, V3(0.0f, -1.0f, 0.0f));
-global CoordinateSystem* active_camera = &player_camera;
+global_local glm::mat4 projection_matrix;
+global_local CoordinateSystem player_camera(PLAYER_CAMERA_INIT_POS, CAMERA_INIT_FORWARD);
+global_local CoordinateSystem overview_camera(OVERVIEW_CAMERA_INIT_POS, V3(0.0f, -1.0f, 0.0f));
+global_local CoordinateSystem* active_camera = &player_camera;
 
-global World world;
-global CoordinateSystem player(PLAYER_INIT_POS, PLAYER_INIT_FORWARD);
-global ShadowBox shadow_box;
+global_local World world;
+global_local CoordinateSystem player(PLAYER_INIT_POS, PLAYER_INIT_FORWARD);
+global_local ShadowBox shadow_box;
 
-global DepthTexture depth_texture;
 
-global glm::mat4x4 light_view_matrix;
 
-global_extern TextRenderer textRenderer;
-global_extern LineRenderer lineRenderer;
+global_local glm::mat4x4 light_view_matrix;
+

@@ -80,6 +80,8 @@ void CoordinateSystem::init(const ObjLibrary::Vector3& position, const ObjLibrar
 	this->up = calculateUpVector(forward);
 }
 
+
+
 void CoordinateSystem::setPosition(const ObjLibrary::Vector3& position)
 {
 	this->position = position;
@@ -152,13 +154,14 @@ void CoordinateSystem::rotateAroundTargetToPosition(const ObjLibrary::Vector3& t
 	double angle = target_towards_position.getAngleSafe(target_towards_to_position);
 
 
-	if(angle > MathHelper::M_PI_2) {
+	if (angle > MathHelper::M_PI_2)
+	{
 		double temp = cross.x;
-		if ( cross.y < 0 && cross.z < 0) temp = -temp;
+		if (cross.y < 0 && cross.z < 0) temp = -temp;
 		cross.x = cross.z;
 		cross.z = temp;
 	}
-	
+
 
 	if (angle > max_radians) angle = max_radians;
 	else if (angle < -max_radians) angle = -max_radians;

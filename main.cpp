@@ -1,13 +1,18 @@
 /*
  *
  *	Main.cpp
+ *	Assignment 3
  *	Author: Chris Boyd, 200225231
  *
  *	Description:
  *		An OpenGL game using ObjLibrary and a modified ObjShader for shadows and lighting.
- *		Opens a freeglut window, loads inthe Obj shader models. Reads a world file and loads a world.
+ *		Opens a freeglut window, loads in the Obj shader models. Reads a world file and loads a world.
  *		Draws to a depth texture. Renders to the screen with lighting and shadows.
- *		Generates Height maps for 5 different disk types. Creates models using triangle lists in vbos
+ *		Generates Height maps for 5 different disk types. Creates models using triangle lists in vbos.
+ *		Loads in a rod and ring at the position of each disk center. Rings move around the map to a new
+ *		disk center when they reach one they choose a new disk target to move towards.
+ *
+ *		Rings and rods are worth points. The player can collect them for points.
  *
  *
  *		KEY BINDINGS:
@@ -122,8 +127,8 @@ void init()
 
 	glEnable(GL_CULL_FACE);
 
-	textRenderer.init();
-	lineRenderer.init();
+	text_renderer.init();
+	line_renderer.init();
 
 	//Load up all the models and grab the models with shader from them
 	ObjShader::load();
@@ -147,36 +152,35 @@ void init()
 	//The world that is loaded first
 	world.init(world_folder + "Basic.txt");
 
+
+	//Initialize for shadows
+	//Pass the light view matrix to the shadow box
+	light_view_matrix = glm::mat4();
+	shadow_box.init(&light_view_matrix, &active_camera);
+	depth_texture.init();
+
 	//Enabled lighting and shadows
 	LightingManager::setEnabled(true);
 	LightingManager::setShadowEnabled(true);
-	LightingManager::setShadowDistance(float(SHADOW_DISTANCE));
+	LightingManager::setShadowDistance(shadow_box.getShadowDistance());
 
 	//Set the shadow light to be a direction light where the sun is
 	LightingManager::setLightEnabled(0, true);
 	LightingManager::setLightDirectional(0, SUN_DIR);
 	LightingManager::setLightColour(0, V3(1.0, 1.0, 1.0));
 
-
+	//Set an ambient light with full strength
 	LightingManager::setLightEnabled(2, true);
 	LightingManager::setLightColour(2, V3(1.0, 1.0, 1.0));
 
+	//Set a positional light at the players location
+	//LightingManager::setLightEnabled(1, true);
+	//LightingManager::setLightPositional(1, PLAYER_INIT_POS);
+	//LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
+	//LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
 
-	//Set a position light at the players location
-	LightingManager::setLightEnabled(1, false);
-	LightingManager::setLightPositional(1, PLAYER_INIT_POS);
-	LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
-	LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
-
-	//Pass the light view matrix to the shadow box
-	light_view_matrix = glm::mat4();
-	shadow_box.init(&light_view_matrix, &active_camera, float(SHADOW_DISTANCE));
-
-	depth_texture.init(SHADOW_MAP_SIZE);
 
 	last_time = glutGet(GLUT_ELAPSED_TIME);
-
-
 }
 
 
@@ -241,9 +245,7 @@ void keyboard(unsigned char key, int x, int y)
 		break;
 	case 27: // on [ESC]
 		exit(0); // normal exit
-		break;
-	default:
-		break;
+	default:;
 	}
 
 	key_pressed[key] = true;
@@ -261,22 +263,24 @@ void keyboard(unsigned char key, int x, int y)
 			glutFullScreen();
 		else
 		{
+			win_width = 1280;
+			win_height = 960;
 			glutReshapeWindow(win_width, win_height);
 			glutPositionWindow(0, 0);
 		}
 	}
-
-
-
 }
 
-//Read keyboard input
+//Read keyboard input on key up
 void keyboardUp(unsigned char key, int x, int y)
 {
+	//Convert all keys to uppercase
 	if (key >= 'a' && key <= 'z')
 		key = key - 'a' + 'A';
 
+	//Unpress the key
 	key_pressed[key] = false;
+
 
 	//Fix sticky key with shift
 	if (key == '?' || key == '/')
@@ -290,14 +294,16 @@ void keyboardUp(unsigned char key, int x, int y)
 	case 13:
 		fullscreen_toggle_allowed = true;
 		break;
+	default:;
 	}
 
+	//Set special keys
 	key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
 	key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
 
 }
 
-//Read keyboard input
+//Read keyboard input on key down
 void special(const int special_key, int x, int y)
 {
 	switch (special_key)
@@ -320,11 +326,12 @@ void special(const int special_key, int x, int y)
 	case GLUT_KEY_ALT_L:
 		key_pressed[KEY_LEFT_ALT] = false;
 		break;
+	default:;
 	}
 
 }
 
-//Read keyboard input
+//Read keyboard input on key up
 void specialUp(const int special_key, int x, int y)
 {
 	switch (special_key)
@@ -347,7 +354,10 @@ void specialUp(const int special_key, int x, int y)
 	case GLUT_KEY_ALT_L:
 		key_pressed[KEY_LEFT_ALT] = false;
 		break;
+	default:;
 	}
+
+	//Set special keys
 	key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
 	key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
 }
@@ -361,7 +371,7 @@ void mouseMove(const int x, const int y)
 	mouse_x = x;
 	mouse_y = y;
 
-	//Warp the pointer back to its original spot
+	//Warp the pointer back to its original spot if it moved
 	if (mouse_x != mouse_locked_x || mouse_y != mouse_locked_y)
 	{
 		glutWarpPointer(mouse_locked_x, mouse_locked_y);
@@ -375,6 +385,7 @@ void mouseMove(const int x, const int y)
 void mouseButton(const int button, const int state, const int x, const int y)
 {
 
+	//Hides mouse when held
 	switch (button)
 	{
 	case GLUT_RIGHT_BUTTON:
@@ -399,8 +410,7 @@ void mouseButton(const int button, const int state, const int x, const int y)
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 		break;
-	default:
-		break;
+	default:;
 	}
 
 	//Reset mouse coords on mouse click
@@ -425,32 +435,33 @@ void update()
 
 	//Multiply player speed/turn by scaled time.
 	float player_distance = PLAYER_SPEED * scaled_time;
-	//Shift moves faster
-	if (key_pressed[KEY_SHIFT])
-		player_distance *= PLAYER_SPEED_BOOST_MULT;
-
 	float player_turn = TURNING_DEGREES * scaled_time;
-	//Shift turns faster
-	if (key_pressed[KEY_SHIFT])
-		player_turn *= PLAYER_TURN_BOOST_MULT;
 
-	//old player values for calculations
+	//Shift moves/turns faster
+	if (key_pressed[KEY_SHIFT])
+	{
+		player_distance *= PLAYER_SPEED_BOOST_MULT;
+		player_turn *= PLAYER_TURN_BOOST_MULT;
+	}
+
+	//save old player values for calculations
 	const V3 last_player_pos = player.getPosition();
 	const V3 last_player_forward = player.getForward();
 
-	Vector2 player_velocity(0.0, 0.0);
+	//Use vectors to calculate correct diagonal movement
+	Vector2 player_direction(0.0, 0.0);
 
-	//vector for diagonal movement
 	if (key_pressed['D'])
-		player_velocity.x += 1.0;
+		player_direction.x += 1.0;
 	if (key_pressed['A'])
-		player_velocity.x -= 1.0;
+		player_direction.x -= 1.0;
 	if (key_pressed['W'])
-		player_velocity.y += 1.0;
+		player_direction.y += 1.0;
 	if (key_pressed['S'])
-		player_velocity.y -= 1.0;
+		player_direction.y -= 1.0;
 
-	if (player_velocity.getNorm() > 1.0)
+	//If player is moving diagonally then multiply by sqrt(2)/2
+	if (player_direction.getNorm() > 1.0)
 		player_distance *= float(MathHelper::M_SQRT2_2);
 
 	//move player
@@ -472,12 +483,10 @@ void update()
 
 	//Change to overview camera when 'O' held
 	if (key_pressed['O'])
-	{
 		active_camera = &overview_camera;
-	} else
-	{
+	else
 		active_camera = &player_camera;
-	}
+
 
 	//Move player
 	if (key_pressed[KEY_UP_ARROW])
@@ -492,26 +501,28 @@ void update()
 
 	//On mouse left/right down, move forward
 	if (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT])
-	{
 		player.moveForward(player_distance);
-	}
 
 
+	//Set the players height to height of the world
 	const Vector3 player_position = player.getPosition();
-	float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
+	const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
 	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_OFFSET);
 
+	//Updates the rings in the world
 	world.update(scaled_time);
+
+	//Do collision detection for player and rings/rods
 	world.pickupManager.checkForPickups(player.getPosition());
-	
 
 
 	//CAMERA STUFF
+	//*********************
+
 	bool player_moved = false;
 
-	//If player is moving then lock the camera behind the player by turning camera_float off
-	if (player.getPosition().getDistanceSquared(last_player_pos) > 0.0 ||
-		player.getForward().getDistanceSquared(last_player_forward) > 0.0)
+	//If player is moving/turning then lock the camera behind the player by turning camera_float off
+	if (player.getPosition() != last_player_pos ||	player.getForward() != last_player_forward)
 	{
 		camera_float = false;
 		player_moved = true;
@@ -522,14 +533,12 @@ void update()
 	if (key_pressed[MOUSE_LEFT] && !key_pressed[MOUSE_RIGHT] && !player_moved)
 	{
 		const double angle_y = player_camera.getForward().getAngleNormal(player_camera.getUp());
+
 		if (angle_y > M_PI * 0.92)
-		{
 			if (mouse_dy > 0) mouse_dy = 0;
-		}
 		if (angle_y < M_PI * 0.08)
-		{
 			if (mouse_dy < 0) mouse_dy = 0;
-		}
+
 		const V3 target = player.getPosition() + PLAYER_CAMERA_OFFSET;
 		player_camera.rotateAroundTarget(target, glm::radians(double(-mouse_dx)), glm::radians(double(-mouse_dy)));
 		player_camera.setOrientation(player_camera.getForward().getNormalized(), V3(0, 1, 0));
@@ -583,20 +592,15 @@ void update()
 	{
 		V3 new_cam_position = player.getPosition();
 		const V3& player_forward = player.getForward();
-		player_camera.setOrientation(player_forward, Vector3(0,1,0));
+		player_camera.setOrientation(player_forward, Vector3(0, 1, 0));
 		new_cam_position.x -= 4.0f * player_forward.x;
 		new_cam_position.z -= 4.0f * player_forward.z;
 		new_cam_position += PLAYER_CAMERA_OFFSET;
 		player_camera.setPosition(new_cam_position);
-		//player_camera.setOrientation(player.getForward());
 	}
 
 	//Overview camera follows player position
 	overview_camera.lookAt(player.getPosition());
-
-
-
-
 
 }
 
@@ -622,18 +626,15 @@ void reshape(const int w, const int h)
 void timer(int)
 {
 	glutPostRedisplay();
-	glutTimerFunc(unsigned(1000.0 / FPS), timer, 0);
+	glutTimerFunc(unsigned(MIN_FRAME_TIME), timer, 0);
 }
 
 
 void renderToDepthTexture(glm::mat4& depth_vp)
 {
+
 	depth_texture.startRenderToDepthTexture();
-
 	glDisable(GL_CULL_FACE);
-
-	// clear the screen
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	const V3& player_forward = player.getForward();
 	const V3&player_position = player.getPosition();
@@ -641,18 +642,20 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	//Update the shadow box to re orient the location of the shadow view
 	shadow_box.update();
 
-	//Create an orthogonal view matrix for the depth view
+	//Create an orthogonal projection matrix for the depth
 	glm::mat4x4 depthProjectionMatrix;
 	depthProjectionMatrix[0][0] = 2.0f / shadow_box.getWidth();
 	depthProjectionMatrix[1][1] = 2.0f / shadow_box.getHeight();
 	depthProjectionMatrix[2][2] = -2.0f / shadow_box.getLength();
 	depthProjectionMatrix[3][3] = 1;
 
+
 	const Vector3 center = -shadow_box.getCenter();
 
 	//Calculate the light view matrix which is what the light views
 	const Vector3 light_inverse_dir = -SUN_DIR.getNormalized();
 
+	//Create the light_view_matrix. It is the view in the direction of the light
 	light_view_matrix = glm::mat4();
 	const float pitch = float(acos(Vector2(light_inverse_dir.x, light_inverse_dir.z).getNorm()));
 	light_view_matrix = glm::rotate(light_view_matrix, pitch, glm::vec3(1, 0, 0));
@@ -664,15 +667,12 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 
 	depth_vp = depthProjectionMatrix * light_view_matrix;
 
-
 	glm::mat4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
 	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
 	glm::mat4 depth_mvp = depth_vp * model_matrix;
 
-	const unsigned int depth_matrix_id = depth_texture.getDepthMatrixUniformLocation();
-
-	glUniformMatrix4fv(depth_matrix_id, 1, GL_FALSE, &depth_mvp[0][0]);
+	depth_texture.setDepthMVP(depth_mvp);	
 
 	//Draw the players meshes only to the depth texture
 	const unsigned int mat_count = player_model.getMaterialCount();
@@ -688,8 +688,7 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	}
 
 	//Draw the world to the depth texture
-	//TODO RINGS?
-	world.drawDepth(depth_matrix_id, depth_vp);
+	world.drawDepth(depth_vp);
 
 
 
@@ -758,9 +757,9 @@ void display()
 	player_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
 
 	const std::string text = "Score: " + std::to_string(world.pickupManager.score);
-	float text_width = textRenderer.getWidth("Score: XXX", 0.75f);
-	textRenderer.draw(text, float(win_width - text_width - 20.0f), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
-	
+	float text_width = text_renderer.getWidth(text, 0.75f);
+	text_renderer.draw(text, float(win_width - text_width - 10), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
+
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
 

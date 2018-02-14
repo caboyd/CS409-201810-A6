@@ -1,3 +1,12 @@
+/**
+ *	LineRenderer
+ *	
+ *	Draws a line specified by points in 3D space.
+ *	Perspective determined by an MVP matrix parameter
+ *	Must be initialized before use
+ *
+ */
+
 #pragma once
 
 #include <iostream>
@@ -15,7 +24,6 @@
 
 extern int win_width;
 extern int win_height;
-
 
 struct Character
 {
@@ -169,7 +177,7 @@ public:
 			glBindBuffer(GL_ARRAY_BUFFER, VBO);
 			glBufferSubData(GL_ARRAY_BUFFER, 0, sizeof(vertices), vertices); // Be sure to use glBufferSubData and not glBufferData
 
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			//glBindBuffer(GL_ARRAY_BUFFER, 0);
 			// Render quad
 			glDrawArrays(GL_TRIANGLES, 0, 6);
 			// Now advance cursors for next glyph (note that advance is number of 1/64 pixels)
@@ -189,7 +197,7 @@ public:
 		for (c = text.begin(); c != text.end(); c++)
 		{
 			Character ch = Characters[*c];
-			width += ch.Size.x * scale;
+			width +=  (ch.Advance >> 6) * scale;
 		}
 		return width;
 	}

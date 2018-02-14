@@ -13,8 +13,10 @@
 #include "Collision.h"
 #include "Random.h"
 #include "LineRenderer.h"
+#include "DepthTexture.h"
 
-extern LineRenderer lineRenderer;
+extern LineRenderer line_renderer;
+extern DepthTexture depth_texture;
 
 using namespace ObjLibrary;
 
@@ -286,7 +288,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 
 	}
 	std::vector<Vector3> points;
-	
+
 	Vector3 pos = pickupManager.rings[0].position;
 	points.push_back(pos);
 	pos.y += 1.0f;
@@ -296,17 +298,42 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 	points.push_back(tar);
 	tar.y -= 1.0f;
 	points.push_back(tar);
-	
+
 	glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
-	lineRenderer.draw(points, glm::vec4(1.0,1.0,1.0,1.0), mvp_matrix);
+	line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
 }
 
-void World::drawDepth(const unsigned int depth_matrix_id, glm::mat4x4& depth_view_projection_matrix)
+void World::drawDepth(glm::mat4x4& depth_view_projection_matrix)
 {
 	//Call draw depth on each disk
 	for (auto const& disk : disks)
 	{
-		disk->drawDepth(depth_matrix_id, depth_view_projection_matrix);
+		disk->drawDepth(depth_view_projection_matrix);
+	}
+
+	MeshWithShader mesh = pickupManager.rings[0].model->getMesh(0, 0);
+
+	for (auto const& ring : pickupManager.rings)
+	{
+		if (ring.pickedUp) continue;
+		glm::mat4x4 model_matrix = glm::mat4();
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
+		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
+		depth_texture.setDepthMVP(depth_mvp);
+		mesh.draw();
+	}
+	
+	mesh = pickupManager.rods[0].model->getMesh(0, 0);
+	for (auto const& rod : pickupManager.rods)
+	{
+		if (rod.pickedUp) continue;
+		glm::mat4x4 model_matrix = glm::mat4();
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(rod.forward.x, rod.forward.z))), glm::vec3(0, 1, 0));
+		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
+		depth_texture.setDepthMVP(depth_mvp);
+		mesh.draw();
 	}
 }
 
@@ -339,7 +366,7 @@ void World::update(const float delta_time)
 }
 
 
-float World::getHeightAtPointPosition(const float x, const float z)
+float World::getHeightAtPointPosition(const float x, const float z) const
 {
 	for (auto &disk : disks)
 	{
@@ -351,7 +378,7 @@ float World::getHeightAtPointPosition(const float x, const float z)
 	return 0.0f;
 }
 
-float World::getHeightAtCirclePosition(const float x, const float z, const float r)
+float World::getHeightAtCirclePosition(const float x, const float z, const float r) const
 {
 	for (auto &disk : disks)
 	{

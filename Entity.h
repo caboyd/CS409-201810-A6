@@ -27,7 +27,7 @@ public:
 	Vector3 scalar;
 	Vector3 forward;
 
-private:
+public:
 	ModelWithShader * model;
 
 

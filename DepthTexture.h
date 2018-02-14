@@ -1,18 +1,28 @@
 #pragma once
 #include "lib/GetGlutWithShaders.h"
 #include "lib/ObjLibrary/ObjShader.h"
+#include "lib/glm/glm.hpp"
 
 using namespace ObjLibrary;
+
+#define DEFAULT_SHADOW_MAP_SIZE 4096
 
 //Manages the depth buffer and texture for use with generating shadows
 class DepthTexture
 {
+public:
+	//Default texture size
+	
 private:
+
+
 	const std::string shader_folder = "assets/shaders/";
 	const std::string quad_shader_vert = "passthrough.vert";
 	const std::string quad_shader_frag = "simpletexture.frag";
 	const std::string depthRTT_vert = "depthRTT.vert";
 	const std::string depthRTT_frag = "depthRTT.frag";
+
+	
 
 	GLuint quad_program_id;
 	GLuint depth_program_id;
@@ -23,6 +33,7 @@ private:
 	GLint depth_matrix_id;
 
 	bool initialized;
+
 	unsigned int texture_size;
 
 public:
@@ -34,11 +45,15 @@ public:
 	//Changes the OpenGL state to start rendering to the depth texture buffer
 	void startRenderToDepthTexture() const;
 
+	void setDepthMVP(glm::mat4& depth_mvp) const;
+
 	//Returns the location of the depth matrix uniform in the shader program
 	unsigned int getDepthMatrixUniformLocation() const;
 
 	//Returns the location of the texture on the GPU
 	unsigned int getTexture() const;
+
+	void init(unsigned shadow_map_size = DEFAULT_SHADOW_MAP_SIZE);
 
 	//Renders the depth texture to the screen
 	//Does not work for Sampler2DShadow
@@ -49,5 +64,4 @@ public:
 	void renderDepthTextureToQuad(unsigned int offsetX, unsigned int offsetY, unsigned int width,
 		unsigned int height) const;
 
-	void init(const unsigned int shadow_map_size);
 };
