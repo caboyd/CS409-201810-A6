@@ -38,7 +38,7 @@ class ShadowBox
 {
 
 private:
-	double SHADOW_DISTANCE;
+	float SHADOW_DISTANCE;
 
 
 	float OFFSET = 7.0;

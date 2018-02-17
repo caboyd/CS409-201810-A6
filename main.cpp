@@ -58,6 +58,7 @@
 #include "TextRenderer.h"
 #include "LineRenderer.h"
 #include "main.h"
+#include "Sleep.h"
 
 
 using namespace std;
@@ -99,7 +100,7 @@ int main(int argc, char* argv[])
 	glutMotionFunc(mouseMove);
 
 	//Update
-	glutIdleFunc(update);
+	//glutIdleFunc(update);
 	//Reshape
 	glutReshapeFunc(reshape);
 	//Render
@@ -109,10 +110,9 @@ int main(int argc, char* argv[])
 	init();
 
 	//Frame rate limiter
-	glutTimerFunc(unsigned(1000.0 / FPS), timer, 0);
+	glutTimerFunc(unsigned(MIN_FRAME_TIME), timer, 0);
 
 	glutMainLoop();
-
 	return 1;
 }
 
@@ -179,8 +179,7 @@ void init()
 	//LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
 	//LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
 
-
-	last_time = glutGet(GLUT_ELAPSED_TIME);
+	time_counter.start();
 }
 
 
@@ -239,6 +238,7 @@ void keyboard(unsigned char key, int x, int y)
 			if (level >= levels.size()) level = 0;
 		}
 		break;
+
 #endif
 	case 'L':
 		LightingManager::setEnabled(!LightingManager::isEnabled());
@@ -423,12 +423,9 @@ void mouseButton(const int button, const int state, const int x, const int y)
 
 
 
-void update()
+void update(float delta_time)
 {
-	//CALCULATE TIME ELAPSED
-	const int this_time = glutGet(GLUT_ELAPSED_TIME);
-	const int delta_time = this_time - last_time;
-	last_time = this_time;
+
 
 	//Multiple delta time by time_scale to slow or speed up game
 	const float scaled_time = delta_time * time_scale;
@@ -522,7 +519,7 @@ void update()
 	bool player_moved = false;
 
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
-	if (player.getPosition() != last_player_pos ||	player.getForward() != last_player_forward)
+	if (player.getPosition() != last_player_pos || player.getForward() != last_player_forward)
 	{
 		camera_float = false;
 		player_moved = true;
@@ -568,7 +565,7 @@ void update()
 			if (log_factor > 10.0) log_factor = 10.0;
 
 			const V3 target = player.getPosition() + PLAYER_CAMERA_OFFSET;
-			player_camera.rotateAroundTargetToPosition(target, new_cam_position, glm::radians(log_factor*0.05*scaled_time));
+			player_camera.rotateAroundTargetToPosition(target, new_cam_position, glm::radians(log_factor*0.5));
 		} else
 		{
 			//If camera is near the origin point we can snap it back.
@@ -622,12 +619,6 @@ void reshape(const int w, const int h)
 	glutPostRedisplay();
 }
 
-//Frame limiter
-void timer(int)
-{
-	glutPostRedisplay();
-	glutTimerFunc(unsigned(MIN_FRAME_TIME), timer, 0);
-}
 
 
 void renderToDepthTexture(glm::mat4& depth_vp)
@@ -672,7 +663,7 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
 	glm::mat4 depth_mvp = depth_vp * model_matrix;
 
-	depth_texture.setDepthMVP(depth_mvp);	
+	depth_texture.setDepthMVP(depth_mvp);
 
 	//Draw the players meshes only to the depth texture
 	const unsigned int mat_count = player_model.getMaterialCount();
@@ -697,6 +688,8 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 
 void display()
 {
+	static int count = 0;
+	static unsigned dt = unsigned(1000.0 / delta_time);
 	//**************Render to depth texture ***************
 	glm::mat4 depth_vp;
 	renderToDepthTexture(depth_vp);
@@ -757,8 +750,17 @@ void display()
 	player_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
 
 	const std::string text = "Score: " + std::to_string(world.pickupManager.score);
-	float text_width = text_renderer.getWidth(text, 0.75f);
+	const float text_width = text_renderer.getWidth(text, 0.75f);
 	text_renderer.draw(text, float(win_width - text_width - 10), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
+
+	//Update framerate 4 times per second
+	count++;
+	if (count % unsigned(FPS / 10) == 0)
+	{
+		count = 0;
+		dt = unsigned(1000.0 / delta_time);
+	}
+	text_renderer.draw("FPS: " + std::to_string(dt), 2, float(win_height - 18), 0.4f, glm::vec3(0, 1, 0));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
@@ -766,4 +768,13 @@ void display()
 	// send the current image to the screen - any drawing after here will not display
 	glutSwapBuffers();
 
+}
+
+void timer(int)
+{
+	glutTimerFunc(unsigned(MIN_FRAME_TIME), timer, 0);
+	//CALCULATE TIME ELAPSED
+	delta_time = time_counter.getAndReset();
+	update(float(delta_time));
+	glutPostRedisplay();
 }

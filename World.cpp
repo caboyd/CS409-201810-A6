@@ -10,10 +10,10 @@
 #include "MathHelper.h"
 #include "PerformanceCounter.h"
 #include "lib/glm/gtc/matrix_transform.hpp"
-#include "Collision.h"
 #include "Random.h"
 #include "LineRenderer.h"
 #include "DepthTexture.h"
+#include "Collision.h"
 
 extern LineRenderer line_renderer;
 extern DepthTexture depth_texture;
@@ -347,7 +347,7 @@ float World::getSpeedFactorAtPosition(float x, float z, float r)
 	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		if (circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
+		if (Collision::circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
 			return disk->getSpeedFactor();
 	}
 	//No collision with a disk
@@ -371,7 +371,7 @@ float World::getHeightAtPointPosition(const float x, const float z) const
 	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		if (pointCircleIntersection(x, z, float(disk->position.x), float(disk->position.z), disk->radius))
+		if (Collision::pointCircleIntersection(x, z, float(disk->position.x), float(disk->position.z), disk->radius))
 			return disk->getHeightAtPosition(x, z);
 	}
 	//No collision with a disk
@@ -383,7 +383,7 @@ float World::getHeightAtCirclePosition(const float x, const float z, const float
 	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		if (circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
+		if (Collision::circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
 			return disk->getHeightAtPosition(x, z);
 	}
 	//No collision with a disk

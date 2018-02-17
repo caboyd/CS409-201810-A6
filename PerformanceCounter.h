@@ -3,7 +3,7 @@
 //Class to measure time in milliseconds.
 
 
-#ifdef  _WIN32
+#ifdef _WIN32
 class PerformanceCounter
 {
 	double freq;
@@ -19,7 +19,7 @@ public:
 		freq = double(li.QuadPart) / 1000.0;
 
 		QueryPerformanceCounter(&li);
-		start_time = (double)li.QuadPart;
+		start_time = double(li.QuadPart);
 	}
 
 	double getCounter() const
@@ -27,6 +27,15 @@ public:
 		LARGE_INTEGER li;
 		QueryPerformanceCounter(&li);
 		return double(li.QuadPart - start_time) / freq;
+	}
+
+	double getAndReset()
+	{
+		LARGE_INTEGER li;
+		QueryPerformanceCounter(&li);
+		const double result = (li.QuadPart - start_time) / freq;
+		start_time = double(li.QuadPart);
+		return result;
 	}
 };
 
@@ -50,6 +59,16 @@ public:
 		std::chrono::time_point<Clock> end = Clock::now();
 		std::chrono::duration<double> diff = end-start_time;
 		return diff.count() * 1000.0;
+	}
+
+	
+	double getAndReset()
+	{ 
+		std::chrono::time_point<Clock> end = Clock::now();
+		std::chrono::duration<double> diff = end-start_time;
+		double result = diff.count() * 1000.0;
+		start_time = end;
+		return result;
 	}
 };
 

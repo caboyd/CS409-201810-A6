@@ -16,8 +16,8 @@ IcyDisk::IcyDisk(ModelWithShader* model, Vector3 postion, float radius)
 	this->type = ICY;
 	this->heightMapSize = HEIGHTMAP_SIZE;
 
-	PerformanceCounter p{};
-	p.start();
+	//PerformanceCounter p{};
+	//p.start();
 	IcyDisk::generateHeightMap();
 	//std::cout << "icy disk time " << p.getCounter() << std::endl;
 	Disk::generateHeightMapModel();
@@ -64,7 +64,7 @@ void IcyDisk::generateHeightMap()
 	//x,y,z are arrays of 200 floats
 	const Vec3SOA points{a + 0, a + 200/4, a + 400/4};
 
-	//TODO this could be optimized
+	//NOTE: this could be optimized
 	generatePoints(points);
 
 	sse_t distances[50];

@@ -2,6 +2,7 @@
 #include "Collision.h"
 
 
+
 PickupManager::PickupManager()
 {}
 
@@ -27,7 +28,7 @@ void PickupManager::checkForPickups(Vector3 player_position)
 	for (auto& ring : rings)
 	{
 		if (!ring.pickedUp)
-			if (cylinderIntersection(player_position, 0.25f, 0.8f, ring.position, ring.radius, ring.halfHeight))
+			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, ring.position, ring.radius, ring.halfHeight))
 			{
 				ring.pickedUp = true;
 				score += ring.pointValue;
@@ -37,7 +38,7 @@ void PickupManager::checkForPickups(Vector3 player_position)
 	for (auto& rod : rods)
 	{
 		if (!rod.pickedUp)
-			if (cylinderIntersection(player_position, 0.25f, 0.8f, rod.position, rod.radius, rod.halfHeight))
+			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, rod.position, rod.radius, rod.halfHeight))
 			{
 				rod.pickedUp = true;
 				score += rod.pointValue;

@@ -2,6 +2,8 @@
 #include "World.h"
 #include "Collision.h"
 
+
+
 Ring::Ring(World* w, ModelWithShader* model, Vector3 pos): Entity(model, pos)
 {
 	scalar = {1, 1, 1};
@@ -31,7 +33,7 @@ inline void Ring::update(float delta_time)
 	position.y = world->getHeightAtCirclePosition(float(position.x),float(position.z), radius) + 0.1f;
 
 	//If on center of disk get new target
-	if (pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), radius))
+	if (Collision::pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), radius))
 	{
 		targetPosition = world->getRandomDiskPosition();
 	}
