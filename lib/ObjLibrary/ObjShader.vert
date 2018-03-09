@@ -33,9 +33,14 @@ uniform mat4 view_matrix;
 uniform mat4 model_view_projection_matrix;
 uniform vec3 camera_pos;
 
+uniform bool tween_enabled;
+uniform float tween_factor;
+
 in vec3 vertex;
 in vec2 tex_coord;
 in vec3 normal;
+in vec3 vertex1;
+in vec3 normal1;
 
 out vec3 position;
 out vec2 tex_coord2;
@@ -44,12 +49,20 @@ out vec3 to_camera;
 
 void main()
 {
-	vec4 world_position = model_matrix * vec4(vertex, 1.0);
+    vec3 new_normal = normal;
+    vec3 new_vertex = vertex;
+    if(tween_enabled)
+	{
+		new_normal = mix(normal,normal1,tween_factor);      
+        new_vertex = mix(vertex,vertex1,tween_factor);
+    }
+	
+	vec4 world_position = model_matrix * vec4(new_vertex, 1.0);
 
 	position   = world_position.xyz;
 	tex_coord2 = tex_coord;
-	normal2    = mat3(transpose(inverse(model_matrix))) * normal;
+	normal2    = mat3(transpose(inverse(model_matrix))) * new_normal;
 	to_camera  = normalize(camera_pos - world_position.xyz);
 
-	gl_Position = model_view_projection_matrix * vec4(vertex, 1.0);
+	gl_Position = model_view_projection_matrix * vec4(new_vertex, 1.0);
 }

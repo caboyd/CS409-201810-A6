@@ -245,6 +245,28 @@ const ObjShader::ShaderUniforms& MaterialForShader :: activate (const glm::mat4x
 	const ObjShader::ShaderUniforms& uniforms = ObjShader::activateShader();
 	activate(uniforms);
 
+	glUniform1i(uniforms.m_tween_enabled, 0);
+	glUniformMatrix4fv(uniforms.m_model_matrix,					1, false, &(model_matrix[0][0]));
+	glUniformMatrix4fv(uniforms.m_view_matrix,					1, false, &(view_matrix[0][0]));
+	glUniformMatrix4fv(uniforms.m_model_view_projection_matrix,	1, false, &(model_view_projection_matrix[0][0]));
+	glUniform3fv      (uniforms.m_camera_pos,					1,        &(camera_position.x));
+
+	return uniforms;
+}
+
+const ObjShader::ShaderUniforms& MaterialForShader :: activate (const float tween_factor,
+																const glm::mat4x4& model_matrix,
+                                                                const glm::mat4x4& view_matrix,
+																const glm::mat4x4& model_view_projection_matrix,
+                                                                const glm::vec3& camera_position) const
+{
+	assert(ObjShader::isLoaded());
+
+	const ObjShader::ShaderUniforms& uniforms = ObjShader::activateShader();
+	activate(uniforms);
+
+	glUniform1i(uniforms.m_tween_enabled, 1);
+	glUniform1f(uniforms.m_tween_factor, tween_factor);
 	glUniformMatrix4fv(uniforms.m_model_matrix,					1, false, &(model_matrix[0][0]));
 	glUniformMatrix4fv(uniforms.m_view_matrix,					1, false, &(view_matrix[0][0]));
 	glUniformMatrix4fv(uniforms.m_model_view_projection_matrix,	1, false, &(model_view_projection_matrix[0][0]));
@@ -261,6 +283,17 @@ const ObjShader::ShaderUniforms& MaterialForShader :: activate (const glm::mat4x
 
 	return activate(model_matrix, view_matrix, model_view_projection_matrix, glm::vec3());
 }
+
+const ObjShader::ShaderUniforms& MaterialForShader :: activate (const float tween_factor,
+																const glm::mat4x4& model_matrix,
+                                                                const glm::mat4x4& view_matrix,
+																const glm::mat4x4& model_view_projection_matrix) const
+{
+	assert(ObjShader::isLoaded());
+
+	return activate(tween_factor, model_matrix, view_matrix, model_view_projection_matrix, glm::vec3());
+}
+
 
 void MaterialForShader :: activate (const ObjShader::ShaderUniforms& uniforms) const
 {

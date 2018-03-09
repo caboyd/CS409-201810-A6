@@ -158,6 +158,7 @@
     <ClCompile Include="IcyDisk.cpp" />
     <ClCompile Include="lib\gl3w.c" />
     <ClCompile Include="lib\ObjLibrary\DisplayList.cpp" />
+    <ClCompile Include="lib\ObjLibrary\KeyframeModelWithShader.cpp" />
     <ClCompile Include="lib\ObjLibrary\LightingManager.cpp" />
     <ClCompile Include="lib\ObjLibrary\Material.cpp" />
     <ClCompile Include="lib\ObjLibrary\MaterialForShader.cpp" />
@@ -180,6 +181,7 @@
     <ClCompile Include="LeafyDisk.cpp" />
     <ClCompile Include="NoiseField.cpp" />
     <ClCompile Include="PickupManager.cpp" />
+    <ClCompile Include="PlayerAnimatedModel.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="RedRockDisk.cpp" />
     <ClCompile Include="Ring.cpp" />
@@ -200,6 +202,7 @@
     <ClInclude Include="lib\gl3w.h" />
     <ClInclude Include="lib\glcorearb.h" />
     <ClInclude Include="lib\ObjLibrary\DisplayList.h" />
+    <ClInclude Include="lib\ObjLibrary\KeyframeModelWithShader.h" />
     <ClInclude Include="lib\ObjLibrary\LightingManager.h" />
     <ClInclude Include="lib\ObjLibrary\Material.h" />
     <ClInclude Include="lib\ObjLibrary\MaterialForShader.h" />
@@ -226,6 +229,7 @@
     <ClInclude Include="NoiseField.h" />
     <ClInclude Include="PerformanceCounter.h" />
     <ClInclude Include="PickupManager.h" />
+    <ClInclude Include="PlayerAnimatedModel.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RedRockDisk.h" />
     <ClInclude Include="Ring.h" />

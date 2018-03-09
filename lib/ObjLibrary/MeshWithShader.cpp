@@ -204,7 +204,46 @@ void MeshWithShader :: init (unsigned int primitive_type,
 		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex normal
 		glEnableVertexAttribArray(2);
 		break;
+	case VertexDataFormat::KEYFRAME_POSITION_ONLY:
+		offset = offsetof(VertexDataFormat::KeyframePositionOnly, m_x1);
+		glVertexAttribPointer(3 ,3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex1
+		glEnableVertexAttribArray(3);
+		break;
+	case VertexDataFormat::KEYFRAME_POSITION_TEXTURE_COORDINATE:
+		offset = offsetof(VertexDataFormat::KeyframePositionTextureCoordinate, m_s);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // texture coordinates
+		glEnableVertexAttribArray(1);
+		offset = offsetof(VertexDataFormat::KeyframePositionTextureCoordinate, m_x1);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex1
+		glEnableVertexAttribArray(3);
+		break;
+	case VertexDataFormat::KEYFRAME_POSITION_NORMAL:
+		offset = offsetof(VertexDataFormat::KeyframePositionNormal, m_nx);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex normal
+		glEnableVertexAttribArray(2);
+		offset = offsetof(VertexDataFormat::KeyframePositionNormal, m_x1);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex1
+		glEnableVertexAttribArray(3);
+		offset = offsetof(VertexDataFormat::KeyframePositionNormal, m_nx1);
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex normal1
+		glEnableVertexAttribArray(4);
+		break;
+	case VertexDataFormat::KEYFRAME_POSITION_TEXTURE_COORDINATE_NORMAL:
+		offset = offsetof(VertexDataFormat::KeyframePositionTextureCoordinateNormal, m_s);
+		glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // texture coordinates
+		glEnableVertexAttribArray(1);
+		offset = offsetof(VertexDataFormat::KeyframePositionTextureCoordinateNormal, m_nx);
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex normal
+		glEnableVertexAttribArray(2);
+		offset = offsetof(VertexDataFormat::KeyframePositionTextureCoordinateNormal, m_x1);
+		glVertexAttribPointer(3, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex1
+		glEnableVertexAttribArray(3);
+		offset = offsetof(VertexDataFormat::KeyframePositionTextureCoordinateNormal, m_nx1);
+		glVertexAttribPointer(4, 3, GL_FLOAT, GL_FALSE, stride, (void*)(offset));  // vertex normal1
+		glEnableVertexAttribArray(4);
+		break;
 	}
+
 
 	//  The attributes that are not set here have to be set at
 	//    draw time using a glVertexAttrib* function, which

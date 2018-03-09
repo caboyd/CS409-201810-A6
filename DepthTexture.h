@@ -31,6 +31,8 @@ private:
 	GLuint depth_texture;
 	GLint tex_id;
 	GLint depth_matrix_id;
+	GLint tween_enabled_id;
+	GLint tween_factor_id;
 
 	bool initialized;
 
@@ -46,6 +48,9 @@ public:
 	void startRenderToDepthTexture() const;
 
 	void setDepthMVP(glm::mat4& depth_mvp) const;
+
+	void enableTween(float tween_factor) const;
+	void disableTween() const;
 
 	//Returns the location of the depth matrix uniform in the shader program
 	unsigned int getDepthMatrixUniformLocation() const;

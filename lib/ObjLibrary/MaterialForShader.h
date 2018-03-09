@@ -414,6 +414,11 @@ public:
 					 const glm::mat4x4& model_view_projection_matrix,
 	                 const glm::vec3& camera_position) const;
 
+	const ObjShader::ShaderUniforms& activate (float tween_factor,
+	                 const glm::mat4x4& model_matrix,
+	                 const glm::mat4x4& view_matrix,
+					 const glm::mat4x4& model_view_projection_matrix,
+	                 const glm::vec3& camera_position) const;
 //
 //  activate
 //
@@ -440,6 +445,11 @@ public:
 //
 
 	const ObjShader::ShaderUniforms& activate (
+	          const glm::mat4x4& model_matrix,
+	          const glm::mat4x4& view_matrix,
+		      const glm::mat4x4& model_view_projection_matrix) const;
+
+		const ObjShader::ShaderUniforms& activate (float tween_factor,
 	          const glm::mat4x4& model_matrix,
 	          const glm::mat4x4& view_matrix,
 		      const glm::mat4x4& model_view_projection_matrix) const;

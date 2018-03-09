@@ -177,6 +177,8 @@ void ModelWithShader::drawCurrentMaterial(unsigned int material) const
 
 		glVertexAttrib2fv(1, &(ZERO2.x));  // texture coordinates
 		glVertexAttrib3fv(2, &(ZERO3.x));  // normals
+		glVertexAttrib3fv(3, &(ZERO3.x));  // vertex1
+		glVertexAttrib3fv(4, &(ZERO3.x));  // normal2
 
 		assert(v_meshes[j].isInitialized());
 		v_meshes[j].draw();

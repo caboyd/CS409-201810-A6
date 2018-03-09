@@ -46,6 +46,7 @@
 	#include "ObjVbo.h"
 	#include "MeshWithShader.h"
 	#include "ModelWithShader.h"
+#include "KeyframeModelWithShader.h"
 #endif
 
 using namespace std;
@@ -1552,9 +1553,12 @@ DisplayList ObjModel :: getDisplayListMaterialNone () const
 
 ModelWithShader ObjModel :: getModelWithShader () const
 {
-	assert(isValid());
-
 	return getModelWithShader(true, true);
+}
+
+KeyframeModelWithShader ObjModel :: getKeyframeModelWithShader (const ObjModel& next_frame) const
+{
+	return getKeyframeModelWithShader(next_frame, true, true);
 }
 
 ModelWithShader ObjModel :: getModelWithShader (bool is_texture_coordinates,
@@ -1594,9 +1598,7 @@ ModelWithShader ObjModel :: getModelWithShader (bool is_texture_coordinates,
 		// add polylines
 		for(unsigned int l = 0; l < mv_meshes[m].mv_polylines.size(); l++)
 		{
-			bool is_polyline_texture_coordinates = is_texture_coordinates;
-			if(!isPolylineTextureCoordinatesAny(m, l))
-				is_polyline_texture_coordinates = false;
+			bool is_polyline_texture_coordinates = is_texture_coordinates && isPolylineTextureCoordinatesAny(m, l);
 
 			result.addMesh(material_index, getPolylineMeshWithShader(m, l, is_polyline_texture_coordinates));
 		}
@@ -1606,15 +1608,74 @@ ModelWithShader ObjModel :: getModelWithShader (bool is_texture_coordinates,
 		{
 			assert(!mv_meshes[m].mv_faces.empty());
 
-			bool is_mesh_texture_coordinates = is_texture_coordinates;
-			if(!isMeshTextureCoordinatesAny(m))
-				is_mesh_texture_coordinates = false;
-
-			bool is_mesh_normals = is_normals;
-			if(!isMeshNormalAny(m))
-				is_mesh_normals = false;
+			bool is_mesh_texture_coordinates = is_texture_coordinates && isMeshTextureCoordinatesAny(m);
+			bool is_mesh_normals = is_normals && isMeshNormalAny(m);
 
 			result.addMesh(material_index, getFaceMeshWithShader(m, is_mesh_texture_coordinates, is_mesh_normals));
+		}
+	}
+
+	assert(result.isReady());
+	return result;
+}
+
+KeyframeModelWithShader ObjModel :: getKeyframeModelWithShader (
+												const ObjModel& next_frame, 
+												bool is_texture_coordinates,
+                                                bool is_normals) const
+{
+	assert(isValid());
+	assert(next_frame.isValid());
+
+	//Must have exact same number of verts
+	assert(mv_vertexes.size() == next_frame.mv_vertexes.size());
+
+	static const Material MATERIAL_FALLBACK = Material::createSolid("shader_material_fallback",
+	                                                                Vector3(1.0, 0.0, 0.0));
+
+	KeyframeModelWithShader result;
+
+	for(unsigned int m = 0; m < mv_meshes.size(); m++)
+	{
+		if(getPointSetCount(m) == 0 &&
+		   getPolylineCount(m) == 0 &&
+		   getFaceCount    (m) == 0)
+		{
+			// nothing in this mesh, so skip it
+			continue;
+		}
+
+		unsigned int material_index;
+
+		if(mv_meshes[m].mp_material == NULL)
+			material_index = result.addMaterial(MATERIAL_FALLBACK.getForShader());
+		else
+			material_index = result.addMaterial(mv_meshes[m].mp_material->getForShader());
+
+		// add point sets
+		if(getPointSetCount(m) > 0)
+		{
+			assert(!mv_meshes[m].mv_point_sets.empty());
+			result.addMesh(material_index, getPointSetKeyframeMeshWithShader(next_frame,m));
+		}
+
+		// add polylines
+		for(unsigned int l = 0; l < mv_meshes[m].mv_polylines.size(); l++)
+		{
+			bool is_polyline_texture_coordinates = is_texture_coordinates && isPolylineTextureCoordinatesAny(m, l);
+
+			result.addMesh(material_index, getPolylineKeyframeMeshWithShader(next_frame, m, l, is_polyline_texture_coordinates));
+		}
+
+		// add faces
+		if(getFaceCount(m) > 0)
+		{
+			assert(!mv_meshes[m].mv_faces.empty());
+
+			bool is_mesh_texture_coordinates = is_texture_coordinates && isMeshTextureCoordinatesAny(m);
+			bool is_mesh_normals = is_normals && isMeshNormalAny(m);
+
+			result.addMesh(material_index, getFaceKeyframeMeshWithShader(next_frame,m, is_mesh_texture_coordinates, is_mesh_normals));
 		}
 	}
 
@@ -3219,6 +3280,24 @@ MeshWithShader ObjModel :: getPointSetMeshWithShader (unsigned int mesh) const
 	return point_set_mesh;
 }
 
+MeshWithShader ObjModel :: getPointSetKeyframeMeshWithShader (const ObjModel& next_frame, unsigned int mesh) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getPointSetCount(mesh) > 0);
+
+	assert(getPointSetCount(mesh) == next_frame.getPointSetCount(mesh));
+	assert(getMeshPointCountTotal(mesh) == next_frame.getPointSetCount(mesh));
+
+	ObjVbo<unsigned int> vbo_indexes = createIndexVboSimple(getMeshPointCountTotal(mesh));
+	ObjVbo<float>        vbo_data    = createPointSetKeyframeVboVertexOnly(next_frame, mesh);
+
+	MeshWithShader point_set_mesh;
+	point_set_mesh.init(GL_POINTS, VertexDataFormat::KEYFRAME_POSITION_ONLY, vbo_data, vbo_indexes);
+	assert(point_set_mesh.isInitialized());
+	return point_set_mesh;
+}
+
 MeshWithShader ObjModel :: getPolylineMeshWithShader (unsigned int mesh,
                                                       unsigned int polyline,
                                                       bool is_texture_coordinates) const
@@ -3241,6 +3320,40 @@ MeshWithShader ObjModel :: getPolylineMeshWithShader (unsigned int mesh,
 	{
 		data_format = VertexDataFormat::POSITION_ONLY;
 		vbo_data    = createPolylineVboVertexOnly(mesh, polyline);
+	}
+
+	MeshWithShader polyline_mesh;
+	polyline_mesh.init(GL_LINE_STRIP, data_format, vbo_data, vbo_indexes);
+	assert(polyline_mesh.isInitialized());
+	return polyline_mesh;
+}
+
+MeshWithShader ObjModel :: getPolylineKeyframeMeshWithShader (const ObjModel& next_frame,
+													  unsigned int mesh,
+                                                      unsigned int polyline,
+                                                      bool is_texture_coordinates) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(polyline < getPolylineCount(mesh));
+
+	assert(getPolylineCount(mesh) == next_frame.getPolylineCount(mesh));
+	assert(getPolylineVertexCount(mesh,polyline) == next_frame.getPolylineVertexCount(mesh,polyline));
+
+	ObjVbo<unsigned int> vbo_indexes = createIndexVboSimple(getPolylineVertexCount(mesh, polyline));
+
+	unsigned int  data_format;
+	ObjVbo<float> vbo_data;
+
+	if(is_texture_coordinates)
+	{
+		data_format = VertexDataFormat::KEYFRAME_POSITION_TEXTURE_COORDINATE;
+		vbo_data    = createPolylineKeyframeVboVertexTextureCoordinate(next_frame, mesh, polyline);
+	}
+	else
+	{
+		data_format = VertexDataFormat::KEYFRAME_POSITION_ONLY;
+		vbo_data    = createPolylineKeyframeVboVertexOnly(next_frame, mesh, polyline);
 	}
 
 	MeshWithShader polyline_mesh;
@@ -3316,6 +3429,76 @@ MeshWithShader ObjModel :: getFaceMeshWithShader (unsigned int mesh,
 	return face_mesh;
 }
 
+
+MeshWithShader ObjModel :: getFaceKeyframeMeshWithShader (const ObjModel& next_frame, unsigned int mesh,
+                                                  bool is_texture_coordinates,
+                                                  bool is_normals) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getFaceCount(mesh) > 0);
+
+	using namespace VertexDataFormat;
+
+	VertexArrangement vv_arrangement;
+	calculateVertexArrangement(mesh, is_texture_coordinates, is_normals, vv_arrangement);
+	VertexArrangement vv1_arrangement;
+	next_frame.calculateVertexArrangement(mesh, is_texture_coordinates, is_normals, vv1_arrangement);
+
+	ObjVbo<unsigned int> vbo_indexes = createIndexVboForFaces(mesh,
+	                                                          is_texture_coordinates,
+	                                                          is_normals,
+	                                                          vv_arrangement);
+
+	unsigned int  data_format;
+	ObjVbo<float> vbo_data;
+
+	if(is_texture_coordinates)
+	{
+		if(is_normals)
+		{
+			data_format = VertexDataFormat::KEYFRAME_POSITION_TEXTURE_COORDINATE_NORMAL;
+			vbo_data    = createFaceKeyframeVboVertexTextureCoordinateNormal(next_frame, mesh, vv_arrangement, vv1_arrangement);
+		}
+		else
+		{
+			data_format = VertexDataFormat::KEYFRAME_POSITION_TEXTURE_COORDINATE;
+			vbo_data    = createFaceKeyframeVboVertexTextureCoordinate(next_frame, mesh, vv_arrangement);
+		}
+	}
+	else
+	{
+		if(is_normals)
+		{
+			data_format = VertexDataFormat::KEYFRAME_POSITION_NORMAL;
+			vbo_data    = createFaceKeyframeVboVertexNormal(next_frame, mesh, vv_arrangement, vv1_arrangement);
+		}
+		else
+		{
+			data_format = VertexDataFormat::KEYFRAME_POSITION_ONLY;
+			vbo_data    = createFaceKeyframeVboVertexOnly(next_frame, mesh, vv_arrangement);
+		}
+	}
+
+	MeshWithShader face_mesh;
+	face_mesh.init(GL_TRIANGLES, data_format, vbo_data, vbo_indexes);
+	assert(face_mesh.isInitialized());
+
+	if(DEBUGGING_FACE_SHADERS)
+	{
+		cout << "Created face mesh:" << endl;
+		cout << "\tis_texture_coordinates = " << is_texture_coordinates << endl;
+		cout << "\tis_normals = " << is_normals << endl;
+		cout << "\tdata_format = " << data_format << endl;
+		cout << "\tVertex count = " << getVertexCount() << endl;
+		cout << "\tFace count = " << getFaceCountTotal() << endl;
+		cout << "\tElement count = " << vbo_data.getElementCount() / 3 << endl;
+		cout << "\tIndex count = " << vbo_indexes.getElementCount() << endl;
+	}
+
+	return face_mesh;
+}
+
 ObjVbo<float> ObjModel :: createPointSetVboVertexOnly (unsigned int mesh) const
 {
 	assert(isValid());
@@ -3360,6 +3543,61 @@ ObjVbo<float> ObjModel :: createPointSetVboVertexOnly (unsigned int mesh) const
 	return vbo;
 }
 
+ObjVbo<float> ObjModel :: createPointSetKeyframeVboVertexOnly (const ObjModel& next_frame, const unsigned int mesh) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getPointSetCount(mesh) > 0);
+	assert(getPointSetCount(mesh) == next_frame.getPointSetCount(mesh));
+	assert(mv_meshes[mesh].mv_point_sets.size() == next_frame.mv_meshes[mesh].mv_point_sets.size());
+
+	using namespace VertexDataFormat;
+
+	// calculate data
+
+	const unsigned int  point_count_total = getMeshPointCountTotal(mesh);
+	KeyframePositionOnly* d_vertexes        = new KeyframePositionOnly[point_count_total];
+
+	unsigned int next_point = 0;
+	for(unsigned int p = 0; p < mv_meshes[mesh].mv_point_sets.size(); p++)
+	{
+		const vector<unsigned int>& v_vertex_ids = mv_meshes[mesh].mv_point_sets[p].mv_vertexes;
+		const vector<unsigned int>& v1_vertex_ids = next_frame.mv_meshes[mesh].mv_point_sets[p].mv_vertexes;
+		for(unsigned int i = 0; i < v_vertex_ids.size(); i++)
+		{
+			assert(i < v_vertex_ids.size());
+			assert(i < v1_vertex_ids.size());
+
+			assert(v_vertex_ids[i] < mv_vertexes.size());
+			assert(v1_vertex_ids[i] == v1_vertex_ids[i] );
+
+			const Vector3& vertex = mv_vertexes[v_vertex_ids[i]];
+			const Vector3& vertex1 = next_frame.mv_vertexes[v_vertex_ids[i]];
+
+			assert(next_point < point_count_total);
+			d_vertexes[next_point].m_x = (float)(vertex.x);
+			d_vertexes[next_point].m_y = (float)(vertex.y);
+			d_vertexes[next_point].m_z = (float)(vertex.z);
+			d_vertexes[next_point].m_x1 = (float)(vertex1.x);
+			d_vertexes[next_point].m_y1 = (float)(vertex1.y);
+			d_vertexes[next_point].m_z1 = (float)(vertex1.z);
+
+			assert(next_point < point_count_total);
+			next_point++;
+			assert(next_point <= point_count_total);
+		}
+	}
+	assert(next_point == point_count_total);
+
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  point_count_total * getComponentCount(KEYFRAME_POSITION_ONLY),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
 ObjVbo<float> ObjModel :: createPolylineVboVertexOnly (unsigned int mesh,
                                                        unsigned int polyline) const
 {
@@ -3386,6 +3624,45 @@ ObjVbo<float> ObjModel :: createPolylineVboVertexOnly (unsigned int mesh,
 
 	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
 	                  vertex_count * getComponentCount(POSITION_ONLY),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
+ObjVbo<float> ObjModel :: createPolylineKeyframeVboVertexOnly (const ObjModel& next_frame, unsigned int mesh,
+                                                       unsigned int polyline) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(polyline < getPolylineCount(mesh));
+
+	using namespace VertexDataFormat;
+
+	const vector<PolylineVertex>& v_vertex_ids = mv_meshes[mesh].mv_polylines[polyline].mv_vertexes;
+	const vector<PolylineVertex>& v1_vertex_ids = next_frame.mv_meshes[mesh].mv_polylines[polyline].mv_vertexes;
+	unsigned int                  vertex_count = v_vertex_ids.size();
+	KeyframePositionOnly*         d_vertexes   = new KeyframePositionOnly[vertex_count];
+
+	for(unsigned int i = 0; i < v_vertex_ids.size(); i++)
+	{
+		assert(i < v_vertex_ids.size());
+		assert(v_vertex_ids[i].m_vertex < mv_vertexes.size());
+		assert(v_vertex_ids[i].m_vertex == v1_vertex_ids[i].m_vertex);
+		const Vector3& vertex = mv_vertexes[v_vertex_ids[i].m_vertex];
+		const Vector3& vertex1 = next_frame.mv_vertexes[v_vertex_ids[i].m_vertex];
+
+		d_vertexes[i].m_x = (float)(vertex.x);
+		d_vertexes[i].m_y = (float)(vertex.y);
+		d_vertexes[i].m_z = (float)(vertex.z);
+		d_vertexes[i].m_x1 = (float)(vertex1.x);
+		d_vertexes[i].m_y1 = (float)(vertex1.y);
+		d_vertexes[i].m_z1 = (float)(vertex1.z);
+	}
+
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  vertex_count * getComponentCount(KEYFRAME_POSITION_ONLY),
 	                  reinterpret_cast<float*>(d_vertexes),
 	                  GL_STATIC_DRAW);
 
@@ -3434,6 +3711,60 @@ ObjVbo<float> ObjModel :: createPolylineVboVertexTextureCoordinate (unsigned int
 
 	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
 	                  vertex_count * getComponentCount(POSITION_TEXTURE_COORDINATE),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
+ObjVbo<float> ObjModel :: createPolylineKeyframeVboVertexTextureCoordinate (const ObjModel& next_frame, unsigned int mesh,
+                                                                    unsigned int polyline) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(polyline < getPolylineCount(mesh));
+
+	using namespace VertexDataFormat;
+
+	const vector<PolylineVertex>& v_vertex_ids = mv_meshes[mesh].mv_polylines[polyline].mv_vertexes;
+	const vector<PolylineVertex>& v1_vertex_ids = next_frame.mv_meshes[mesh].mv_polylines[polyline].mv_vertexes;
+	unsigned int                  vertex_count = v_vertex_ids.size();
+	KeyframePositionTextureCoordinate*    d_vertexes   = new KeyframePositionTextureCoordinate[vertex_count];
+
+	for(unsigned int i = 0; i < v_vertex_ids.size(); i++)
+	{
+		assert(i < v_vertex_ids.size());
+		assert(v_vertex_ids[i].m_vertex < mv_vertexes.size());
+		assert(v_vertex_ids[i].m_vertex == v1_vertex_ids[i].m_vertex);
+		const Vector3& vertex             = mv_vertexes[v_vertex_ids[i].m_vertex];
+		const Vector3& vertex1             = next_frame.mv_vertexes[v_vertex_ids[i].m_vertex];
+
+		d_vertexes[i].m_x = (float)(vertex.x);
+		d_vertexes[i].m_y = (float)(vertex.y);
+		d_vertexes[i].m_z = (float)(vertex.z);
+		d_vertexes[i].m_x1 = (float)(vertex1.x);
+		d_vertexes[i].m_y1 = (float)(vertex1.y);
+		d_vertexes[i].m_z1 = (float)(vertex1.z);
+
+		if(v_vertex_ids[i].m_texture_coordinate < mv_texture_coordinates.size())
+		{
+			const Vector2& texture_coordinate = mv_texture_coordinates[v_vertex_ids[i].m_texture_coordinate];
+
+			// flip texture coordinates to match Maya <|>
+			d_vertexes[i].m_s =        (float)(texture_coordinate.x);
+			d_vertexes[i].m_t = 1.0f - (float)(texture_coordinate.y);
+		}
+		else
+		{
+			// no texture coordinates specified, use fallback
+			d_vertexes[i].m_s = (float)(FALLBACK_TEXTURE_COORDINATE.x);
+			d_vertexes[i].m_t = (float)(FALLBACK_TEXTURE_COORDINATE.y);
+		}
+	}
+
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  vertex_count * getComponentCount(KEYFRAME_POSITION_TEXTURE_COORDINATE),
 	                  reinterpret_cast<float*>(d_vertexes),
 	                  GL_STATIC_DRAW);
 
@@ -3490,6 +3821,66 @@ ObjVbo<float> ObjModel :: createFaceVboVertexOnly (unsigned int mesh,
 	// create the VBO
 	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
 	                  vertex_count * getComponentCount(POSITION_ONLY),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
+ObjVbo<float> ObjModel :: createFaceKeyframeVboVertexOnly (const ObjModel& next_frame, unsigned int mesh,
+                                                  const VertexArrangement& vv_arrangement) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getFaceCount(mesh) > 0);
+	assert(vv_arrangement.size() == getVertexCount());
+
+	using namespace VertexDataFormat;
+
+	unsigned int vertex_count = getVertexArrangementTotalCount(vv_arrangement);
+	KeyframePositionOnly* d_vertexes = new KeyframePositionOnly[vertex_count];
+
+	// add the vertexes specified in vv_arrangement to the data array
+	unsigned int next_vertex = 0;
+	for(unsigned int i = 0; i < vv_arrangement.size(); i++)
+		if(!vv_arrangement[i].empty())
+		{
+			assert(vv_arrangement[i].size() == 1); // cannot be more because all the same
+			
+			assert(i < mv_vertexes.size());
+			const Vector3& vertex = mv_vertexes[i];
+			const Vector3& vertex1 = next_frame.mv_vertexes[i];
+
+			d_vertexes[next_vertex].m_x = (float)(vertex.x);
+			d_vertexes[next_vertex].m_y = (float)(vertex.y);
+			d_vertexes[next_vertex].m_z = (float)(vertex.z);
+			d_vertexes[next_vertex].m_x1 = (float)(vertex1.x);
+			d_vertexes[next_vertex].m_y1 = (float)(vertex1.y);
+			d_vertexes[next_vertex].m_z1 = (float)(vertex1.z);
+
+			assert(next_vertex < vertex_count);
+			next_vertex++;
+			assert(next_vertex <= vertex_count);
+		}
+	assert(next_vertex == vertex_count);
+
+	if(DEBUGGING_FACE_SHADERS)
+	{
+		// print the data array contnents
+		cout << "Vertexes Added to VBO:" << endl;
+
+		for(unsigned int i = 0; i < vertex_count; i++)
+		{
+			cout << "\t" << i << ":\t(" << d_vertexes[i].m_x
+			                  << ",\t"  << d_vertexes[i].m_y 
+			                  << ",\t"  << d_vertexes[i].m_z << ")" << endl;
+		}
+	}
+
+	// create the VBO
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  vertex_count * getComponentCount(KEYFRAME_POSITION_ONLY),
 	                  reinterpret_cast<float*>(d_vertexes),
 	                  GL_STATIC_DRAW);
 
@@ -3555,6 +3946,70 @@ ObjVbo<float> ObjModel :: createFaceVboVertexTextureCoordinate (unsigned int mes
 	return vbo;
 }
 
+ObjVbo<float> ObjModel :: createFaceKeyframeVboVertexTextureCoordinate (const ObjModel& next_frame, unsigned int mesh,
+                                                                const VertexArrangement& vv_arrangement) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getFaceCount(mesh) > 0);
+	assert(vv_arrangement.size() == getVertexCount());
+	
+
+	using namespace VertexDataFormat;
+
+	unsigned int vertex_count = getVertexArrangementTotalCount(vv_arrangement);
+	KeyframePositionTextureCoordinate* d_vertexes = new KeyframePositionTextureCoordinate[vertex_count];
+
+	// add the vertexes specified in vv_arrangement to the data array
+	unsigned int next_vertex = 0;
+	for(unsigned int i = 0; i < vv_arrangement.size(); i++)
+		for(unsigned int j = 0; j < vv_arrangement[i].size(); j++)
+		{
+			const TextureCoordinateAndNormal& element = vv_arrangement[i][j];
+
+			assert(i < mv_vertexes.size());
+			const Vector3& vertex = mv_vertexes[i];
+			const Vector3& vertex1 = next_frame.mv_vertexes[i];
+
+			d_vertexes[next_vertex].m_x = (float)(vertex.x);
+			d_vertexes[next_vertex].m_y = (float)(vertex.y);
+			d_vertexes[next_vertex].m_z = (float)(vertex.z);
+			d_vertexes[next_vertex].m_x1 = (float)(vertex1.x);
+			d_vertexes[next_vertex].m_y1 = (float)(vertex1.y);
+			d_vertexes[next_vertex].m_z1 = (float)(vertex1.z);
+
+
+			if(element.m_texture_coordinate < mv_texture_coordinates.size())
+			{
+				const Vector2& texture_coordinate = mv_texture_coordinates[element.m_texture_coordinate];
+
+				// flip texture coordinates to match Maya <|>
+				d_vertexes[next_vertex].m_s =        (float)(texture_coordinate.x);
+				d_vertexes[next_vertex].m_t = 1.0f - (float)(texture_coordinate.y);
+			}
+			else
+			{
+				// no texture coordinates specified, use fallback
+				d_vertexes[next_vertex].m_s = (float)(FALLBACK_TEXTURE_COORDINATE.x);
+				d_vertexes[next_vertex].m_t = (float)(FALLBACK_TEXTURE_COORDINATE.y);
+			}
+
+			assert(next_vertex < vertex_count);
+			next_vertex++;
+			assert(next_vertex <= vertex_count);
+		}
+	assert(next_vertex == vertex_count);
+
+	// create the VBO
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  vertex_count * getComponentCount(KEYFRAME_POSITION_TEXTURE_COORDINATE),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
 ObjVbo<float> ObjModel :: createFaceVboVertexNormal (unsigned int mesh,
                                                      const VertexArrangement& vv_arrangement) const
 {
@@ -3607,6 +4062,77 @@ ObjVbo<float> ObjModel :: createFaceVboVertexNormal (unsigned int mesh,
 	// create the VBO
 	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
 	                  vertex_count * getComponentCount(POSITION_NORMAL),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
+ObjVbo<float> ObjModel :: createFaceKeyframeVboVertexNormal (const ObjModel& next_frame, unsigned int mesh,
+                                                    const VertexArrangement& vv_arrangement, const VertexArrangement& vv1_arrangement) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getFaceCount(mesh) > 0);
+	assert(vv_arrangement.size() == getVertexCount());
+
+	using namespace VertexDataFormat;
+
+	unsigned int vertex_count = getVertexArrangementTotalCount(vv_arrangement);
+	KeyframePositionNormal* d_vertexes = new KeyframePositionNormal[vertex_count];
+
+	// add the vertexes specified in vv_arrangement to the data array
+	unsigned int next_vertex = 0;
+	for(unsigned int i = 0; i < vv_arrangement.size(); i++)
+		for(unsigned int j = 0; j < vv_arrangement[i].size(); j++)
+		{
+			const TextureCoordinateAndNormal& element = vv_arrangement[i][j];
+			const TextureCoordinateAndNormal& element1 = vv1_arrangement[i][j];
+
+			assert(i < mv_vertexes.size());
+			const Vector3& vertex = mv_vertexes[i];
+			const Vector3& vertex1 = next_frame.mv_vertexes[i];
+
+			d_vertexes[next_vertex].m_x = (float)(vertex.x);
+			d_vertexes[next_vertex].m_y = (float)(vertex.y);
+			d_vertexes[next_vertex].m_z = (float)(vertex.z);
+			d_vertexes[next_vertex].m_x1 = (float)(vertex1.x);
+			d_vertexes[next_vertex].m_y1 = (float)(vertex1.y);
+			d_vertexes[next_vertex].m_z1 = (float)(vertex1.z);
+
+			if(element.m_normal < mv_normals.size())
+			{
+				const Vector3& normal = mv_normals[element.m_normal];
+				const Vector3& normal1 = next_frame.mv_normals[element1.m_normal];
+
+				d_vertexes[next_vertex].m_nx = (float)(normal.x);
+				d_vertexes[next_vertex].m_ny = (float)(normal.y);
+				d_vertexes[next_vertex].m_nz = (float)(normal.z);
+				d_vertexes[next_vertex].m_nx1 = (float)(normal1.x);
+				d_vertexes[next_vertex].m_ny1 = (float)(normal1.y);
+				d_vertexes[next_vertex].m_nz1 = (float)(normal1.z);
+			}
+			else
+			{
+				// no normal specified, use fallback
+				d_vertexes[next_vertex].m_nx = (float)(FALLBACK_NORMAL.x);
+				d_vertexes[next_vertex].m_ny = (float)(FALLBACK_NORMAL.y);
+				d_vertexes[next_vertex].m_nz = (float)(FALLBACK_NORMAL.z);
+				d_vertexes[next_vertex].m_nx1 = (float)(FALLBACK_NORMAL.x);
+				d_vertexes[next_vertex].m_ny1 = (float)(FALLBACK_NORMAL.y);
+				d_vertexes[next_vertex].m_nz1 = (float)(FALLBACK_NORMAL.z);
+			}
+
+			assert(next_vertex < vertex_count);
+			next_vertex++;
+			assert(next_vertex <= vertex_count);
+		}
+	assert(next_vertex == vertex_count);
+
+	// create the VBO
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  vertex_count * getComponentCount(KEYFRAME_POSITION_NORMAL),
 	                  reinterpret_cast<float*>(d_vertexes),
 	                  GL_STATIC_DRAW);
 
@@ -3688,6 +4214,96 @@ ObjVbo<float> ObjModel :: createFaceVboVertexTextureCoordinateNormal (unsigned i
 	return vbo;
 }
 
+ObjVbo<float> ObjModel :: createFaceKeyframeVboVertexTextureCoordinateNormal (const ObjModel& next_frame, unsigned int mesh,
+                                                                      const VertexArrangement& vv_arrangement, const VertexArrangement& vv1_arrangement) const
+{
+	assert(isValid());
+	assert(mesh < getMeshCount());
+	assert(getFaceCount(mesh) > 0);
+	assert(vv_arrangement.size() == getVertexCount());
+
+	using namespace VertexDataFormat;
+
+	unsigned int vertex_count = getVertexArrangementTotalCount(vv_arrangement);
+	unsigned int vertex1_count = next_frame.getVertexArrangementTotalCount(vv1_arrangement);
+
+	KeyframePositionTextureCoordinateNormal* d_vertexes = new KeyframePositionTextureCoordinateNormal[vertex_count];
+
+	// add the vertexes specified in vv_arrangement to the data array
+	unsigned int next_vertex = 0;
+	for(unsigned int i = 0; i < vv_arrangement.size(); i++)
+		for(unsigned int j = 0; j < vv_arrangement[i].size(); j++)
+		{
+			const TextureCoordinateAndNormal& element = vv_arrangement[i][j];
+			const TextureCoordinateAndNormal& element1 = vv1_arrangement[i][j];
+
+			assert(i < mv_vertexes.size());
+			const Vector3& vertex = mv_vertexes[i];
+			const Vector3& vertex1 = next_frame.mv_vertexes[i];
+
+			d_vertexes[next_vertex].m_x = (float)(vertex.x);
+			d_vertexes[next_vertex].m_y = (float)(vertex.y);
+			d_vertexes[next_vertex].m_z = (float)(vertex.z);
+			d_vertexes[next_vertex].m_x1 = (float)(vertex1.x);
+			d_vertexes[next_vertex].m_y1 = (float)(vertex1.y);
+			d_vertexes[next_vertex].m_z1 = (float)(vertex1.z);
+
+			if(element.m_texture_coordinate < mv_texture_coordinates.size())
+			{
+				const Vector2& texture_coordinate = mv_texture_coordinates[element.m_texture_coordinate];
+
+				// flip texture coordinates to match Maya <|>
+				d_vertexes[next_vertex].m_s =        (float)(texture_coordinate.x);
+				d_vertexes[next_vertex].m_t = 1.0f - (float)(texture_coordinate.y);
+			}
+			else
+			{
+				// no texture coordinates specified, use fallback
+				d_vertexes[next_vertex].m_s = (float)(FALLBACK_TEXTURE_COORDINATE.x);
+				d_vertexes[next_vertex].m_t = (float)(FALLBACK_TEXTURE_COORDINATE.y);
+			}
+
+			if(element.m_normal < mv_normals.size())
+			{
+				const Vector3& normal = mv_normals[element.m_normal];
+				const Vector3& normal1 = next_frame.mv_normals[element1.m_normal];
+
+				d_vertexes[next_vertex].m_nx = (float)(normal.x);
+				d_vertexes[next_vertex].m_ny = (float)(normal.y);
+				d_vertexes[next_vertex].m_nz = (float)(normal.z);
+				
+				d_vertexes[next_vertex].m_nx1 = (float)(normal1.x);
+				d_vertexes[next_vertex].m_ny1 = (float)(normal1.y);
+				d_vertexes[next_vertex].m_nz1 = (float)(normal1.z);
+			}
+			else
+			{
+				// no normal specified, use fallback
+				d_vertexes[next_vertex].m_nx = (float)(FALLBACK_NORMAL.x);
+				d_vertexes[next_vertex].m_ny = (float)(FALLBACK_NORMAL.y);
+				d_vertexes[next_vertex].m_nz = (float)(FALLBACK_NORMAL.z);
+				
+				d_vertexes[next_vertex].m_nx1 = (float)(FALLBACK_NORMAL.x);
+				d_vertexes[next_vertex].m_ny1 = (float)(FALLBACK_NORMAL.y);
+				d_vertexes[next_vertex].m_nz1 = (float)(FALLBACK_NORMAL.z);
+			}
+
+			assert(next_vertex < vertex_count);
+			next_vertex++;
+			assert(next_vertex <= vertex_count);
+		}
+	assert(next_vertex == vertex_count);
+
+	// create the VBO
+	ObjVbo<float> vbo(GL_ARRAY_BUFFER,
+	                  vertex_count * getComponentCount(KEYFRAME_POSITION_TEXTURE_COORDINATE_NORMAL),
+	                  reinterpret_cast<float*>(d_vertexes),
+	                  GL_STATIC_DRAW);
+
+	delete[] d_vertexes;
+	return vbo;
+}
+
 ObjVbo<unsigned int> ObjModel :: createIndexVboSimple (unsigned int count) const
 {
 	unsigned int* d_indexes = new unsigned int[count];
@@ -3700,6 +4316,8 @@ ObjVbo<unsigned int> ObjModel :: createIndexVboSimple (unsigned int count) const
 
 	return vbo;
 }
+
+
 
 ObjVbo<unsigned int> ObjModel :: createIndexVboForFaces (unsigned int mesh,
                                                          bool is_texture_coordinates,

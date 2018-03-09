@@ -422,6 +422,9 @@ bool initProgramEnd (unsigned int shader_program);
 
 struct ShaderUniforms
 {
+	unsigned int m_tween_enabled;
+	unsigned int m_tween_factor;
+
 	unsigned int m_model_matrix;
 	unsigned int m_view_matrix;
 	unsigned int m_model_view_projection_matrix;

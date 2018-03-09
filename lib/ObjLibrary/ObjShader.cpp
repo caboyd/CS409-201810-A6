@@ -153,6 +153,8 @@ namespace
 		glBindAttribLocation(shader_program_id, 0, "vertex");
 		glBindAttribLocation(shader_program_id, 1, "tex_coord");
 		glBindAttribLocation(shader_program_id, 2, "normal");
+		glBindAttribLocation(shader_program_id, 3, "vertex1");
+		glBindAttribLocation(shader_program_id, 4, "normal1");
 
 		bool is_good = initProgramEnd(shader_program_id);
 		if(!is_good)
@@ -191,6 +193,9 @@ namespace
 	                                ShaderUniforms& r_uniforms)
 	{
 		assert(shader_program_id != 0);
+
+		r_uniforms.m_tween_enabled					= glGetUniformLocation(shader_program_id, "tween_enabled");
+		r_uniforms.m_tween_factor					= glGetUniformLocation(shader_program_id, "tween_factor");
 
 		r_uniforms.m_model_matrix				    = glGetUniformLocation(shader_program_id, "model_matrix");
 		r_uniforms.m_view_matrix					= glGetUniformLocation(shader_program_id, "view_matrix");

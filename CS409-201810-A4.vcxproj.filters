@@ -126,6 +126,12 @@
     <ClCompile Include="PickupManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lib\ObjLibrary\KeyframeModelWithShader.cpp">
+      <Filter>ObjLibrary</Filter>
+    </ClCompile>
+    <ClCompile Include="PlayerAnimatedModel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sleep.h">
@@ -270,6 +276,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Collision.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="lib\ObjLibrary\KeyframeModelWithShader.h">
+      <Filter>ObjLibrary</Filter>
+    </ClInclude>
+    <ClInclude Include="PlayerAnimatedModel.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

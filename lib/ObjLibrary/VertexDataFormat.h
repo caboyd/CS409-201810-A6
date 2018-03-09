@@ -46,7 +46,7 @@ namespace VertexDataFormat
 	//  The number of data formats.
 	//
 
-	static const unsigned int COUNT = 4;
+	static const unsigned int COUNT = 8;
 
 	//
 	//  POSITION_ONLY
@@ -96,6 +96,11 @@ namespace VertexDataFormat
 	                     POSITION_TEXTURE_COORDINATE_NORMAL = 3;
 
 
+	//For keyframe interp vbos
+	static const unsigned int KEYFRAME_POSITION_ONLY = 4;
+	static const unsigned int KEYFRAME_POSITION_TEXTURE_COORDINATE = 5;
+	static const unsigned int KEYFRAME_POSITION_NORMAL = 6;
+	static const unsigned int KEYFRAME_POSITION_TEXTURE_COORDINATE_NORMAL = 7;
 
 	//
 	//  PositionOnly
@@ -172,6 +177,104 @@ namespace VertexDataFormat
 	};
 
 
+	//
+	//  KeyframePositionOnly
+	//
+	//  A record to store a vertex with a position and nothing
+	//    else.  It is used for the POSITION_ONLY format.
+	//
+
+	struct KeyframePositionOnly
+	{
+		float m_x;
+		float m_y;
+		float m_z;
+
+		float m_x1;
+		float m_y1;
+		float m_z1;
+	};
+
+	//
+	//  KeyframePositionTextureCoordinate
+	//
+	//  A record to store a vertex with a position and a
+	//    texture coordinate pair.  It is used for the
+	//    POSITION_TEXTURE_COORDINATE format.
+	//
+
+	struct KeyframePositionTextureCoordinate
+	{
+		float m_x;
+		float m_y;
+		float m_z;
+
+		float m_s;
+		float m_t;
+
+		float m_x1;
+		float m_y1;
+		float m_z1;
+	};
+
+	//
+	//  KeyframePositionNormal
+	//
+	//  A record to store a vertex with a position and a
+	//    vertex normal.  It is used for the POSITION_NORMAL
+	//    format.
+	//
+
+	struct KeyframePositionNormal
+	{
+		float m_x;
+		float m_y;
+		float m_z;
+
+		float m_nx;
+		float m_ny;
+		float m_nz;
+
+	    float m_x1;
+		float m_y1;
+		float m_z1;
+
+		float m_nx1;
+		float m_ny1;
+		float m_nz1;
+	};
+
+	//
+	//  KeyframePositionTextureCoordinateNormal
+	//
+	//  A record to store a vertex with a position, a
+	//    texture coordinate pair, and a vertex normal and the next
+	//    frames vertex and normal.  It is  used for 
+	//	  the KEYFRAME_POSITION_TEXTURE_COORDINATE_NORMAL format.
+	//
+
+	struct KeyframePositionTextureCoordinateNormal
+	{
+		float m_x;
+		float m_y;
+		float m_z;
+
+		float m_s;
+		float m_t;
+
+		float m_nx;
+		float m_ny;
+		float m_nz;
+
+	    float m_x1;
+		float m_y1;
+		float m_z1;
+
+		float m_nx1;
+		float m_ny1;
+		float m_nz1;
+	};
+
 
 //
 //  getComponentCount
@@ -192,7 +295,7 @@ namespace VertexDataFormat
 		assert(data_format < COUNT);
 
 		static const unsigned int A_COMPONENT_COUNT[COUNT] =
-		{	3,	5,	6,	8	};
+		{	3,	5,	6,	8,  6,  8,  12,  14};
 		assert(A_COMPONENT_COUNT[POSITION_ONLY] ==
 		       sizeof(PositionOnly) / sizeof(float));
 		assert(A_COMPONENT_COUNT[POSITION_TEXTURE_COORDINATE] ==
@@ -201,6 +304,15 @@ namespace VertexDataFormat
 		       sizeof(PositionNormal) / sizeof(float));
 		assert(A_COMPONENT_COUNT[POSITION_TEXTURE_COORDINATE_NORMAL] ==
 		       sizeof(PositionTextureCoordinateNormal) / sizeof(float));
+
+		assert(A_COMPONENT_COUNT[KEYFRAME_POSITION_ONLY] ==
+		       sizeof(KeyframePositionOnly) / sizeof(float));
+		assert(A_COMPONENT_COUNT[KEYFRAME_POSITION_TEXTURE_COORDINATE] ==
+		       sizeof(KeyframePositionTextureCoordinate) / sizeof(float));
+		assert(A_COMPONENT_COUNT[KEYFRAME_POSITION_NORMAL] ==
+		       sizeof(KeyframePositionNormal) / sizeof(float));
+		assert(A_COMPONENT_COUNT[KEYFRAME_POSITION_TEXTURE_COORDINATE_NORMAL] ==
+		       sizeof(KeyframePositionTextureCoordinateNormal) / sizeof(float));
 
 		return A_COMPONENT_COUNT[data_format];
 	}
@@ -229,6 +341,10 @@ namespace VertexDataFormat
 			sizeof(PositionTextureCoordinate),
 			sizeof(PositionNormal),
 			sizeof(PositionTextureCoordinateNormal),
+			sizeof(KeyframePositionOnly),
+			sizeof(KeyframePositionTextureCoordinate),
+			sizeof(KeyframePositionNormal),
+			sizeof(KeyframePositionTextureCoordinateNormal),
 		};
 
 		return A_COMPONENT_COUNT[data_format];

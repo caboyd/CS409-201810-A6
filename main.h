@@ -126,7 +126,7 @@ global_local PerformanceCounter time_counter;
 global_local float time_scale = 1.0f;
 
 //Global Game Objects
-global_local ModelWithShader player_model;
+global_local PlayerAnimatedModel player_model;
 global_local ModelWithShader skybox_model;
 
 global_local glm::mat4 projection_matrix;

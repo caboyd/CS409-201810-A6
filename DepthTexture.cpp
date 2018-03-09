@@ -28,6 +28,17 @@ void DepthTexture::setDepthMVP(glm::mat4& depth_mvp) const
 	glUniformMatrix4fv(depth_matrix_id, 1, GL_FALSE, &depth_mvp[0][0]);
 }
 
+void DepthTexture::enableTween(float tween_factor) const
+{
+	glUniform1f(tween_factor_id, tween_factor);
+	glUniform1i(tween_enabled_id, 1);
+}
+
+void DepthTexture::disableTween() const
+{
+	glUniform1i(tween_enabled_id, 0);
+}
+
 unsigned DepthTexture::getDepthMatrixUniformLocation() const
 {
 	return depth_matrix_id;
@@ -85,7 +96,8 @@ void DepthTexture::init(unsigned shadow_map_size)
 	depth_program_id = ObjShader::initProgramStart(shader_folder + depthRTT_vert, shader_folder + depthRTT_frag);
 	ObjShader::initProgramEnd(depth_program_id);
 	depth_matrix_id = glGetUniformLocation(depth_program_id, "depthMVP");
-
+	tween_enabled_id = glGetUniformLocation(depth_program_id, "tween_enabled");
+	tween_factor_id = glGetUniformLocation(depth_program_id, "tween_factor");
 
 	//Set up a frame buffer and texture for depth texture renduring for shadow mapping
 

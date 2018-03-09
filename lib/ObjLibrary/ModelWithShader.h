@@ -569,7 +569,7 @@ public:
 		mv_materials.clear();
 	}
 
-private:
+protected:
 	//
 	//  MaterialWithMeshes
 	//
@@ -589,7 +589,7 @@ private:
 		std::vector<MeshWithShader> mv_meshes;
 	};
 
-private:
+protected:
 	std::vector<MaterialWithMeshes> mv_materials;
 };
 

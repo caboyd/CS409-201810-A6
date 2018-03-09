@@ -57,8 +57,8 @@
 #include "DepthTexture.h"
 #include "TextRenderer.h"
 #include "LineRenderer.h"
+#include "PlayerAnimatedModel.h"
 #include "main.h"
-#include "Sleep.h"
 
 
 using namespace std;
@@ -129,14 +129,21 @@ void init()
 
 	text_renderer.init();
 	line_renderer.init();
-
 	//Load up all the models and grab the models with shader from them
 	ObjShader::load();
+
+	player_model.init();
+
 	ObjModel temp;
-	temp.load("assets/Models/cbabe_stand_n.obj");
-	player_model = temp.getModelWithShader();
 	temp.load("assets/Models/Skybox.obj");
 	skybox_model = temp.getModelWithShader();
+
+	//for (int i = 0; i < 20; i++)
+	//{
+	//	temp.load("assets/Models/cbabe_run" + std::to_string(i) + ".obj");
+	//	run_models[i] = temp.getModelWithShader();
+
+	//}
 
 	//Folder location of worlds
 	world_folder = "assets/Worlds/";
@@ -452,9 +459,9 @@ void update(float delta_time)
 		player_direction.x += 1.0;
 	if (key_pressed['A'])
 		player_direction.x -= 1.0;
-	if (key_pressed['W'])
+	if (key_pressed['W'] || (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT]) || key_pressed[KEY_UP_ARROW])
 		player_direction.y += 1.0;
-	if (key_pressed['S'])
+	if (key_pressed['S'] || key_pressed[KEY_DOWN_ARROW])
 		player_direction.y -= 1.0;
 
 	//If player is moving diagonally then multiply by sqrt(2)/2
@@ -466,10 +473,16 @@ void update(float delta_time)
 		player.moveRight(player_distance);
 	if (key_pressed['A'])
 		player.moveRight(-player_distance);
-	if (key_pressed['W'])
+	if (key_pressed['W'] || (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT]) || key_pressed[KEY_UP_ARROW])
 		player.moveForward(player_distance);
-	if (key_pressed['S'])
+	if (key_pressed['S'] || key_pressed[KEY_DOWN_ARROW])
 		player.moveForward(-player_distance);
+
+	//Rotate player
+	if (key_pressed[KEY_LEFT_ARROW])
+		player.rotateAroundUp(player_turn);
+	if (key_pressed[KEY_RIGHT_ARROW])
+		player.rotateAroundUp(-player_turn);
 
 	//Reset player position and orientation to defaults
 	if (key_pressed['R'])
@@ -485,20 +498,6 @@ void update(float delta_time)
 		active_camera = &player_camera;
 
 
-	//Move player
-	if (key_pressed[KEY_UP_ARROW])
-		player.moveForward(player_distance);
-	if (key_pressed[KEY_DOWN_ARROW])
-		player.moveForward(-player_distance);
-	if (key_pressed[KEY_LEFT_ARROW])
-		player.rotateAroundUp(player_turn);
-	if (key_pressed[KEY_RIGHT_ARROW])
-		player.rotateAroundUp(-player_turn);
-
-
-	//On mouse left/right down, move forward
-	if (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT])
-		player.moveForward(player_distance);
 
 
 	//Set the players height to height of the world
@@ -518,12 +517,16 @@ void update(float delta_time)
 
 	bool player_moved = false;
 
+
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
-	if (player.getPosition() != last_player_pos || player.getForward() != last_player_forward)
+	if (player.getPosition() != last_player_pos)
 	{
-		camera_float = false;
 		player_moved = true;
+		camera_float = false;
 	}
+
+	if(player.getForward() != last_player_forward)
+			camera_float = false;
 
 
 	//Arcball rotate around the player on left click
@@ -599,6 +602,22 @@ void update(float delta_time)
 	//Overview camera follows player position
 	overview_camera.lookAt(player.getPosition());
 
+
+	if (!player_moved)
+	{
+		player_model.transitionTo(Player_State::Standing);
+	} else if (player_direction.y > 0 || player_direction.x != 0)
+	{
+		player_model.transitionTo(Player_State::Running);
+	} else if (player_direction.y < 0)
+	{
+		player_model.transitionTo(Player_State::Reversing);
+	}
+	if (key_pressed[32])
+	{
+		player_model.transitionTo(Player_State::Jumping);
+	}
+	player_model.updateAnimation(scaled_time);
 }
 
 //Resizes window and adjusts the projection matrix
@@ -660,23 +679,16 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 
 	glm::mat4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
+
 	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
 	glm::mat4 depth_mvp = depth_vp * model_matrix;
 
 	depth_texture.setDepthMVP(depth_mvp);
 
-	//Draw the players meshes only to the depth texture
-	const unsigned int mat_count = player_model.getMaterialCount();
-	for (unsigned int i = 0; i < mat_count; i++)
-	{
-		const unsigned int mesh_count = player_model.getMeshCount(i);
-		for (unsigned int j = 0; j < mesh_count; j++)
-		{
-			const MeshWithShader& m = player_model.getMesh(i, j);
-			m.draw();
-		}
 
-	}
+	player_model.drawToDepth();
+
+
 
 	//Draw the world to the depth texture
 	world.drawDepth(depth_vp);
@@ -689,6 +701,7 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 void display()
 {
 	static int count = 0;
+	static int run_frame = 0;
 	static unsigned dt = unsigned(1000.0 / delta_time);
 	//**************Render to depth texture ***************
 	glm::mat4 depth_vp;
@@ -735,31 +748,36 @@ void display()
 	glm::mat4 mvp_matrix = projection_matrix * view_matrix * model_matrix;
 
 	glDepthMask(GL_FALSE);
-	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
+	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
 	glDepthMask(GL_TRUE);
 
 	//Draw the world
-	world.drawOptimized(view_matrix, projection_matrix, active_camera->getPosition());
+	world.drawOptimized(view_matrix, projection_matrix, camera_position);
 	//world.draw(view_matrix, projection_matrix, active_camera->getPosition());
 
-	//Draw the player
-	model_matrix = glm::mat4();
-	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
-	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
-	mvp_matrix = projection_matrix * view_matrix * model_matrix;
-	player_model.draw(model_matrix, view_matrix, mvp_matrix, active_camera->getPosition());
 
 	const std::string text = "Score: " + std::to_string(world.pickupManager.score);
 	const float text_width = text_renderer.getWidth(text, 0.75f);
 	text_renderer.draw(text, float(win_width - text_width - 10), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
 
+
+	//Draw the player
+	model_matrix = glm::mat4();
+	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
+	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
+
+
+
+	player_model.draw(model_matrix, view_matrix, projection_matrix, camera_position);
+
+
 	//Update framerate 4 times per second
 	count++;
 	if (count % unsigned(FPS / 10) == 0)
 	{
-		count = 0;
 		dt = unsigned(1000.0 / delta_time);
 	}
+
 	text_renderer.draw("FPS: " + std::to_string(dt), 2, float(win_height - 18), 0.4f, glm::vec3(0, 1, 0));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work

@@ -36,6 +36,7 @@
 	#include "ObjVbo.h"
 	#include "MeshWithShader.h"
 	#include "ModelWithShader.h"
+    #include "KeyframeModelWithShader.h"
 #endif
 
 
@@ -2000,6 +2001,7 @@ public:
 //
 
 	ModelWithShader getModelWithShader () const;
+	KeyframeModelWithShader getKeyframeModelWithShader(const ObjModel& next_frame) const;
 
 //
 //  getModelWithShader
@@ -2027,6 +2029,11 @@ public:
 	ModelWithShader getModelWithShader (
 	                                bool is_texture_coordinates,
 	                                bool is_normals) const;
+	KeyframeModelWithShader getKeyframeModelWithShader(
+									const ObjModel& next_frame,
+									bool is_texture_coordinates,
+									bool is_normals) const;
+
 #endif  // OBJ_LIBRARY_SHADER_DISPLAY is defined
 
 //
@@ -3266,7 +3273,7 @@ public:
 
 	void validate ();
 
-private:
+public:
 #ifdef OBJ_LIBRARY_SHADER_DISPLAY
 	//
 	//  TextureCoordinateAndNormal
@@ -3302,7 +3309,7 @@ private:
 	                                          VertexArrangement;
 #endif  // OBJ_LIBRARY_SHADER_DISPLAY is defined
 
-private:
+public:
 #ifndef OBJ_LIBRARY_SHADER_DISPLAY
 //
 //  drawMeshMaterial
@@ -3405,7 +3412,9 @@ private:
 
 	MeshWithShader getPointSetMeshWithShader (
 	                                   unsigned int mesh) const;
-
+	MeshWithShader getPointSetKeyframeMeshWithShader (
+									const ObjModel& next_frame,
+	                                   unsigned int mesh) const;
 //
 //  getPolylineMeshWithShader
 //
@@ -3430,6 +3439,12 @@ private:
 //
 
 	MeshWithShader getPolylineMeshWithShader (
+	                         unsigned int mesh,
+	                         unsigned int polyline,
+	                         bool is_texture_coordinates) const;
+
+		MeshWithShader getPolylineKeyframeMeshWithShader (
+							 const ObjModel& next_frame,
 	                         unsigned int mesh,
 	                         unsigned int polyline,
 	                         bool is_texture_coordinates) const;
@@ -3463,6 +3478,10 @@ private:
 	                                unsigned int mesh,
 	                                bool is_texture_coordinates,
 	                                bool is_normals) const;
+	MeshWithShader getFaceKeyframeMeshWithShader (const ObjModel& next_frame,
+	                                unsigned int mesh,
+	                                bool is_texture_coordinates,
+	                                bool is_normals) const;
 
 //
 //  createPointSetVboVertexOnly
@@ -3481,6 +3500,8 @@ private:
 //
 
 	ObjVbo<float> createPointSetVboVertexOnly (
+	                                   unsigned int mesh) const;
+	ObjVbo<float> createPointSetKeyframeVboVertexOnly (const ObjModel& next_frame,
 	                                   unsigned int mesh) const;
 
 //
@@ -3507,10 +3528,15 @@ private:
 	ObjVbo<float> createPolylineVboVertexOnly (
 	                               unsigned int mesh,
 	                               unsigned int polyline) const;
+	ObjVbo<float> createPolylineKeyframeVboVertexOnly (const ObjModel& next_frame,
+	                               unsigned int mesh,
+	                               unsigned int polyline) const;
 	ObjVbo<float> createPolylineVboVertexTextureCoordinate (
 	                               unsigned int mesh,
 	                               unsigned int polyline) const;
-
+	ObjVbo<float> createPolylineKeyframeVboVertexTextureCoordinate (const ObjModel& next_frame,
+	                               unsigned int mesh,
+	                               unsigned int polyline) const;
 //
 //  createFaceVboVertexOnly
 //  createFaceVboVertexTextureCoordinate
@@ -3549,6 +3575,21 @@ private:
 	             unsigned int mesh,
 	             const VertexArrangement& vv_arrangement) const;
 
+	ObjVbo<float> createFaceKeyframeVboVertexOnly (const ObjModel& next_frame,
+	             unsigned int mesh,
+	             const VertexArrangement& vv_arrangement) const;
+	ObjVbo<float> createFaceKeyframeVboVertexTextureCoordinate (const ObjModel& next_frame,
+	             unsigned int mesh,
+	             const VertexArrangement& vv_arrangement) const;
+	ObjVbo<float> createFaceKeyframeVboVertexNormal (const ObjModel& next_frame,
+	             unsigned int mesh,
+	             const VertexArrangement& vv_arrangement,
+				 const VertexArrangement& vv1_arrangement) const;
+	ObjVbo<float> createFaceKeyframeVboVertexTextureCoordinateNormal (const ObjModel& next_frame,
+	             unsigned int mesh,
+	             const VertexArrangement& vv_arrangement,
+				 const VertexArrangement& vv1_arrangement) const;
+
 //
 //  createIndexVboSimple
 //
@@ -3563,6 +3604,8 @@ private:
 
 	ObjVbo<unsigned int> createIndexVboSimple (
 	                                  unsigned int count) const;
+
+
 
 //
 //  createIndexVboForFaces
@@ -3799,7 +3842,7 @@ private:
 
 	bool invariant () const;
 
-private:
+public:
 	//
 	//  MaterialLibrary
 	//
@@ -3957,7 +4000,7 @@ private:
 		bool m_all_triangles;
 	};
 
-private:
+public:
 	std::vector<MaterialLibrary> mv_material_libraries;
 	std::vector<Vector3> mv_vertexes;
 	std::vector<Vector2> mv_texture_coordinates;
