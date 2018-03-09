@@ -51,13 +51,12 @@
 
 #include "Sleep.h"
 #include "MathHelper.h"
-
 #include "Random.h"
 #include "Game.h"
+#include "PerformanceCounter.h"
+#include "Globals.h"
 #include "main.h"
 
-
-global_local Game game;
 
 using namespace std;
 using namespace ObjLibrary;

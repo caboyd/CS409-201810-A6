@@ -18,6 +18,7 @@
 #include "lib/glm/glm.hpp"
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "lib/glm/gtc/type_ptr.hpp"
+#include "lib/ObjLibrary/ObjShader.h"
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

@@ -13,9 +13,10 @@
 #include "lib/GetGlutWithShaders.h"
 #include <string>
 #include "lib/ObjLibrary/Vector3.h"
-
+#include "lib/ObjLibrary/ObjShader.h"
+#include <vector>
 using ObjLibrary::Vector3;
-
+using namespace ObjLibrary;
 
 
 class LineRenderer

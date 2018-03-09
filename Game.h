@@ -3,7 +3,19 @@
 #include "World.h"
 #include "ShadowBox.h"
 #include "Player.h"
-#include "main.h"
+#include "LineRenderer.h"
+#include "TextRenderer.h"
+#include "WindowsHelperFunctions.h"
+#include "Globals.h"
+
+
+//Matrix to help with calculating depth texture p
+const glm::mat4 BIAS_MATRIX(
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 0.5, 0.0,
+	0.5, 0.5, 0.5, 1.0
+);
 
 class Game
 {
@@ -435,3 +447,5 @@ inline void Game::renderToDepthTexture(glm::mat4& depth_vp)
 
 
 }
+
+
