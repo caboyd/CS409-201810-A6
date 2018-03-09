@@ -20,7 +20,7 @@ public:
 
 	void init(World* w, ModelWithShader* rod, ModelWithShader* ring);
 
-	void update(const float delta_time);
+	void update(const double delta_time);
 
 	void checkForPickups(Vector3 player_position);
 

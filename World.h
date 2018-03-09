@@ -77,6 +77,6 @@ public:
 	Vector3& getRandomDiskPosition();
 
 	//Call Update on the pickup manager
-	void update(float delta_time);
+	void update(double delta_time);
 
 };

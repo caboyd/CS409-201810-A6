@@ -14,7 +14,7 @@ void PickupManager::init(World* w, ModelWithShader* rod, ModelWithShader* ring)
 	ringModel = ring;
 }
 
-void PickupManager::update(const float delta_time)
+void PickupManager::update(const double delta_time)
 {
 	for (auto& ring : rings)
 	{

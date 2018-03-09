@@ -24,7 +24,7 @@
 //
 
 void sleep (double seconds);
-
+void sleepms (double milliseconds);
 
 
 #endif

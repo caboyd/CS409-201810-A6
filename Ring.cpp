@@ -19,13 +19,13 @@ Ring::Ring(World* w, ModelWithShader* model, Vector3 pos): Entity(model, pos)
 	this->position.y += 0.1f;
 }
 
-inline void Ring::update(float delta_time)
+inline void Ring::update(double delta_time)
 {
 	Vector3 direction = targetPosition - position;
 	direction.normalizeSafe();
 
 	const float speed_factor = world->getSpeedFactorAtPosition(float(position.x), float(position.z));
-	const float distance = velocity * delta_time * speed_factor;
+	const float distance = velocity * float(delta_time) * speed_factor;
 	position += direction * distance;
 	float rot = rotVelocity * distance;
 	forward.rotateY(rot);

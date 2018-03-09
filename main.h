@@ -1,6 +1,8 @@
 #pragma once
-
-#define V3 Vector3
+#include "PerformanceCounter.h"
+#include "DepthTexture.h"
+#include "TextRenderer.h"
+#include "LineRenderer.h"
 
 //Global within main.cpp
 #define global_local static
@@ -8,25 +10,19 @@
 //Global throughout all files in project
 #define global_extern
 
-//Helper function to get all the files in a folder on windows
-#ifdef _WIN32
-#include <windows.h>
-std::vector<std::string> getFileNamesInFolder(const std::string& folder);
-#endif
 
 //Main functions
 void init();
-void update(float delta_time);
+void update();
 void reshape(int w, int h);
 void display();
-void timer(int);
-
 void keyboard(unsigned char key, int x, int y);
 void keyboardUp(unsigned char key, int x, int y);
 void special(int special_key, int x, int y);
 void specialUp(int special_key, int x, int y);
 void mouseMove(int x, int y);
 void mouseButton(int button, int state, int x, int y);
+
 
 
 //Global External constants available to all files
@@ -36,7 +32,9 @@ global_extern const double FOV = 60.0;
 global_extern const double CLIP_NEAR = 0.1;
 global_extern const double CLIP_FAR = 1600.0;
 
-//Global local Constants
+
+
+//Global local Constants available in main.cpp and game class
 //***************************************
 global_local const unsigned int KEY_UP_ARROW = 256;
 global_local const unsigned int KEY_DOWN_ARROW = 257;
@@ -50,8 +48,29 @@ global_local const unsigned int MOUSE_RIGHT = 264;
 global_local const unsigned int KEY_COUNT = 265;
 
 //Framerate and Frame time
-global_local const double FPS = 60.0;
-global_local const double MIN_FRAME_TIME = 1000.0 / FPS;
+global_local const double FPS_UPDATE = 60.0;
+global_local const double FPS_DISPLAY = 300.0;
+global_local const double FRAME_TIME_UPDATE = 1000.0 / FPS_UPDATE;
+global_local const double MIN_FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
+global_local const double FIXED_TIME_STEP = 1.0/FPS_UPDATE;
+
+//Matrix to help with calculating depth texture p
+global_local const glm::mat4 BIAS_MATRIX(
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 0.5, 0.0,
+	0.5, 0.5, 0.5, 1.0
+);
+
+
+//Initial Camera/Player vectors
+//Sun Dir is the direction the sun is on the skybox
+global_local const Vector3 SUN_DIR(0.34, 0.83, 0.44);
+global_local const Vector3 CAMERA_INIT_FORWARD = Vector3(-1, 0, -1).getNormalized();
+
+global_local const Vector3 PLAYER_CAMERA_OFFSET = Vector3(0, 0.75f, 0);
+global_local const Vector3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;
+global_local const Vector3 OVERVIEW_CAMERA_INIT_POS = Vector3(100.f, 200.0f, 10.0f);
 
 
 //Players turns 3 degrees per second
@@ -64,22 +83,6 @@ global_local const float PLAYER_SPEED_BOOST_MULT = 4.0f;
 global_local const float PLAYER_TURN_BOOST_MULT = 1.5f;
 
 
-//Initial Camera/Player vectors
-//Sun Dir is the direction the sun is on the skybox
-global_local const V3 SUN_DIR(0.34, 0.83, 0.44);
-global_local const V3 CAMERA_INIT_FORWARD = V3(-1, 0, -1).getNormalized();
-
-global_local const V3 PLAYER_CAMERA_OFFSET = V3(0, 0.75f, 0);
-global_local const V3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;
-global_local const V3 OVERVIEW_CAMERA_INIT_POS = V3(100.f, 200.0f, 10.0f);
-
-global_local const glm::mat4 BIAS_MATRIX(
-	0.5, 0.0, 0.0, 0.0,
-	0.0, 0.5, 0.0, 0.0,
-	0.0, 0.0, 0.5, 0.0,
-	0.5, 0.5, 0.5, 1.0
-);
-
 //Globals Externals available to all files
 //***************************************
 
@@ -87,15 +90,21 @@ global_local const glm::mat4 BIAS_MATRIX(
 global_extern int win_width = 1280;
 global_extern int win_height = 960;
 
-
 //Renderers for rendering text and lines
 global_extern TextRenderer text_renderer;
 global_extern LineRenderer line_renderer;
 global_extern DepthTexture depth_texture;
 
-//Global Locals available in main.cpp
+//High precision timer for calculated delta time
+global_extern PerformanceCounter time_counter;
+
+//Global Locals available in main.cpp and game class
 //***************************************
 global_local double delta_time;
+global_local double update_lag = 0;
+global_local long long update_count = 0;
+global_local long long display_count = 0;
+global_local long long elapsed_time_milliseconds = 0;
 global_local bool full_screen = false;
 global_local bool fullscreen_toggle_allowed = true;
 global_local bool key_pressed[KEY_COUNT] = { false };
@@ -110,32 +119,39 @@ global_local int mouse_dx = 0, mouse_dy = 0;
 //This is used to snap the mouse back to its position so it doesn't leave the window
 global_local int mouse_locked_x = 0, mouse_locked_y;
 
-//Set this to true to float the camera when the game starts
-global_local bool camera_float = false;
 
-//Current level
-global_local unsigned int level = 0;
-//list of level file names to load
-global_local std::vector<std::string> levels;
 
-global_local std::string world_folder;
+//Current time scale to allow for slow motion or speed up
+global_local double time_scale = 1.0f;
 
-global_local PerformanceCounter time_counter;
-global_local float time_scale = 1.0f;
-
-//Global Game Objects
-global_local Player player;
-global_local ModelWithShader skybox_model;
-
+//Screen space projection matrix
 global_local glm::mat4 projection_matrix;
-global_local CoordinateSystem player_camera(PLAYER_CAMERA_INIT_POS, CAMERA_INIT_FORWARD);
-global_local CoordinateSystem overview_camera(OVERVIEW_CAMERA_INIT_POS, V3(0.0f, -1.0f, 0.0f));
-global_local CoordinateSystem* active_camera = &player_camera;
-
-global_local World world;
-global_local ShadowBox shadow_box;
 
 
 
-global_local glm::mat4x4 light_view_matrix;
 
+//Helper function to get all the files in a folder on windows
+#ifdef _WIN32
+#include <windows.h>
+std::vector<std::string> getFileNamesInFolder(const std::string& folder)
+{
+	std::vector<std::string> names;
+	std::string search_path = folder + "/*.*";
+	WIN32_FIND_DATAA fd;
+	HANDLE hFind = FindFirstFileA(search_path.c_str(), &fd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		do
+		{
+			// read all (real) files in current folder
+			// , delete '!' read other 2 default folder . and ..
+			if (!(fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+			{
+				names.emplace_back(fd.cFileName);
+			}
+		} while (::FindNextFileA(hFind, &fd));
+		::FindClose(hFind);
+	}
+	return names;
+}
+#endif

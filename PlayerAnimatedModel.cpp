@@ -21,13 +21,13 @@ void PlayerAnimatedModel::init()
 	run_frames[5].model = temp[5].getKeyframeModelWithShader(temp[1]);
 	run_frames[6].model = temp[1].getKeyframeModelWithShader(temp[0]);
 
-	run_frames[0].duration = 120;
-	run_frames[1].duration = 120;
-	run_frames[2].duration = 120;
+	run_frames[0].duration = 110;
+	run_frames[1].duration = 110;
+	run_frames[2].duration = 110;
 	run_frames[3].duration = 175;
-	run_frames[4].duration = 120;
-	run_frames[5].duration = 120;
-	run_frames[6].duration = 120;
+	run_frames[4].duration = 110;
+	run_frames[5].duration = 110;
+	run_frames[6].duration = 110;
 
 	temp[0].load(model_folder + "cbabe_stand.obj");
 	stand_model = temp[0].getModelWithShader();
@@ -36,14 +36,14 @@ void PlayerAnimatedModel::init()
 	jump_model = temp[0].getModelWithShader();
 }
 
-void PlayerAnimatedModel::updateAnimation(float delta_time)
+void PlayerAnimatedModel::updateAnimation(double delta_time)
 {
 	int i = int(run_state);
 	switch (state)
 	{
 	case Player_State::Running:
 	{
-		time_into_frame += delta_time;
+		time_into_frame += float(delta_time);
 		//go to next state
 		if (time_into_frame > run_frames[i].duration)
 		{
@@ -57,7 +57,7 @@ void PlayerAnimatedModel::updateAnimation(float delta_time)
 	}
 	case Player_State::Reversing:
 	{
-		time_into_frame -= delta_time;
+		time_into_frame -= float(delta_time);
 		//go to next state
 		if (time_into_frame < 0)
 		{

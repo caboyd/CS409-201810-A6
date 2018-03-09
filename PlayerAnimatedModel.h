@@ -54,7 +54,7 @@ public:
 	void init();
 
 
-	void updateAnimation(float delta_time);
+	void updateAnimation(double delta_time);
 
 	void draw(const glm::mat4x4& model_matrix,
 	          const glm::mat4x4& view_matrix,

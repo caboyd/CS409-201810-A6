@@ -18,7 +18,7 @@ public:
 	{}
 
 	virtual ~Entity() = default;
-	virtual void update(float delta_time) = 0;
+	virtual void update(double delta_time) = 0;
 
 
 	Vector3 position;

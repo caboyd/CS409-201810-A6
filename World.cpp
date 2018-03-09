@@ -360,7 +360,7 @@ Vector3& World::getRandomDiskPosition()
 	return disks[i]->position;
 }
 
-void World::update(const float delta_time)
+void World::update(const double delta_time)
 {
 	pickupManager.update(delta_time);
 }

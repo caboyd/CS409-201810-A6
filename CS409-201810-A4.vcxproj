@@ -154,6 +154,7 @@
     <ClCompile Include="CoordinateSystem.cpp" />
     <ClCompile Include="DepthTexture.cpp" />
     <ClCompile Include="Disk.cpp" />
+    <ClCompile Include="Game.cpp" />
     <ClCompile Include="GreyRockDisk.cpp" />
     <ClCompile Include="IcyDisk.cpp" />
     <ClCompile Include="lib\gl3w.c" />
@@ -181,6 +182,7 @@
     <ClCompile Include="LeafyDisk.cpp" />
     <ClCompile Include="NoiseField.cpp" />
     <ClCompile Include="PickupManager.cpp" />
+    <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerAnimatedModel.cpp" />
     <ClCompile Include="Random.cpp" />
     <ClCompile Include="RedRockDisk.cpp" />

@@ -18,6 +18,6 @@ public:
 
 	Ring(World* w, ModelWithShader* model, Vector3 pos);;
 
-	void update(float delta_time) override;
+	void update(double delta_time) override;
 };
 

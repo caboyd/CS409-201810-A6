@@ -11,7 +11,7 @@ public:
 
 	Rod(ModelWithShader* model, Vector3 position, unsigned int value);;
 
-	void update(float delta_time) override;
+	void update(double delta_time) override;
 };
 
 inline Rod::Rod(ModelWithShader* model, Vector3 position, unsigned value): Entity(model, position), pointValue(value)
@@ -22,7 +22,7 @@ inline Rod::Rod(ModelWithShader* model, Vector3 position, unsigned value): Entit
 	this->position.y += 1.0f;
 }
 
-inline void Rod::update(float delta_time)
+inline void Rod::update(double delta_time)
 {
 
 }
