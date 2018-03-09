@@ -195,6 +195,7 @@
     <ClInclude Include="DepthTexture.h" />
     <ClInclude Include="Disk.h" />
     <ClInclude Include="Entity.h" />
+    <ClInclude Include="Game.h" />
     <ClInclude Include="GreyRockDisk.h" />
     <ClInclude Include="IcyDisk.h" />
     <ClInclude Include="lib\GetGlut.h" />
@@ -229,6 +230,7 @@
     <ClInclude Include="NoiseField.h" />
     <ClInclude Include="PerformanceCounter.h" />
     <ClInclude Include="PickupManager.h" />
+    <ClInclude Include="Player.h" />
     <ClInclude Include="PlayerAnimatedModel.h" />
     <ClInclude Include="Random.h" />
     <ClInclude Include="RedRockDisk.h" />

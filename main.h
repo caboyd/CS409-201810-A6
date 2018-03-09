@@ -68,9 +68,7 @@ global_local const float PLAYER_TURN_BOOST_MULT = 1.5f;
 //Sun Dir is the direction the sun is on the skybox
 global_local const V3 SUN_DIR(0.34, 0.83, 0.44);
 global_local const V3 CAMERA_INIT_FORWARD = V3(-1, 0, -1).getNormalized();
-global_local const V3 PLAYER_OFFSET = V3(0.0f, 0.8f, 0.0f);
-global_local const V3 PLAYER_INIT_POS = V3(0.0f, 0.0f, 0.0f) + PLAYER_OFFSET;
-global_local const V3 PLAYER_INIT_FORWARD = V3(SUN_DIR.x, 0, SUN_DIR.z).getNormalized();
+
 global_local const V3 PLAYER_CAMERA_OFFSET = V3(0, 0.75f, 0);
 global_local const V3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;
 global_local const V3 OVERVIEW_CAMERA_INIT_POS = V3(100.f, 200.0f, 10.0f);
@@ -108,8 +106,8 @@ global_local int mouse_x = 0, mouse_y = 0;
 //The change in mouse since the last time the mouse data was processed
 global_local int mouse_dx = 0, mouse_dy = 0;
 
-//The location of the mouse when the mouse was click. 
-//This is used to snap the mouse back to its position
+//The location of the mouse when the mouse was pressed. 
+//This is used to snap the mouse back to its position so it doesn't leave the window
 global_local int mouse_locked_x = 0, mouse_locked_y;
 
 //Set this to true to float the camera when the game starts
@@ -126,7 +124,7 @@ global_local PerformanceCounter time_counter;
 global_local float time_scale = 1.0f;
 
 //Global Game Objects
-global_local PlayerAnimatedModel player_model;
+global_local Player player;
 global_local ModelWithShader skybox_model;
 
 global_local glm::mat4 projection_matrix;
@@ -135,7 +133,6 @@ global_local CoordinateSystem overview_camera(OVERVIEW_CAMERA_INIT_POS, V3(0.0f,
 global_local CoordinateSystem* active_camera = &player_camera;
 
 global_local World world;
-global_local CoordinateSystem player(PLAYER_INIT_POS, PLAYER_INIT_FORWARD);
 global_local ShadowBox shadow_box;
 
 

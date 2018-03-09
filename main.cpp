@@ -57,7 +57,8 @@
 #include "DepthTexture.h"
 #include "TextRenderer.h"
 #include "LineRenderer.h"
-#include "PlayerAnimatedModel.h"
+#include "Player.h"
+
 #include "main.h"
 
 
@@ -132,7 +133,7 @@ void init()
 	//Load up all the models and grab the models with shader from them
 	ObjShader::load();
 
-	player_model.init();
+	player.init();
 
 	ObjModel temp;
 	temp.load("assets/Models/Skybox.obj");
@@ -449,8 +450,8 @@ void update(float delta_time)
 	}
 
 	//save old player values for calculations
-	const V3 last_player_pos = player.getPosition();
-	const V3 last_player_forward = player.getForward();
+	const V3 last_player_pos = player.coordinate_system.getPosition();
+	const V3 last_player_forward = player.coordinate_system.getForward();
 
 	//Use vectors to calculate correct diagonal movement
 	Vector2 player_direction(0.0, 0.0);
@@ -470,25 +471,24 @@ void update(float delta_time)
 
 	//move player
 	if (key_pressed['D'])
-		player.moveRight(player_distance);
+		player.coordinate_system.moveRight(player_distance);
 	if (key_pressed['A'])
-		player.moveRight(-player_distance);
+		player.coordinate_system.moveRight(-player_distance);
 	if (key_pressed['W'] || (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT]) || key_pressed[KEY_UP_ARROW])
-		player.moveForward(player_distance);
+		player.coordinate_system.moveForward(player_distance);
 	if (key_pressed['S'] || key_pressed[KEY_DOWN_ARROW])
-		player.moveForward(-player_distance);
+		player.coordinate_system.moveForward(-player_distance);
 
 	//Rotate player
 	if (key_pressed[KEY_LEFT_ARROW])
-		player.rotateAroundUp(player_turn);
+		player.coordinate_system.rotateAroundUp(player_turn);
 	if (key_pressed[KEY_RIGHT_ARROW])
-		player.rotateAroundUp(-player_turn);
+		player.coordinate_system.rotateAroundUp(-player_turn);
 
 	//Reset player position and orientation to defaults
 	if (key_pressed['R'])
 	{
-		player.setPosition(PLAYER_INIT_POS);
-		player.setOrientation(PLAYER_INIT_FORWARD);
+		player.resetPosition();
 	}
 
 	//Change to overview camera when 'O' held
@@ -501,15 +501,15 @@ void update(float delta_time)
 
 
 	//Set the players height to height of the world
-	const Vector3 player_position = player.getPosition();
+	const Vector3 player_position = player.coordinate_system.getPosition();
 	const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
-	player.setPosition(Vector3(player_position.x, y, player_position.z) + PLAYER_OFFSET);
+	player.setPosition(Vector3(player_position.x, y, player_position.z));
 
 	//Updates the rings in the world
 	world.update(scaled_time);
 
 	//Do collision detection for player and rings/rods
-	world.pickupManager.checkForPickups(player.getPosition());
+	world.pickupManager.checkForPickups(player.coordinate_system.getPosition());
 
 
 	//CAMERA STUFF
@@ -519,13 +519,13 @@ void update(float delta_time)
 
 
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
-	if (player.getPosition() != last_player_pos)
+	if (player.coordinate_system.getPosition() != last_player_pos)
 	{
 		player_moved = true;
 		camera_float = false;
 	}
 
-	if(player.getForward() != last_player_forward)
+	if(player.coordinate_system.getForward() != last_player_forward)
 			camera_float = false;
 
 
@@ -539,7 +539,7 @@ void update(float delta_time)
 		if (angle_y < M_PI * 0.08)
 			if (mouse_dy < 0) mouse_dy = 0;
 
-		const V3 target = player.getPosition() + PLAYER_CAMERA_OFFSET;
+		const V3 target = player.coordinate_system.getPosition() + PLAYER_CAMERA_OFFSET;
 		player_camera.rotateAroundTarget(target, glm::radians(double(-mouse_dx)), glm::radians(double(-mouse_dy)));
 		player_camera.setOrientation(player_camera.getForward().getNormalized(), V3(0, 1, 0));
 		camera_float = true;
@@ -549,8 +549,8 @@ void update(float delta_time)
 	//Glides the camera back behind the player when left click is released.
 	if (!key_pressed[MOUSE_LEFT])
 	{
-		V3 new_cam_position = player.getPosition();
-		const V3& player_forward = player.getForward();
+		V3 new_cam_position = player.coordinate_system.getPosition();
+		const V3& player_forward = player.coordinate_system.getForward();
 
 		new_cam_position.x -= 4.0f * player_forward.x;
 		new_cam_position.z -= 4.0f * player_forward.z;
@@ -567,7 +567,7 @@ void update(float delta_time)
 			//Caps the speed
 			if (log_factor > 10.0) log_factor = 10.0;
 
-			const V3 target = player.getPosition() + PLAYER_CAMERA_OFFSET;
+			const V3 target = player.coordinate_system.getPosition() + PLAYER_CAMERA_OFFSET;
 			player_camera.rotateAroundTargetToPosition(target, new_cam_position, glm::radians(log_factor*0.5));
 		} else
 		{
@@ -579,7 +579,7 @@ void update(float delta_time)
 	//Rotate the player left/right when mouse right is down
 	if (key_pressed[MOUSE_RIGHT])
 	{
-		player.rotateAroundUp(-glm::radians(float(mouse_dx)) * time_scale);
+		player.coordinate_system.rotateAroundUp(-glm::radians(float(mouse_dx)) * time_scale);
 		camera_float = false;
 	}
 
@@ -590,8 +590,8 @@ void update(float delta_time)
 	//If camera is not in free float around player, snap it back behind the player
 	if (!camera_float)
 	{
-		V3 new_cam_position = player.getPosition();
-		const V3& player_forward = player.getForward();
+		V3 new_cam_position = player.coordinate_system.getPosition();
+		const V3& player_forward = player.coordinate_system.getForward();
 		player_camera.setOrientation(player_forward, Vector3(0, 1, 0));
 		new_cam_position.x -= 4.0f * player_forward.x;
 		new_cam_position.z -= 4.0f * player_forward.z;
@@ -600,24 +600,24 @@ void update(float delta_time)
 	}
 
 	//Overview camera follows player position
-	overview_camera.lookAt(player.getPosition());
+	overview_camera.lookAt(player.coordinate_system.getPosition());
 
 
 	if (!player_moved)
 	{
-		player_model.transitionTo(Player_State::Standing);
+		player.transitionAnimationTo(Player_State::Standing);
 	} else if (player_direction.y > 0 || player_direction.x != 0)
 	{
-		player_model.transitionTo(Player_State::Running);
+		player.transitionAnimationTo(Player_State::Running);
 	} else if (player_direction.y < 0)
 	{
-		player_model.transitionTo(Player_State::Reversing);
+		player.transitionAnimationTo(Player_State::Reversing);
 	}
 	if (key_pressed[32])
 	{
-		player_model.transitionTo(Player_State::Jumping);
+		player.transitionAnimationTo(Player_State::Jumping);
 	}
-	player_model.updateAnimation(scaled_time);
+	player.updateAnimation(scaled_time);
 }
 
 //Resizes window and adjusts the projection matrix
@@ -646,8 +646,8 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	depth_texture.startRenderToDepthTexture();
 	glDisable(GL_CULL_FACE);
 
-	const V3& player_forward = player.getForward();
-	const V3&player_position = player.getPosition();
+	const V3& player_forward = player.coordinate_system.getForward();
+	const V3&player_position = player.coordinate_system.getPosition();
 
 	//Update the shadow box to re orient the location of the shadow view
 	shadow_box.update();
@@ -680,13 +680,13 @@ void renderToDepthTexture(glm::mat4& depth_vp)
 	glm::mat4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
 
-	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
+	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.coordinate_system.getUp()));;
 	glm::mat4 depth_mvp = depth_vp * model_matrix;
 
 	depth_texture.setDepthMVP(depth_mvp);
 
 
-	player_model.drawToDepth();
+	player.drawToDepth();
 
 
 
@@ -720,8 +720,8 @@ void display()
 	LightingManager::setShadowMapSpaceMatrix(shadow_map_space_matrix);
 
 
-	const V3& player_forward = player.getForward();
-	const V3& player_position = player.getPosition();
+	const V3& player_forward = player.coordinate_system.getForward();
+	const V3& player_position = player.coordinate_system.getPosition();
 	const V3& camera_position = active_camera->getPosition();
 
 
@@ -736,7 +736,7 @@ void display()
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 	//Positional light at player position
-	LightingManager::setLightPositional(1, player.getPosition());
+	LightingManager::setLightPositional(1, player.coordinate_system.getPosition());
 
 	// Get the current camera view matrix
 	glm::mat4 view_matrix = active_camera->getViewMatrix();
@@ -761,17 +761,10 @@ void display()
 	text_renderer.draw(text, float(win_width - text_width - 10), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
 
 
-	//Draw the player
-	model_matrix = glm::mat4();
-	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
-	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(M_PI_2)), glm::vec3(player.getUp()));;
+	player.draw(view_matrix, projection_matrix, camera_position);
 
 
-
-	player_model.draw(model_matrix, view_matrix, projection_matrix, camera_position);
-
-
-	//Update framerate 4 times per second
+	//Update framerate every 10 frames
 	count++;
 	if (count % unsigned(FPS / 10) == 0)
 	{
