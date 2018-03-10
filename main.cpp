@@ -54,12 +54,15 @@
 #include "Random.h"
 #include "Game.h"
 #include "PerformanceCounter.h"
+#include "LineRenderer.h"
+#include "TextRenderer.h"
 #include "Globals.h"
 #include "main.h"
 
 
 using namespace std;
 using namespace ObjLibrary;
+
 using MathHelper::M_PI;
 using MathHelper::M_PI_2;
 
@@ -371,7 +374,8 @@ void update()
 
 	//Multiply delta time by time_scale to slow or speed up game
 	const double scaled_time = delta_time * time_scale;
-	elapsed_time_milliseconds += long long(scaled_time + 0.5);
+
+	elapsed_time_nanoseconds += long long(delta_time * 1000 + 0.5);
 	update_lag += scaled_time;
 
 	if (update_lag > FRAME_TIME_UPDATE * time_scale)
@@ -382,14 +386,38 @@ void update()
 			update_lag -= FRAME_TIME_UPDATE * time_scale;
 			update_count++;
 		}
-	} else if (update_lag < MIN_FRAME_TIME_DISPLAY * time_scale)
-	{
-		sleepms(MIN_FRAME_TIME_DISPLAY * time_scale - update_lag);
 	}
 	game.updateAnimations(scaled_time);
+	
+	std::cout << " D: " << display_count << " U: " << update_count << " delta: " << delta_time << "  elapsed time: " << (elapsed_time_nanoseconds / 1000.0);
 
+	//Sleep 
+	if (delta_time < FRAME_TIME_DISPLAY)
+	{
+		std::cout << "  slept: " << (FRAME_TIME_DISPLAY - delta_time);
+		sleepms(FRAME_TIME_DISPLAY - delta_time);
+		delta_time += (FRAME_TIME_DISPLAY - delta_time);
+	}
+	
+
+
+
+	//Update the fps display, but not too fast or it is unreadable
+	if (display_count % unsigned(FPS_DISPLAY / 10) == 0)
+	{
+		const float alpha = 0.5;
+		//Exponential smoothing for display rate
+		display_fps = alpha * display_fps + (1 - alpha) * (1000.0 / delta_time);
+
+		//Average update rate
+		update_fps = (double(update_count) / (double(elapsed_time_nanoseconds)/1000000.0));
+	}
+	
+
+	
 	display_count++;
 	glutPostRedisplay();
+		//Update framerate every 10 frames
 
 }
 

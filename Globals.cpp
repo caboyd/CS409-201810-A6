@@ -25,9 +25,9 @@ const unsigned int KEY_COUNT = 265;
 
 //Framerate and Frame time
 const double FPS_UPDATE = 60.0;
-const double FPS_DISPLAY = 300.0;
+const double FPS_DISPLAY = 144.0;
 const double FRAME_TIME_UPDATE = 1000.0 / FPS_UPDATE;
-const double MIN_FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
+const double FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
 const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;
 
 
@@ -74,7 +74,10 @@ double delta_time;
 double update_lag = 0;
 long long update_count = 0;
 long long display_count = 0;
-long long elapsed_time_milliseconds = 0;
+long long elapsed_time_nanoseconds = 0;
+double update_fps = 0;
+double display_fps = 0;
+
 bool full_screen = false;
 bool fullscreen_toggle_allowed = true;
 bool key_pressed[KEY_COUNT] = { false };
@@ -94,4 +97,4 @@ int mouse_locked_x = 0, mouse_locked_y = 0;
 //Current time scale to allow for slow motion or speed up
 double time_scale = 1.0f;
 
-global_extern glm::mat4 projection_matrix = glm::mat4();
+glm::mat4 projection_matrix = glm::mat4();

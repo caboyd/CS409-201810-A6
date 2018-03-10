@@ -37,6 +37,8 @@ public:
 		start_time = double(li.QuadPart);
 		return result;
 	}
+
+
 };
 
 #else

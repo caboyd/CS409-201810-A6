@@ -12,6 +12,8 @@ void specialUp(int special_key, int x, int y);
 void mouseMove(int x, int y);
 void mouseButton(int button, int state, int x, int y);
 
+
+
 Game game;
 
 
