@@ -6,7 +6,7 @@
 
 #include "DepthTexture.h"
 
-extern DepthTexture depth_texture;
+extern DepthTexture g_depth_texture;
 
 enum class Player_State
 {
@@ -14,6 +14,7 @@ enum class Player_State
 	Jumping,
 	Falling,
 	Running,
+	Strafing,
 	Reversing
 };
 
@@ -48,6 +49,7 @@ private:
 	float time_into_frame;
 	Run_State run_state;
 	Player_State state;
+	float animation_rate = 1;
 public:
 	PlayerAnimatedModel() = default;
 

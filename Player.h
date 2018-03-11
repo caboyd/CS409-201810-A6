@@ -3,25 +3,29 @@
 #include "PlayerAnimatedModel.h"
 #include "CoordinateSystem.h"
 #include "lib/glm/glm.hpp"
-#include "lib/glm/gtc/matrix_transform.hpp"
-#include "MathHelper.h"
+#include "World.h"
 
 using ObjLibrary::Vector3;
 
 static const Vector3 PLAYER_OFFSET = Vector3(0.0f, 0.8f, 0.0f);
-	static const Vector3 PLAYER_INIT_POS = Vector3(0.0f, 0.0f, 0.0f) + PLAYER_OFFSET;
-	static const Vector3 PLAYER_INIT_FORWARD = Vector3(0, 0, -1);
+static const Vector3 PLAYER_INIT_POS = Vector3(0.0f, 0.0f, 0.0f) + PLAYER_OFFSET;
+static const Vector3 PLAYER_INIT_FORWARD = Vector3(0, 0, -1);
 
 
 
 class Player
 {
 public:
-	
+	//Position and Orientation
 	CoordinateSystem coordinate_system;
-public:
-	PlayerAnimatedModel model;
 
+
+
+
+	PlayerAnimatedModel model;
+private:
+	Vector3 velocity;
+	const float radius = 0.25;
 
 public:
 	Player();
@@ -29,8 +33,9 @@ public:
 	void init();
 
 	void updateAnimation(double delta_time);
+	void update(const World& world, double delta_time);
 
-	void resetPosition();;
+	void reset();;
 
 	void transitionAnimationTo(Player_State state);
 
@@ -41,4 +46,9 @@ public:
 		const glm::vec3& camera_position) const;
 
 	void drawToDepth();
+
+	float getRadius() const;
+
+	void addAcceleration(const Vector3& a);
+
 };

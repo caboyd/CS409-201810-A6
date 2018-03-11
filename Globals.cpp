@@ -1,8 +1,11 @@
 #include "Globals.h"
+
 #include "TextRenderer.h"
 #include "LineRenderer.h"
 #include "DepthTexture.h"
 #include "PerformanceCounter.h"
+
+
 //Global External constants available to all files
 //***************************************
 //ShadowBox.h uses these globals
@@ -31,8 +34,6 @@ const double FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
 const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;
 
 
-
-
 //Initial Camera/Player vectors
 //Sun Dir is the direction the sun is on the skybox
 const Vector3 SUN_DIR(0.34, 0.83, 0.44);
@@ -42,59 +43,55 @@ const Vector3 PLAYER_CAMERA_OFFSET = Vector3(0, 0.75f, 0);
 const Vector3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;
 const Vector3 OVERVIEW_CAMERA_INIT_POS = Vector3(100.f, 200.0f, 10.0f);
 
-
 //Players turns 3 degrees per second
 const float TURNING_DEGREES = 3.0f / 1000.0f;
 //Player moves 10 metres per second
-const float PLAYER_SPEED = 10.0f / 1000.0f;;
-
-//Player speed multiplier constants
-const float PLAYER_SPEED_BOOST_MULT = 4.0f;
-const float PLAYER_TURN_BOOST_MULT = 1.5f;
+const float PLAYER_ACCEL_FORWARD = 25.0f / 1000.0f;;
+const float PLAYER_ACCEL = 10.0f / 1000.0f;;
 
 
 //Globals Externals available to all files
 //***************************************
 
 //Windows width and height
-int win_width = 1280;
-int win_height = 960;
+int g_win_width = 1280;
+int g_win_height = 960;
 
 //Renderers for rendering text and lines
-TextRenderer text_renderer;
-LineRenderer line_renderer;
-DepthTexture depth_texture;
+TextRenderer g_text_renderer;
+LineRenderer g_line_renderer;
+DepthTexture g_depth_texture;
 
 //High precision timer for calculated delta time
-PerformanceCounter time_counter;
+PerformanceCounter g_time_counter;
 
 //Global Locals available in main.cpp and game class
 //***************************************
-double delta_time;
-double update_lag = 0;
-long long update_count = 0;
-long long display_count = 0;
-long long elapsed_time_nanoseconds = 0;
-double update_fps = 0;
-double display_fps = 0;
+double g_delta_time;
+double g_update_lag = 0;
+long long g_update_count = 0;
+long long g_display_count = 0;
+long long g_elapsed_time_nanoseconds = 0;
+double g_update_fps = 0;
+double g_display_fps = 0;
 
-bool full_screen = false;
-bool fullscreen_toggle_allowed = true;
-bool key_pressed[KEY_COUNT] = { false };
+bool g_full_screen = false;
+bool g_fullscreen_toggle_allowed = true;
+bool g_key_pressed[KEY_COUNT] = { false };
 
 //Current mouse location
-int mouse_x = 0, mouse_y = 0;
+int g_mouse_x = 0, g_mouse_y = 0;
 
 //The change in mouse since the last time the mouse data was processed
-int mouse_dx = 0, mouse_dy = 0;
+int g_mouse_dx = 0, g_mouse_dy = 0;
 
 //The location of the mouse when the mouse was pressed. 
 //This is used to snap the mouse back to its position so it doesn't leave the window
-int mouse_locked_x = 0, mouse_locked_y = 0;
+int g_mouse_locked_x = 0, g_mouse_locked_y = 0;
 
 
 
 //Current time scale to allow for slow motion or speed up
-double time_scale = 1.0f;
+double g_time_scale = 1.0f;
 
-glm::mat4 projection_matrix = glm::mat4();
+glm::mat4 g_projection_matrix = glm::mat4();

@@ -31,8 +31,8 @@ using namespace ObjLibrary;
 extern const double CLIP_NEAR;
 extern const double CLIP_FAR;
 extern const double FOV;
-extern int win_width;
-extern int win_height;
+extern int g_win_width;
+extern int g_win_height;
 
 class ShadowBox
 {
@@ -275,7 +275,7 @@ public:
 	*/
 	static float getAspectRatio()
 	{
-		return float(win_width) / float(win_height);
+		return float(g_win_width) / float(g_win_height);
 	}
 
 

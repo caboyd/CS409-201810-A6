@@ -21,19 +21,21 @@ void PlayerAnimatedModel::init()
 	run_frames[5].model = temp[5].getKeyframeModelWithShader(temp[1]);
 	run_frames[6].model = temp[1].getKeyframeModelWithShader(temp[0]);
 
-	run_frames[0].duration = 110;
-	run_frames[1].duration = 110;
-	run_frames[2].duration = 110;
-	run_frames[3].duration = 175;
-	run_frames[4].duration = 110;
-	run_frames[5].duration = 110;
-	run_frames[6].duration = 110;
+	run_frames[0].duration = 140;
+	run_frames[1].duration = 140;
+	run_frames[2].duration = 140;
+	run_frames[3].duration = 210;
+	run_frames[4].duration = 140;
+	run_frames[5].duration = 140;
+	run_frames[6].duration = 140;
 
 	temp[0].load(model_folder + "cbabe_stand.obj");
 	stand_model = temp[0].getModelWithShader();
 
 	temp[0].load(model_folder + "cbabe_jump.obj");
 	jump_model = temp[0].getModelWithShader();
+
+	animation_rate = 1;
 }
 
 void PlayerAnimatedModel::updateAnimation(double delta_time)
@@ -42,8 +44,9 @@ void PlayerAnimatedModel::updateAnimation(double delta_time)
 	switch (state)
 	{
 	case Player_State::Running:
+	case Player_State::Strafing:
 	{
-		time_into_frame += float(delta_time);
+		time_into_frame += float(delta_time) * animation_rate;
 		//go to next state
 		if (time_into_frame > run_frames[i].duration)
 		{
@@ -57,7 +60,7 @@ void PlayerAnimatedModel::updateAnimation(double delta_time)
 	}
 	case Player_State::Reversing:
 	{
-		time_into_frame -= float(delta_time);
+		time_into_frame -= float(delta_time) * animation_rate;
 		//go to next state
 		if (time_into_frame < 0)
 		{
@@ -79,6 +82,7 @@ void PlayerAnimatedModel::draw(const glm::mat4x4& model_matrix, const glm::mat4x
 	switch (state)
 	{
 	case Player_State::Running:
+	case Player_State::Strafing:
 	case Player_State::Reversing:
 		model = glm::translate(model, glm::vec3(0, -0.075, 0));
 	}
@@ -87,6 +91,7 @@ void PlayerAnimatedModel::draw(const glm::mat4x4& model_matrix, const glm::mat4x
 	switch (state)
 	{
 	case Player_State::Running:
+	case Player_State::Strafing:
 	case Player_State::Reversing:
 	{
 		float tween = time_into_frame / run_frames[(int)run_state].duration;
@@ -117,7 +122,7 @@ void PlayerAnimatedModel::drawToDepth() const
 	case Player_State::Reversing:
 	{
 		float tween = time_into_frame / run_frames[(int)run_state].duration;
-		depth_texture.enableTween(tween);
+		g_depth_texture.enableTween(tween);
 
 		const unsigned int mat_count = run_frames[(int)run_state].model.getMaterialCount();
 		for (unsigned int i = 0; i < mat_count; i++)
@@ -129,7 +134,7 @@ void PlayerAnimatedModel::drawToDepth() const
 				m.draw();
 			}
 		}
-		depth_texture.disableTween();
+		g_depth_texture.disableTween();
 		break;
 	}
 	case Player_State::Standing:
@@ -172,9 +177,13 @@ void PlayerAnimatedModel::transitionTo(Player_State new_state)
 
 	switch (new_state)
 	{
+	case Player_State::Strafing:
 	case Player_State::Running:
-		time_into_frame = 0;
-		run_state = Run_State::Start;
+		if (state != Player_State::Strafing && state != Player_State::Running)
+		{
+			time_into_frame = 0;
+			run_state = Run_State::Start;
+		}
 		break;
 	case Player_State::Reversing:
 		run_state = Run_State::StartReverse;
@@ -183,5 +192,17 @@ void PlayerAnimatedModel::transitionTo(Player_State new_state)
 		break;
 	}
 
+	switch (new_state)
+	{
+	case Player_State::Reversing:
+		animation_rate = 0.6f;
+		break;
+	case Player_State::Strafing:
+		animation_rate = 0.6f;
+		break;
+	case Player_State::Running:
+		animation_rate = 1.0f;
+		break;
+	}
 	state = new_state;
 }

@@ -15,8 +15,8 @@
 #include "DepthTexture.h"
 #include "Collision.h"
 
-extern LineRenderer line_renderer;
-extern DepthTexture depth_texture;
+extern LineRenderer g_line_renderer;
+extern DepthTexture g_depth_texture;
 
 using namespace ObjLibrary;
 
@@ -27,8 +27,10 @@ World::~World()
 
 void World::init(const std::string& filename)
 {
+	if(initialized) destroy();
+	initialized = true;
 	loadModels();
-	pickupManager.init(this, &RodModel, &RingModel);
+	
 
 	std::ifstream input_file;
 
@@ -107,8 +109,7 @@ void World::init(const std::string& filename)
 		}
 		disksSorted[type].push_back(disks.back().get());
 		pos.y = double(disks.back()->getHeightAtPosition(float(pos.x), float(pos.z)));
-		pickupManager.addRod(pos, type + 1);
-		pickupManager.addRing(pos);
+		
 
 
 	}
@@ -130,7 +131,9 @@ void World::destroy()
 	disksSorted[2].clear();
 	disksSorted[3].clear();
 	disksSorted[4].clear();
-	pickupManager.destroy();
+
+	initialized = false;
+	
 }
 
 void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
@@ -148,25 +151,7 @@ void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_m
 		disk->draw(view_matrix, projection_matrix, camera_pos);
 	}
 
-	//Call draw on each rod
-	for (auto const& rod : pickupManager.rods)
-	{
-		if (rod.pickedUp) continue;
-		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
-		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 
-		RodModel.draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
-	}
-	for (auto const& ring : pickupManager.rings)
-	{
-		if (ring.pickedUp) continue;
-		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
-		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
-		RingModel.draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
-	}
 }
 
 void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
@@ -202,37 +187,6 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
 		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
 		disk->model->drawCurrentMaterial(1);
-	}
-
-	RodModel.getMaterial(0).activate(uniforms);;
-
-	//Call draw on each rod
-	for (auto const& rod : pickupManager.rods)
-	{
-		if (rod.pickedUp) continue;
-		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
-		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
-
-		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
-		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
-		RodModel.drawCurrentMaterial(0);
-	}
-
-	const MaterialForShader& ring = RingModel.getMaterial(0);
-	ring.activate(uniforms);
-	//Call draw on each ring
-	for (auto const& ring : pickupManager.rings)
-	{
-		if (ring.pickedUp) continue;
-		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
-		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
-
-		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
-		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
-		RingModel.drawCurrentMaterial(0);
 	}
 
 	//For each disk draw the other stuff as groups
@@ -287,20 +241,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 		}
 
 	}
-	std::vector<Vector3> points;
 
-	Vector3 pos = pickupManager.rings[0].position;
-	points.push_back(pos);
-	pos.y += 1.0f;
-	points.push_back(pos);
-	Vector3 tar = pickupManager.rings[0].targetPosition;
-	tar.y += 1.0f;
-	points.push_back(tar);
-	tar.y -= 1.0f;
-	points.push_back(tar);
-
-	glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
-	line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
 }
 
 void World::drawDepth(glm::mat4x4& depth_view_projection_matrix)
@@ -311,38 +252,14 @@ void World::drawDepth(glm::mat4x4& depth_view_projection_matrix)
 		disk->drawDepth(depth_view_projection_matrix);
 	}
 
-	MeshWithShader mesh = pickupManager.rings[0].model->getMesh(0, 0);
-
-	for (auto const& ring : pickupManager.rings)
-	{
-		if (ring.pickedUp) continue;
-		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
-		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
-		depth_texture.setDepthMVP(depth_mvp);
-		mesh.draw();
-	}
-	
-	mesh = pickupManager.rods[0].model->getMesh(0, 0);
-	for (auto const& rod : pickupManager.rods)
-	{
-		if (rod.pickedUp) continue;
-		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(rod.forward.x, rod.forward.z))), glm::vec3(0, 1, 0));
-		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
-		depth_texture.setDepthMVP(depth_mvp);
-		mesh.draw();
-	}
 }
 
-float World::getSpeedFactorAtPosition(float x, float z)
+float World::getSpeedFactorAtPosition(float x, float z)const
 {
 	return getSpeedFactorAtPosition(x, z, 0);
 }
 
-float World::getSpeedFactorAtPosition(float x, float z, float r)
+float World::getSpeedFactorAtPosition(float x, float z, float r)const
 {
 	for (auto &disk : disks)
 	{
@@ -354,17 +271,53 @@ float World::getSpeedFactorAtPosition(float x, float z, float r)
 	return 1.0f;
 }
 
+float World::getAccelFactorAtPosition(float x, float z) const
+{
+		for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if (Collision::circleIntersection(x, z, 0, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getAccelFactor();
+	}
+	//No collision with a disk
+	return 1.0f;
+}
+
+
+float World::getFrictionAtPosition(float x, float z)const
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if (Collision::circleIntersection(x, z, 0, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getFriction();
+	}
+	//No collision with a disk
+	return 0.0001f;
+}
+
+float World::getSlopeFactorAtPosition(float x, float z)const
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if (Collision::circleIntersection(x, z, 0, float(disk->position.x), float(disk->position.z), disk->radius))
+			return disk->getSlopeFactor();
+	}
+	//No collision with a disk
+	return 0.0001f;
+}
+
 Vector3& World::getRandomDiskPosition()
 {
 	const unsigned int i = Random::randu(disks.size() - 1);
 	return disks[i]->position;
 }
 
-void World::update(const double delta_time)
+bool World::isInitialized() const
 {
-	pickupManager.update(delta_time);
+	return initialized;
 }
-
 
 float World::getHeightAtPointPosition(const float x, const float z) const
 {
@@ -405,9 +358,6 @@ void World::loadModels()
 	this->SandyModel = model.getModelWithShader();
 	model.load(GREYROCKMODEL_FILENAME);
 	this->GreyRockModel = model.getModelWithShader();
-	model.load(ROD_FILENAME);
-	this->RodModel = model.getModelWithShader();
-	model.load(RING_FILENAME);
-	this->RingModel = model.getModelWithShader();
+
 
 }

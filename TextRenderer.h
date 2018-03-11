@@ -23,8 +23,8 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-extern int win_width;
-extern int win_height;
+extern int g_win_width;
+extern int g_win_height;
 
 struct Character
 {
@@ -145,7 +145,7 @@ public:
 
 		// Activate corresponding render state	
 		glUseProgram(text_program_id);
-		glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(win_width), 0.0f, static_cast<GLfloat>(win_height));
+		glm::mat4 projection = glm::ortho(0.0f, static_cast<GLfloat>(g_win_width), 0.0f, static_cast<GLfloat>(g_win_height));
 		glUniformMatrix4fv(projection_id, 1, GL_FALSE, glm::value_ptr(projection));
 		glUniform3f(text_color_id, color.x, color.y, color.z);
 		glActiveTexture(GL_TEXTURE0);

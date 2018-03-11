@@ -5,7 +5,7 @@
 #include "MathHelper.h"
 #include "DepthTexture.h"
 
-extern DepthTexture depth_texture;
+extern DepthTexture g_depth_texture;
 
 
 void Disk::generateHeightMapModel()
@@ -143,7 +143,7 @@ void Disk::drawDepth(const glm::mat4x4& depth_view_projection_matrix) const
 	model_matrix = glm::scale(model_matrix, glm::vec3(radius, 1, radius));
 
 	glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
-	depth_texture.setDepthMVP(depth_mvp);
+	g_depth_texture.setDepthMVP(depth_mvp);
 
 	unsigned int mat_count = model->getMaterialCount();
 	for (unsigned int i = 0; i < mat_count; i++)
@@ -169,7 +169,7 @@ void Disk::drawDepth(const glm::mat4x4& depth_view_projection_matrix) const
 		model_matrix = glm::scale(model_matrix, glm::vec3(corner * 2 / heightMapSize, 1, corner * 2 / heightMapSize));
 
 		depth_mvp = depth_view_projection_matrix * model_matrix;
-		depth_texture.setDepthMVP(depth_mvp);
+		g_depth_texture.setDepthMVP(depth_mvp);
 
 		mat_count = heightMapModel.getMaterialCount();
 		for (unsigned int i = 0; i < mat_count; i++)
@@ -244,6 +244,45 @@ float Disk::getSpeedFactor() const
 	case ICY: return 0.25f;
 	case SANDY: return 0.75f;
 	case GREY_ROCK: return 1.0f;
+	}
+	return 1.0f;
+}
+
+float Disk::getAccelFactor() const
+{
+	switch (type)
+	{
+	case RED_ROCK: return 1.0f;
+	case LEAFY: return 0.5f;
+	case ICY: return 0.25f;
+	case SANDY: return 0.25f;
+	case GREY_ROCK: return 1.0f;
+	}
+	return 1.0f;
+}
+
+float Disk::getFriction() const
+{
+	switch (type)
+	{
+	case RED_ROCK: return 0.005f;
+	case LEAFY: return 0.0001f;
+	case ICY: return 0.5f;
+	case SANDY: return 0.2f;
+	case GREY_ROCK: return 0.005f;
+	}
+	return 0.0001f;
+}
+
+float Disk::getSlopeFactor() const
+{
+	switch (type)
+	{
+	case RED_ROCK: return 0.4f;
+	case LEAFY: return 1.0f;
+	case ICY: return 0.2f;
+	case SANDY: return 0.2f;
+	case GREY_ROCK: return 0.4f;
 	}
 	return 1.0f;
 }

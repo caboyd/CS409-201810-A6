@@ -50,5 +50,8 @@ public:
 	virtual float getHeightAtPosition(float x, float z) const;
 
 	float getSpeedFactor() const;
+	float getAccelFactor() const;
+	float getFriction() const;
+	float getSlopeFactor() const;
 };
 

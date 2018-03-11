@@ -41,11 +41,10 @@
 
 //GLUT / OBJ inclues
 #include "lib/GetGlutWithShaders.h"
-#include "lib/ObjLibrary/ObjModel.h"
 #include "lib/ObjLibrary/ObjShader.h"
-#include "lib/ObjLibrary/ModelWithShader.h"
+
 #include "lib/ObjLibrary/LightingManager.h"
-#include "lib/ObjLibrary/SpriteFont.h"
+
 
 //My includes
 
@@ -72,7 +71,7 @@ int main(int argc, char* argv[])
 	srand(unsigned(time(nullptr)));
 	Random::init();
 
-	glutInitWindowSize(win_width, win_height);
+	glutInitWindowSize(g_win_width, g_win_height);
 	glutInitWindowPosition(0, 0);
 
 	glutInit(&argc, argv);
@@ -117,41 +116,17 @@ int main(int argc, char* argv[])
 void init()
 {
 	glClearColor(0.2f, 0.4f, 0.6f, 0.0f);
-	glEnable(GL_MULTISAMPLE);
 
 	glEnable(GL_DEPTH_TEST);
 
-	glEnable(GL_CULL_FACE);
+	g_text_renderer.init();
+	g_line_renderer.init();
 
-	text_renderer.init();
-	line_renderer.init();
-	//Load up all the models and grab the models with shader from them
-	ObjShader::load();
 
 	game.init();
-	depth_texture.init();
+	g_depth_texture.init();
 
-	//Enabled lighting and shadows
-	LightingManager::setEnabled(true);
-	LightingManager::setShadowEnabled(true);
-	LightingManager::setShadowDistance(game.shadow_box.getShadowDistance());
-
-	//Set the shadow light to be a direction light where the sun is
-	LightingManager::setLightEnabled(0, true);
-	LightingManager::setLightDirectional(0, SUN_DIR);
-	LightingManager::setLightColour(0, Vector3(1.0, 1.0, 1.0));
-
-	//Set an ambient light with full strength
-	LightingManager::setLightEnabled(2, true);
-	LightingManager::setLightColour(2, Vector3(1.0, 1.0, 1.0));
-
-	//Set a positional light at the players location
-	//LightingManager::setLightEnabled(1, true);
-	//LightingManager::setLightPositional(1, PLAYER_INIT_POS);
-	//LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
-	//LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
-
-	time_counter.start();
+	g_time_counter.start();
 }
 
 
@@ -169,19 +144,19 @@ void keyboard(unsigned char key, int x, int y)
 	{
 	case 'H':
 		//Time Scale to half speed
-		if (!key_pressed['H'])
+		if (!g_key_pressed['H'])
 		{
-			if (time_scale == 1.0f)
-				time_scale = 0.25f;
+			if (g_time_scale == 1.0f)
+				g_time_scale = 0.25f;
 			else
-				time_scale = 1.0f;
+				g_time_scale = 1.0f;
 		}
 		break;
 
 		//Tab cycle between worlds on win32
 #ifdef _WIN32
 	case '\t':
-		if (!key_pressed['\t'])
+		if (!g_key_pressed['\t'])
 			game.destroyIntoNextWorld();
 		break;
 #endif
@@ -193,24 +168,24 @@ void keyboard(unsigned char key, int x, int y)
 	default:;
 	}
 
-	key_pressed[key] = true;
+	g_key_pressed[key] = true;
 
-	key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
-	key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
+	g_key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
+	g_key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
 
 	//Alt-Enter will change to and from fullscreen
-	if (key_pressed[KEY_LEFT_ALT] && key_pressed[13] && fullscreen_toggle_allowed)
+	if (g_key_pressed[KEY_LEFT_ALT] && g_key_pressed[13] && g_fullscreen_toggle_allowed)
 	{
-		full_screen = !full_screen;
-		fullscreen_toggle_allowed = false;
+		g_full_screen = !g_full_screen;
+		g_fullscreen_toggle_allowed = false;
 
-		if (full_screen)
+		if (g_full_screen)
 			glutFullScreen();
 		else
 		{
-			win_width = 1280;
-			win_height = 960;
-			glutReshapeWindow(win_width, win_height);
+			g_win_width = 1280;
+			g_win_height = 960;
+			glutReshapeWindow(g_win_width, g_win_height);
 			glutPositionWindow(0, 0);
 		}
 	}
@@ -224,27 +199,27 @@ void keyboardUp(unsigned char key, int x, int y)
 		key = key - 'a' + 'A';
 
 	//Unpress the key
-	key_pressed[key] = false;
+	g_key_pressed[key] = false;
 
 
 	//Fix sticky key with shift
 	if (key == '?' || key == '/')
 	{
-		key_pressed['?'] = false;
-		key_pressed['/'] = false;
+		g_key_pressed['?'] = false;
+		g_key_pressed['/'] = false;
 	}
 
 	switch (key)
 	{
 	case 13:
-		fullscreen_toggle_allowed = true;
+		g_fullscreen_toggle_allowed = true;
 		break;
 	default:;
 	}
 
 	//Set special keys
-	key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
-	key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
+	g_key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
+	g_key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
 
 }
 
@@ -254,22 +229,22 @@ void special(const int special_key, int x, int y)
 	switch (special_key)
 	{
 	case GLUT_KEY_SHIFT_L:
-		key_pressed[KEY_SHIFT] = true;
+		g_key_pressed[KEY_SHIFT] = true;
 		break;
 	case GLUT_KEY_UP:
-		key_pressed[KEY_UP_ARROW] = true;
+		g_key_pressed[KEY_UP_ARROW] = true;
 		break;
 	case GLUT_KEY_DOWN:
-		key_pressed[KEY_DOWN_ARROW] = true;
+		g_key_pressed[KEY_DOWN_ARROW] = true;
 		break;
 	case GLUT_KEY_LEFT:
-		key_pressed[KEY_LEFT_ARROW] = true;
+		g_key_pressed[KEY_LEFT_ARROW] = true;
 		break;
 	case GLUT_KEY_RIGHT:
-		key_pressed[KEY_RIGHT_ARROW] = true;
+		g_key_pressed[KEY_RIGHT_ARROW] = true;
 		break;
 	case GLUT_KEY_ALT_L:
-		key_pressed[KEY_LEFT_ALT] = false;
+		g_key_pressed[KEY_LEFT_ALT] = false;
 		break;
 	default:;
 	}
@@ -282,46 +257,46 @@ void specialUp(const int special_key, int x, int y)
 	switch (special_key)
 	{
 	case GLUT_KEY_UP:
-		key_pressed[KEY_UP_ARROW] = false;
+		g_key_pressed[KEY_UP_ARROW] = false;
 		break;
 	case GLUT_KEY_DOWN:
-		key_pressed[KEY_DOWN_ARROW] = false;
+		g_key_pressed[KEY_DOWN_ARROW] = false;
 		break;
 	case GLUT_KEY_LEFT:
-		key_pressed[KEY_LEFT_ARROW] = false;
+		g_key_pressed[KEY_LEFT_ARROW] = false;
 		break;
 	case GLUT_KEY_RIGHT:
-		key_pressed[KEY_RIGHT_ARROW] = false;
+		g_key_pressed[KEY_RIGHT_ARROW] = false;
 		break;
 	case GLUT_KEY_END:
-		key_pressed[KEY_END] = false;
+		g_key_pressed[KEY_END] = false;
 		break;
 	case GLUT_KEY_ALT_L:
-		key_pressed[KEY_LEFT_ALT] = false;
+		g_key_pressed[KEY_LEFT_ALT] = false;
 		break;
 	default:;
 	}
 
 	//Set special keys
-	key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
-	key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
+	g_key_pressed[KEY_SHIFT] = (glutGetModifiers() == GLUT_ACTIVE_SHIFT);
+	g_key_pressed[KEY_LEFT_ALT] = (glutGetModifiers() == GLUT_ACTIVE_ALT);
 }
 
 //Read mouse move input when a button is held
 void mouseMove(const int x, const int y)
 {
 	//Add up mouse movements until they are processed.
-	mouse_dx += x - mouse_x;
-	mouse_dy += y - mouse_y;
-	mouse_x = x;
-	mouse_y = y;
+	g_mouse_dx += x - g_mouse_x;
+	g_mouse_dy += y - g_mouse_y;
+	g_mouse_x = x;
+	g_mouse_y = y;
 
 	//Warp the pointer back to its original spot if it moved
-	if (mouse_x != mouse_locked_x || mouse_y != mouse_locked_y)
+	if (g_mouse_x != g_mouse_locked_x || g_mouse_y != g_mouse_locked_y)
 	{
-		glutWarpPointer(mouse_locked_x, mouse_locked_y);
-		mouse_x = mouse_locked_x;
-		mouse_y = mouse_locked_y;
+		glutWarpPointer(g_mouse_locked_x, g_mouse_locked_y);
+		g_mouse_x = g_mouse_locked_x;
+		g_mouse_y = g_mouse_locked_y;
 	}
 
 }
@@ -336,22 +311,22 @@ void mouseButton(const int button, const int state, const int x, const int y)
 	case GLUT_RIGHT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
-			key_pressed[MOUSE_RIGHT] = true;
+			g_key_pressed[MOUSE_RIGHT] = true;
 			glutSetCursor(GLUT_CURSOR_NONE);
 		} else
 		{
-			key_pressed[MOUSE_RIGHT] = false;
+			g_key_pressed[MOUSE_RIGHT] = false;
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 		break;
 	case GLUT_LEFT_BUTTON:
 		if (state == GLUT_DOWN)
 		{
-			key_pressed[MOUSE_LEFT] = true;
+			g_key_pressed[MOUSE_LEFT] = true;
 			glutSetCursor(GLUT_CURSOR_NONE);
 		} else
 		{
-			key_pressed[MOUSE_LEFT] = false;
+			g_key_pressed[MOUSE_LEFT] = false;
 			glutSetCursor(GLUT_CURSOR_INHERIT);
 		}
 		break;
@@ -359,79 +334,70 @@ void mouseButton(const int button, const int state, const int x, const int y)
 	}
 
 	//Reset mouse coords on mouse click
-	mouse_x = x;
-	mouse_y = y;
-	mouse_locked_x = x;
-	mouse_locked_y = y;
-
+	g_mouse_x = x;
+	g_mouse_y = y;
+	g_mouse_locked_x = x;
+	g_mouse_locked_y = y;
 }
 
 
 
 void update()
 {
-	delta_time = time_counter.getAndReset();
+	//Get time since last frame
+	g_delta_time = g_time_counter.getAndReset();
 
 	//Multiply delta time by time_scale to slow or speed up game
-	const double scaled_time = delta_time * time_scale;
+	const double scaled_time = g_delta_time * g_time_scale;
 
-	elapsed_time_nanoseconds += long long(delta_time * 1000 + 0.5);
-	update_lag += scaled_time;
+	g_elapsed_time_nanoseconds += long long(g_delta_time * 1000 + 0.5);
+	g_update_lag += scaled_time;
 
-	if (update_lag > FRAME_TIME_UPDATE * time_scale)
+	if (g_update_lag > FRAME_TIME_UPDATE * g_time_scale)
 	{
-		while (update_lag > FRAME_TIME_UPDATE * time_scale)
+		while (g_update_lag > FRAME_TIME_UPDATE * g_time_scale)
 		{
-			game.update(FRAME_TIME_UPDATE * time_scale);
-			update_lag -= FRAME_TIME_UPDATE * time_scale;
-			update_count++;
+			game.update(FRAME_TIME_UPDATE * g_time_scale);
+			g_update_lag -= FRAME_TIME_UPDATE * g_time_scale;
+			g_update_count++;
 		}
-	}
-	game.updateAnimations(scaled_time);
-	
-	std::cout << " D: " << display_count << " U: " << update_count << " delta: " << delta_time << "  elapsed time: " << (elapsed_time_nanoseconds / 1000.0);
-
-	//Sleep 
-	if (delta_time < FRAME_TIME_DISPLAY)
+	}else if (g_delta_time < FRAME_TIME_DISPLAY)
 	{
-		std::cout << "  slept: " << (FRAME_TIME_DISPLAY - delta_time);
-		sleepms(FRAME_TIME_DISPLAY - delta_time);
-		delta_time += (FRAME_TIME_DISPLAY - delta_time);
+		std::cout << "  slept: " << (FRAME_TIME_DISPLAY - g_delta_time);
+		sleepms(FRAME_TIME_DISPLAY - g_delta_time);
+		g_delta_time += (FRAME_TIME_DISPLAY - g_delta_time);
 	}
 	
-
-
+	//Update the animations every frame
+	game.updateAnimations(scaled_time);
+	g_display_count++;
 
 	//Update the fps display, but not too fast or it is unreadable
-	if (display_count % unsigned(FPS_DISPLAY / 10) == 0)
+	if (g_display_count % unsigned(FPS_DISPLAY / 10) == 0)
 	{
 		const float alpha = 0.5;
 		//Exponential smoothing for display rate
-		display_fps = alpha * display_fps + (1 - alpha) * (1000.0 / delta_time);
+		g_display_fps = alpha * g_display_fps + (1 - alpha) * (1000.0 / g_delta_time);
 
 		//Average update rate
-		update_fps = (double(update_count) / (double(elapsed_time_nanoseconds)/1000000.0));
+		g_update_fps = (double(g_update_count) / (double(g_elapsed_time_nanoseconds)/1000000.0));
 	}
-	
 
 	
-	display_count++;
 	glutPostRedisplay();
-		//Update framerate every 10 frames
-
 }
 
 //Resizes window and adjusts the projection matrix
 void reshape(const int w, const int h)
 {
 	glViewport(0, 0, w, h);
-	win_width = w;
-	win_height = h;
+	g_win_width = w;
+	g_win_height = h;
 
 	const float aspect_ratio = float(w) / float(h);
 
 	// calculate the projection matrix
-	projection_matrix = glm::perspective(glm::radians(float(FOV)),
+	g_projection_matrix = glm::perspective(glm::radians(float(FOV)),
 		aspect_ratio,
 		float(CLIP_NEAR),
 		float(CLIP_FAR));

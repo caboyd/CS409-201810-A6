@@ -1,114 +1,115 @@
 #pragma once
-#include "lib/ObjLibrary/Vector3.h"
-#include "lib/glm/glm.hpp"
 
-using ObjLibrary::Vector3;
+#define global_extern extern
+#include <lib/glm/mat4x4.hpp>
 
-#define global extern
+//Forward declarations
+namespace ObjLibrary
+{
+	class Vector3;
+}
 
 class TextRenderer;
 class DepthTexture;
 class LineRenderer;
 class PerformanceCounter;
 
+using ObjLibrary::Vector3;
+
 //Global External constants available to all files
 //***************************************
 //ShadowBox.h uses these globals
-global const double FOV;
-global const double CLIP_NEAR;
-global const double CLIP_FAR;
+global_extern const double FOV;
+global_extern const double CLIP_NEAR;
+global_extern const double CLIP_FAR;
 
-global const unsigned int KEY_UP_ARROW;
-global const unsigned int KEY_DOWN_ARROW;
-global const unsigned int KEY_LEFT_ARROW;
-global const unsigned int KEY_RIGHT_ARROW;
-global const unsigned int KEY_END;
-global const unsigned int KEY_SHIFT;
-global const unsigned int KEY_LEFT_ALT;
-global const unsigned int MOUSE_LEFT;
-global const unsigned int MOUSE_RIGHT;
-global const unsigned int KEY_COUNT;
+global_extern const unsigned int KEY_UP_ARROW;
+global_extern const unsigned int KEY_DOWN_ARROW;
+global_extern const unsigned int KEY_LEFT_ARROW;
+global_extern const unsigned int KEY_RIGHT_ARROW;
+global_extern const unsigned int KEY_END;
+global_extern const unsigned int KEY_SHIFT;
+global_extern const unsigned int KEY_LEFT_ALT;
+global_extern const unsigned int MOUSE_LEFT;
+global_extern const unsigned int MOUSE_RIGHT;
+global_extern const unsigned int KEY_COUNT;
 
 //Framerate and Frame time
-global const double FPS_UPDATE;
-global const double FPS_DISPLAY;
-global const double FRAME_TIME_UPDATE;
-global const double FRAME_TIME_DISPLAY;
-global const double FIXED_TIME_STEP;
+global_extern const double FPS_UPDATE;
+global_extern const double FPS_DISPLAY;
+global_extern const double FRAME_TIME_UPDATE;
+global_extern const double FRAME_TIME_DISPLAY;
+global_extern const double FIXED_TIME_STEP;
 
 
 //Initial Camera/Player vectors
 //Sun Dir is the direction the sun is on the skybox
-global const Vector3 SUN_DIR;
-global const Vector3 CAMERA_INIT_FORWARD;
+global_extern const Vector3 SUN_DIR;
+global_extern const Vector3 CAMERA_INIT_FORWARD;
 
-global const Vector3 PLAYER_CAMERA_OFFSET;
-global const Vector3 PLAYER_CAMERA_INIT_POS ;
-global const Vector3 OVERVIEW_CAMERA_INIT_POS;
+global_extern const Vector3 PLAYER_CAMERA_OFFSET;
+global_extern const Vector3 PLAYER_CAMERA_INIT_POS;
+global_extern const Vector3 OVERVIEW_CAMERA_INIT_POS;
 
 //Players turns 3 degrees per second
-global const float TURNING_DEGREES;
+global_extern const float TURNING_DEGREES;
 //Player moves 10 metres per second
-global const float PLAYER_SPEED;
-
-//Player speed multiplier constants
-global const float PLAYER_SPEED_BOOST_MULT;
-global const float PLAYER_TURN_BOOST_MULT;
-
+global_extern const float PLAYER_ACCEL_FORWARD;
+global_extern const float PLAYER_ACCEL;
 
 //Globals Externals available to all files
 //***************************************
 
-global bool full_screen;
-global bool fullscreen_toggle_allowed;
+global_extern bool g_full_screen;
+global_extern bool g_fullscreen_toggle_allowed;
 
 //Windows width and height
-global int win_width;
-global int win_height;
+global_extern int g_win_width;
+global_extern int g_win_height;
 
 //Renderers for rendering text and lines
-global TextRenderer text_renderer;
-global LineRenderer line_renderer;
+global_extern TextRenderer g_text_renderer;
+global_extern LineRenderer g_line_renderer;
 
 //Texture used for shadow mapping
-global DepthTexture depth_texture;
+global_extern DepthTexture g_depth_texture;
 
 //High precision timer for calculated delta time
-global PerformanceCounter time_counter;
+global_extern PerformanceCounter g_time_counter;
 
 //Current time scale to allow for slow motion or speed up
-global double time_scale;
+global_extern double g_time_scale;
 
 //Time elapsed since last frame
-global double delta_time;
+global_extern double g_delta_time;
 
 //Accumulated delta build up that needs to be processed in update
-global double update_lag;
+global_extern double g_update_lag;
 
 //Number of times update has be called
-global long long update_count;
+global_extern long long g_update_count;
 
 //Number of times display has been called
-global long long display_count;
+global_extern long long g_display_count;
 
 //Total time elapsed since start
-global long long elapsed_time_nanoseconds;
+global_extern long long g_elapsed_time_nanoseconds;
 
-global double update_fps;
-global double display_fps;
+global_extern double g_update_fps;
+global_extern double g_display_fps;
 
 //Array indicating which keys are currently pressed
-global bool key_pressed[];
+global_extern bool g_key_pressed[];
 
 //Current mouse location
-global int mouse_x, mouse_y;
+global_extern int g_mouse_x, g_mouse_y;
 
 //The change in mouse since the last time the mouse data was processed
-global int mouse_dx, mouse_dy;
+global_extern int g_mouse_dx, g_mouse_dy;
 
 //The location of the mouse when the mouse was pressed. 
 //This is used to snap the mouse back to its position so it doesn't leave the window
-global int mouse_locked_x, mouse_locked_y;
+global_extern int g_mouse_locked_x, g_mouse_locked_y;
 
 //Screen space projection matrix
-global glm::mat4 projection_matrix;
+global_extern glm::mat4 g_projection_matrix;

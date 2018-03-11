@@ -7,15 +7,16 @@
 
 class PickupManager
 {
-public:
+private:
+	ModelWithShader* rod_model;
+	ModelWithShader* ring_model;
 
 	std::vector<Ring> rings;
 	std::vector<Rod> rods;
-	ModelWithShader* rodModel;
-	ModelWithShader* ringModel;
+
 	World* world;
 	unsigned int score;
-
+public:
 	PickupManager();
 
 	void init(World* w, ModelWithShader* rod, ModelWithShader* ring);
@@ -24,9 +25,21 @@ public:
 
 	void checkForPickups(Vector3 player_position);
 
+	int getScore()const;
+
 	void addRod(Vector3 pos, unsigned int value);
 
 	void addRing(Vector3 pos);
+
+	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix) const ;
+	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos) const;
+
+	void drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
+	void drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
+
+	//Draw all of the disks to the depthRTT Shader
+	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
+	void drawDepth(glm::mat4x4& depth_view_projection_matrix);
 
 	void destroy();
 };

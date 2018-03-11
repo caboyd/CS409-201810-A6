@@ -26,8 +26,9 @@ public:
 	ObjLibrary::ModelWithShader IcyModel;
 	ObjLibrary::ModelWithShader SandyModel;
 	ObjLibrary::ModelWithShader GreyRockModel;
-	ObjLibrary::ModelWithShader RodModel;
-	ObjLibrary::ModelWithShader RingModel;
+
+	//Where the world has already been initted
+	bool initialized;
 
 	//Radius of the world
 	float worldRadius = 0;
@@ -38,8 +39,7 @@ public:
 
 	std::vector<Disk*> disksSorted[5];
 
-	PickupManager pickupManager;
-public:
+	public:
 	World() = default;
 	~World();
 	//Reads the given file and creates all of the disks 
@@ -65,18 +65,21 @@ public:
 	void drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
 	//Draw all of the disks to the depthRTT Shader
 	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
-	void drawDepth(glm::mat4x4& view_perspective_matrix);
+	void drawDepth(glm::mat4x4& depth_view_projection_matrix);
 
 
 	//Gets the speed multiplier based on the disk type
 	//Sandy 0.75, Icy 0.25, Leafy 0.5, other 1.0
-	float getSpeedFactorAtPosition(float x, float z);
-	float getSpeedFactorAtPosition(float x, float z, float r);
+	float getSpeedFactorAtPosition(float x, float z)const;
+	float getSpeedFactorAtPosition(float x, float z, float r)const;
+
+	float getFrictionAtPosition(float x, float z) const ;
+	float getAccelFactorAtPosition(float x, float z) const ;
+	float getSlopeFactorAtPosition(float x, float z) const;
+	
 
 	//Returns the center position of a random disk
 	Vector3& getRandomDiskPosition();
 
-	//Call Update on the pickup manager
-	void update(double delta_time);
-
+	bool isInitialized() const;
 };

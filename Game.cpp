@@ -4,6 +4,7 @@
 #include "TextRenderer.h"
 #include "WindowsHelperFunctions.h"
 #include "Globals.h"
+#include "MathHelper.h"
 
 //Matrix to help with calculating depth texture
 const glm::mat4 BIAS_MATRIX(
@@ -14,124 +15,125 @@ const glm::mat4 BIAS_MATRIX(
 );
 
 
- void Game::init()
+void Game::init()
 {
-	player_camera.setPosition(PLAYER_CAMERA_INIT_POS);
-	player_camera.setOrientation(CAMERA_INIT_FORWARD);
+	ObjShader::load();
 
-	overview_camera.setPosition(OVERVIEW_CAMERA_INIT_POS);
-	overview_camera.setOrientation(Vector3(0.0f, -1.0f, 0.0f));
-
-	active_camera = &player_camera;
-
-	player.init();
-
-	ObjModel temp;
-	temp.load("assets/Models/Skybox.obj");
-	skybox_model = temp.getModelWithShader();
-
-	//Folder location of worlds
-	world_folder = "assets/Worlds/";
+	ObjModel model;
+	model.load(ROD_FILENAME);
+	this->rod_model = model.getModelWithShader();
+	model.load(RING_FILENAME);
+	this->ring_model = model.getModelWithShader();
+	model.load(SKYBOX_FILENAME);
+	skybox_model = model.getModelWithShader();
 
 #ifdef  _WIN32
 	//Load the file names of all of the worlds
-	levels = getFileNamesInFolder(world_folder);
+	levels = getFileNamesInFolder(WORLD_FOLDER);
 	for (auto const& file : levels)
 		std::cout << "File name:" << file << std::endl;
 	std::cout << "Press [Tab] to cycle worlds" << std::endl;
 #endif
 
 	//The world that is loaded first
-	world.init(world_folder + "Basic.txt");
+	world.init(WORLD_FOLDER + "Basic.txt");
+	//world.init(WORLD_FOLDER + "Dense.txt");
+	//world.init(WORLD_FOLDER + "Icy.txt");
+	//world.init(WORLD_FOLDER + "Leafy.txt");
+	//world.init(WORLD_FOLDER + "Rocky.txt");
+	//world.init(WORLD_FOLDER + "Sandy.txt");
+	//world.init(WORLD_FOLDER + "Simple.txt");
+	//world.init(WORLD_FOLDER + "Small.txt");
+	//world.init(WORLD_FOLDER + "Sparse.txt");
+	//world.init(WORLD_FOLDER + "Twisted.txt");
 
+	player_camera.setPosition(PLAYER_CAMERA_INIT_POS);
+	player_camera.setOrientation(CAMERA_INIT_FORWARD);
+
+	overview_camera.setPosition(OVERVIEW_CAMERA_INIT_POS);
+	//overview_camera.setOrientation(Vector3(0.0f, -1.0f, 0.0f));
+
+	active_camera = &player_camera;
+
+	pickup_manager.init(&world, &rod_model, &ring_model);
+	player.init();
+	player.coordinate_system.setPosition(world.disks[0]->position);
 
 	//Initialize for shadows
 	//Pass the light view matrix to the shadow box
 	light_view_matrix = glm::mat4();
 	shadow_box.init(&light_view_matrix, &active_camera);
+
+	//Enabled lighting and shadows
+	LightingManager::setEnabled(true);
+	LightingManager::setShadowEnabled(true);
+	LightingManager::setShadowDistance(shadow_box.getShadowDistance());
+
+	//Set the shadow light to be a direction light where the sun is
+	LightingManager::setLightEnabled(0, true);
+	LightingManager::setLightDirectional(0, SUN_DIR);
+	LightingManager::setLightColour(0, Vector3(1.0, 1.0, 1.0));
+
+	//Set an ambient light with full strength
+	LightingManager::setLightEnabled(2, true);
+	LightingManager::setLightColour(2, Vector3(1.0, 1.0, 1.0));
+
+	//Set a positional light at the players location
+	//LightingManager::setLightEnabled(1, true);
+	//LightingManager::setLightPositional(1, PLAYER_INIT_POS);
+	//LightingManager::setLightColour(1, V3(0.5, 0.5, 0.5));
+	//LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
+
+
 }
 
-   void Game::update(double fixed_delta_time)
+void Game::update(double fixed_delta_time)
 {
-	//Multiply player speed/turn by scaled time.
-	float player_distance = float(PLAYER_SPEED * fixed_delta_time);
-	float player_turn = float(TURNING_DEGREES * fixed_delta_time);
+	const float delta_time = float(fixed_delta_time);
 
-	//Shift moves/turns faster
-	if (key_pressed[KEY_SHIFT])
-	{
-		player_distance *= PLAYER_SPEED_BOOST_MULT;
-		player_turn *= PLAYER_TURN_BOOST_MULT;
-	}
 
+	//PLAYER UPDATE ************************************
 	//save old player values for calculations
+	bool player_moved = false;
 	const Vector3 last_player_pos = player.coordinate_system.getPosition();
 	const Vector3 last_player_forward = player.coordinate_system.getForward();
 
-	//Use vectors to calculate correct diagonal movement
-	Vector2 player_direction(0.0, 0.0);
-
-	if (key_pressed['D'])
-		player_direction.x += 1.0;
-	if (key_pressed['A'])
-		player_direction.x -= 1.0;
-	if (key_pressed['W'] || (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT]) || key_pressed[KEY_UP_ARROW])
-		player_direction.y += 1.0;
-	if (key_pressed['S'] || key_pressed[KEY_DOWN_ARROW])
-		player_direction.y -= 1.0;
-
-	//If player is moving diagonally then multiply by sqrt(2)/2
-	if (player_direction.getNorm() > 1.0)
-		player_distance *= float(MathHelper::M_SQRT2_2);
-
 	//move player
-	if (key_pressed['D'])
-		player.coordinate_system.moveRight(player_distance);
-	if (key_pressed['A'])
-		player.coordinate_system.moveRight(-player_distance);
-	if (key_pressed['W'] || (key_pressed[MOUSE_LEFT] && key_pressed[MOUSE_RIGHT]) || key_pressed[KEY_UP_ARROW])
-		player.coordinate_system.moveForward(player_distance);
-	if (key_pressed['S'] || key_pressed[KEY_DOWN_ARROW])
-		player.coordinate_system.moveForward(-player_distance);
+	if (g_key_pressed['D'])
+		playerAccelerateRight(delta_time);
+	if (g_key_pressed['A'])
+		playerAccelerateLeft(delta_time);
+	if (g_key_pressed['W'] || (g_key_pressed[MOUSE_LEFT] && g_key_pressed[MOUSE_RIGHT]) || g_key_pressed[KEY_UP_ARROW])
+		playerAccelerateForward(delta_time);
+	if (g_key_pressed['S'] || g_key_pressed[KEY_DOWN_ARROW])
+		playerAccelerateBackward(delta_time);
 
 	//Rotate player
-	if (key_pressed[KEY_LEFT_ARROW])
-		player.coordinate_system.rotateAroundUp(player_turn);
-	if (key_pressed[KEY_RIGHT_ARROW])
-		player.coordinate_system.rotateAroundUp(-player_turn);
+	if (g_key_pressed[KEY_LEFT_ARROW])
+		playerTurnLeft(delta_time);
+	if (g_key_pressed[KEY_RIGHT_ARROW])
+		playerTurnRight(delta_time);
+
+	player.update(world, fixed_delta_time);
+
 
 	//Reset player position and orientation to defaults
-	if (key_pressed['R'])
+	if (g_key_pressed['R'])
 	{
-		player.resetPosition();
+		player.reset();
+		player.coordinate_system.setPosition(world.disks[0]->position);
 	}
-
-	//Change to overview camera when 'O' held
-	if (key_pressed['O'])
-		active_camera = &overview_camera;
-	else
-		active_camera = &player_camera;
-
-
-
 
 	//Set the players height to height of the world
 	const Vector3 player_position = player.coordinate_system.getPosition();
-	const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), 0.25f);
+	const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), player.getRadius());
 	player.setPosition(Vector3(player_position.x, y, player_position.z));
 
-	//Updates the rings in the world
-	world.update(fixed_delta_time);
+
+	pickup_manager.update(fixed_delta_time);
 
 	//Do collision detection for player and rings/rods
-	world.pickupManager.checkForPickups(player.coordinate_system.getPosition());
-
-
-	//CAMERA STUFF
-	//*********************
-
-	bool player_moved = false;
-
+	pickup_manager.checkForPickups(player.coordinate_system.getPosition());
 
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
 	if (player.coordinate_system.getPosition() != last_player_pos)
@@ -143,26 +145,50 @@ const glm::mat4 BIAS_MATRIX(
 	if (player.coordinate_system.getForward() != last_player_forward)
 		camera_float = false;
 
+	const Vector3& player_forward = player.coordinate_system.getForward();
+
+	if (g_key_pressed['W'] || (g_key_pressed[MOUSE_LEFT] && g_key_pressed[MOUSE_RIGHT]) || g_key_pressed[KEY_UP_ARROW])
+	{
+		player.transitionAnimationTo(Player_State::Running);
+	} else	if (g_key_pressed['D'] || g_key_pressed['A'])
+	{
+		player.transitionAnimationTo(Player_State::Strafing);
+	} else if (g_key_pressed['S'] || g_key_pressed[KEY_DOWN_ARROW])
+	{
+		player.transitionAnimationTo(Player_State::Reversing);
+	}else
+	{
+		player.transitionAnimationTo(Player_State::Standing);
+	}
+
+	//CAMERA STUFF
+	//******************************
+
+		//Change to overview camera when 'O' held
+	if (g_key_pressed['O'])
+		active_camera = &overview_camera;
+	else
+		active_camera = &player_camera;
 
 	//Arcball rotate around the player on left click
-	if (key_pressed[MOUSE_LEFT] && !key_pressed[MOUSE_RIGHT] && !player_moved)
+	if (g_key_pressed[MOUSE_LEFT] && !g_key_pressed[MOUSE_RIGHT] && !player_moved)
 	{
 		const double angle_y = player_camera.getForward().getAngleNormal(player_camera.getUp());
 
 		if (angle_y > MathHelper::M_PI * 0.92)
-			if (mouse_dy > 0) mouse_dy = 0;
+			if (g_mouse_dy > 0) g_mouse_dy = 0;
 		if (angle_y < MathHelper::M_PI * 0.08)
-			if (mouse_dy < 0) mouse_dy = 0;
+			if (g_mouse_dy < 0) g_mouse_dy = 0;
 
 		const Vector3 target = player.coordinate_system.getPosition() + PLAYER_CAMERA_OFFSET;
-		player_camera.rotateAroundTarget(target, glm::radians(double(-mouse_dx)), glm::radians(double(-mouse_dy)));
+		player_camera.rotateAroundTarget(target, glm::radians(double(-g_mouse_dx)), glm::radians(double(-g_mouse_dy)));
 		player_camera.setOrientation(player_camera.getForward().getNormalized(), Vector3(0, 1, 0));
 		camera_float = true;
 	}
 
 
 	//Glides the camera back behind the player when left click is released.
-	if (!key_pressed[MOUSE_LEFT])
+	if (!g_key_pressed[MOUSE_LEFT])
 	{
 		Vector3 new_cam_position = player.coordinate_system.getPosition();
 		const Vector3& player_forward = player.coordinate_system.getForward();
@@ -192,15 +218,15 @@ const glm::mat4 BIAS_MATRIX(
 	}
 
 	//Rotate the player left/right when mouse right is down
-	if (key_pressed[MOUSE_RIGHT])
+	if (g_key_pressed[MOUSE_RIGHT])
 	{
-		player.coordinate_system.rotateAroundUp(-glm::radians(float(mouse_dx)) * time_scale);
+		player.coordinate_system.rotateAroundUp(-glm::radians(float(g_mouse_dx)) * g_time_scale);
 		camera_float = false;
 	}
 
 	//Once mouse input has been used we need to set the dx and dy back to zero
-	mouse_dx = 0;
-	mouse_dy = 0;
+	g_mouse_dx = 0;
+	g_mouse_dy = 0;
 
 	//If camera is not in free float around player, snap it back behind the player
 	if (!camera_float)
@@ -217,29 +243,16 @@ const glm::mat4 BIAS_MATRIX(
 	//Overview camera follows player position
 	overview_camera.lookAt(player.coordinate_system.getPosition());
 
-		if (!player_moved)
-	{
-		player.transitionAnimationTo(Player_State::Standing);
-	} else if (player_direction.y > 0 || player_direction.x != 0)
-	{
-		player.transitionAnimationTo(Player_State::Running);
-	} else if (player_direction.y < 0)
-	{
-		player.transitionAnimationTo(Player_State::Reversing);
-	}
-	if (key_pressed[32])
-	{
-		player.transitionAnimationTo(Player_State::Jumping);
-	}
+
 
 }
 
- void Game::updateAnimations(double delta_time)
+void Game::updateAnimations(double delta_time)
 {
 	player.updateAnimation(delta_time);
 }
 
-  void Game::display()
+void Game::display()
 {
 	//**************Render to depth texture ***************
 	glm::mat4 depth_vp;
@@ -254,7 +267,7 @@ const glm::mat4 BIAS_MATRIX(
 	glm::mat4x4 shadow_map_space_matrix = BIAS_MATRIX * depth_vp;
 
 	//Set the shadow map and space matrix
-	LightingManager::setShadowMap(depth_texture.getTexture());
+	LightingManager::setShadowMap(g_depth_texture.getTexture());
 	LightingManager::setShadowMapSpaceMatrix(shadow_map_space_matrix);
 
 
@@ -265,7 +278,7 @@ const glm::mat4 BIAS_MATRIX(
 
 	//************Render to the screen with shadows and lighting*************
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-	glViewport(0, 0, win_width, win_height);
+	glViewport(0, 0, g_win_width, g_win_height);
 
 	glEnable(GL_CULL_FACE);
 	glCullFace(GL_BACK);
@@ -283,26 +296,27 @@ const glm::mat4 BIAS_MATRIX(
 	//Draw the skybox
 	glm::mat4 model_matrix = glm::mat4();
 	model_matrix = glm::translate(model_matrix, glm::vec3(camera_position));
-	glm::mat4 mvp_matrix = projection_matrix * view_matrix * model_matrix;
+	glm::mat4 mvp_matrix = g_projection_matrix * view_matrix * model_matrix;
 
 	glDepthMask(GL_FALSE);
 	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
 	glDepthMask(GL_TRUE);
 
 	//Draw the world
-	world.drawOptimized(view_matrix, projection_matrix, camera_position);
+	world.drawOptimized(view_matrix, g_projection_matrix, camera_position);
+	pickup_manager.drawOptimized(view_matrix, g_projection_matrix, camera_position);
 	//world.draw(view_matrix, projection_matrix, active_camera->getPosition());
 
 
-	const std::string text = "Score: " + std::to_string(world.pickupManager.score);
-	const float text_width = text_renderer.getWidth(text, 0.75f);
-	text_renderer.draw(text, float(win_width - text_width - 10), float(win_height - 40), 0.75f, glm::vec3(1, 1, 1));
+	const std::string text = "Score: " + std::to_string(pickup_manager.getScore());
+	const float text_width = g_text_renderer.getWidth(text, 0.75f);
+	g_text_renderer.draw(text, float(g_win_width - text_width - 10), float(g_win_height - 40), 0.75f, glm::vec3(1, 1, 1));
 
 
-	player.draw(view_matrix, projection_matrix, camera_position);
+	player.draw(view_matrix, g_projection_matrix, camera_position);
 
-	text_renderer.draw("Update Rate: " + std::to_string(long(update_fps)), 2, float(win_height - 24), 0.4f, glm::vec3(0, 1, 0));
-	text_renderer.draw("Display Rate: " + std::to_string(long(display_fps)), 2, float(win_height - 44), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Update Rate: " + std::to_string(long(g_update_fps)), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Display Rate: " + std::to_string(long(g_display_fps)), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
@@ -310,18 +324,19 @@ const glm::mat4 BIAS_MATRIX(
 	// send the current image to the screen - any drawing after here will not display
 }
 
- void Game::destroyIntoNextWorld()
+void Game::destroyIntoNextWorld()
 {
 	world.destroy();
-	world.init(world_folder + levels[level++]);
+	world.init(WORLD_FOLDER + levels[level++]);
 	if (level >= levels.size()) level = 0;
+	pickup_manager.destroy();
 }
 
 
 void Game::renderToDepthTexture(glm::mat4& depth_vp)
 {
 
-	depth_texture.startRenderToDepthTexture();
+	g_depth_texture.startRenderToDepthTexture();
 	glDisable(GL_CULL_FACE);
 
 	const Vector3& player_forward = player.coordinate_system.getForward();
@@ -361,20 +376,66 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(MathHelper::M_PI_2)), glm::vec3(player.coordinate_system.getUp()));;
 	glm::mat4 depth_mvp = depth_vp * model_matrix;
 
-	depth_texture.setDepthMVP(depth_mvp);
+	g_depth_texture.setDepthMVP(depth_mvp);
 
 
 	player.drawToDepth();
 
-
-
 	//Draw the world to the depth texture
 	world.drawDepth(depth_vp);
-
-
-
-
+	pickup_manager.drawDepth(depth_vp);
 
 }
+
+void Game::playerAccelerateForward(float delta_time)
+{
+	const Vector3& pos = player.coordinate_system.getPosition();
+	const Vector3& forward = player.coordinate_system.getForward();
+	Vector3 accel = forward * PLAYER_ACCEL_FORWARD * world.getAccelFactorAtPosition(float(pos.x), float(pos.z));
+	accel *= delta_time;
+	player.addAcceleration(accel);
+}
+
+void Game::playerAccelerateBackward(float delta_time)
+{
+	const Vector3& pos = player.coordinate_system.getPosition();
+	const Vector3& backward = -player.coordinate_system.getForward();
+	Vector3 accel = backward * PLAYER_ACCEL * world.getSpeedFactorAtPosition(float(pos.x), float(pos.z));
+	accel *= delta_time;
+	player.addAcceleration(accel);
+}
+
+void Game::playerAccelerateLeft(float delta_time)
+{
+	const Vector3& pos = player.coordinate_system.getPosition();
+	const Vector3& left = -player.coordinate_system.getRight();
+	Vector3 accel = left * PLAYER_ACCEL * world.getSpeedFactorAtPosition(float(pos.x), float(pos.z));
+	accel *= delta_time;
+	player.addAcceleration(accel);
+}
+
+void Game::playerAccelerateRight(float delta_time)
+{
+	const Vector3& pos = player.coordinate_system.getPosition();
+	const Vector3& right = player.coordinate_system.getRight();
+	Vector3 accel = right * PLAYER_ACCEL * world.getSpeedFactorAtPosition(float(pos.x), float(pos.z));
+	accel *= delta_time;
+	player.addAcceleration(accel);
+}
+
+void Game::playerTurnLeft(float delta_time)
+{
+	const float player_turn = float(TURNING_DEGREES * delta_time);
+	player.coordinate_system.rotateAroundUp(player_turn);
+}
+
+
+void Game::playerTurnRight(float delta_time)
+{
+	const float player_turn = float(TURNING_DEGREES * delta_time);
+	player.coordinate_system.rotateAroundUp(-player_turn);
+}
+
+
 
 
