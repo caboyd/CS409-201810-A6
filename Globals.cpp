@@ -39,7 +39,7 @@ const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;
 const Vector3 SUN_DIR(0.34, 0.83, 0.44);
 const Vector3 CAMERA_INIT_FORWARD = Vector3(-1, 0, -1).getNormalized();
 
-const Vector3 PLAYER_CAMERA_OFFSET = Vector3(0, 0.75f, 0);
+const Vector3 PLAYER_CAMERA_OFFSET = Vector3(0, 1.55f, 0);
 const Vector3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;
 const Vector3 OVERVIEW_CAMERA_INIT_POS = Vector3(100.f, 200.0f, 10.0f);
 

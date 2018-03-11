@@ -27,10 +27,10 @@ World::~World()
 
 void World::init(const std::string& filename)
 {
-	if(initialized) destroy();
+	if (initialized) destroy();
 	initialized = true;
 	loadModels();
-	
+
 
 	std::ifstream input_file;
 
@@ -109,7 +109,7 @@ void World::init(const std::string& filename)
 		}
 		disksSorted[type].push_back(disks.back().get());
 		pos.y = double(disks.back()->getHeightAtPosition(float(pos.x), float(pos.z)));
-		
+
 
 
 	}
@@ -133,7 +133,7 @@ void World::destroy()
 	disksSorted[4].clear();
 
 	initialized = false;
-	
+
 }
 
 void World::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
@@ -273,7 +273,7 @@ float World::getSpeedFactorAtPosition(float x, float z, float r)const
 
 float World::getAccelFactorAtPosition(float x, float z) const
 {
-		for (auto &disk : disks)
+	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
 		if (Collision::circleIntersection(x, z, 0, float(disk->position.x), float(disk->position.z), disk->radius))
@@ -340,8 +340,36 @@ float World::getHeightAtCirclePosition(const float x, const float z, const float
 			return disk->getHeightAtPosition(x, z);
 	}
 	//No collision with a disk
-	return 0.0f;
+	return -1000.0f;
 }
+
+bool World::isOnDisk(float x, float z) const
+{
+	return isOnDisk(x, z, 0);
+}
+bool World::isOnDisk(float x, float z, float r) const
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		if( Collision::circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
+			return true;
+	}
+	return false;
+}
+
+bool World::isCylinderCollisionWithDisk(const Vector3& pos, float r, float half_height) const
+{
+	for (auto &disk : disks)
+	{
+		//If colliding with this disk return the height at the position on the disk
+		const Vector3 disk_pos(disk->position.x, disk->position.y - 500.0, disk->position.z);
+		if( Collision::cylinderIntersection(pos, r, half_height, disk_pos, disk->radius, 500.0f))
+			return  true;
+	}
+	return false;
+}
+
 
 
 void World::loadModels()

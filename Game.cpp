@@ -114,6 +114,10 @@ void Game::update(double fixed_delta_time)
 	if (g_key_pressed[KEY_RIGHT_ARROW])
 		playerTurnRight(delta_time);
 
+	//Space bar
+	if (g_key_pressed[32])
+		player.jump();
+
 	player.update(world, fixed_delta_time);
 
 
@@ -125,9 +129,9 @@ void Game::update(double fixed_delta_time)
 	}
 
 	//Set the players height to height of the world
-	const Vector3 player_position = player.coordinate_system.getPosition();
-	const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), player.getRadius());
-	player.setPosition(Vector3(player_position.x, y, player_position.z));
+	//const Vector3 player_position = player.coordinate_system.getPosition();
+	//const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), player.getRadius());
+	//player.setPosition(Vector3(player_position.x, y, player_position.z));
 
 
 	pickup_manager.update(fixed_delta_time);
@@ -156,7 +160,7 @@ void Game::update(double fixed_delta_time)
 	} else if (g_key_pressed['S'] || g_key_pressed[KEY_DOWN_ARROW])
 	{
 		player.transitionAnimationTo(Player_State::Reversing);
-	}else
+	} else
 	{
 		player.transitionAnimationTo(Player_State::Standing);
 	}
@@ -330,6 +334,7 @@ void Game::destroyIntoNextWorld()
 	world.init(WORLD_FOLDER + levels[level++]);
 	if (level >= levels.size()) level = 0;
 	pickup_manager.destroy();
+	pickup_manager.init(&world, &rod_model, &ring_model);
 }
 
 
@@ -370,16 +375,7 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 
 	depth_vp = depthProjectionMatrix * light_view_matrix;
 
-	glm::mat4 model_matrix = glm::mat4();
-	model_matrix = glm::translate(model_matrix, glm::vec3(player_position));
-
-	model_matrix = glm::rotate(model_matrix, (float(atan2(player_forward.x, player_forward.z)) - float(MathHelper::M_PI_2)), glm::vec3(player.coordinate_system.getUp()));;
-	glm::mat4 depth_mvp = depth_vp * model_matrix;
-
-	g_depth_texture.setDepthMVP(depth_mvp);
-
-
-	player.drawToDepth();
+	player.drawToDepth(depth_vp);
 
 	//Draw the world to the depth texture
 	world.drawDepth(depth_vp);

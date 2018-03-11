@@ -1,6 +1,9 @@
 #include "Player.h"
 #include "MathHelper.h"
 #include "World.h"
+#include "DepthTexture.h"
+
+extern DepthTexture depth_texture;
 
 Player::Player()
 {}
@@ -19,42 +22,96 @@ void Player::updateAnimation(double delta_time)
 
 void Player::update(const World& world, double delta_time)
 {
-	Vector3 new_pos = coordinate_system.getPosition() + velocity * delta_time / 1000;
-	coordinate_system.setPosition(new_pos);
+	std::cout << velocity << std::endl;
+	const float delta_time_seconds = float(delta_time / 1000.0);
 
-	float friction = world.getFrictionAtPosition(float(new_pos.x), float(new_pos.z));
-	velocity = velocity * pow(friction, delta_time / 1000.0);
+	Vector3 old_pos = getPosition();
+	Vector3 new_pos = old_pos + (velocity * delta_time_seconds);
 
-	float min_slope = world.getSlopeFactorAtPosition(float(new_pos.x), float(new_pos.z));
 
-	float player_height = world.getHeightAtCirclePosition(float(new_pos.x), float(new_pos.z), radius);
-
-	
-	float min_height = player_height;
-	Vector2 min_dir;
-	Vector2 dir(1, 0);
-
-	for (unsigned int i = 0; i < 60; i++)
+	float player_height = new_pos.y;
+	float height = world.getHeightAtCirclePosition(float(new_pos.x), float(new_pos.z), radius);
+	if (jumping)
 	{
-		dir.rotate(i * MathHelper::M_2PI / 60.0);
-		const Vector2 pos(new_pos.x + dir.x * 0.01, new_pos.z + dir.y * 0.01);
-		float h = world.getHeightAtPointPosition(float(pos.x), float(pos.y));
-		if (h < min_height)
+
+		velocity = velocity + Vector3(0, -9.8,0) * delta_time_seconds;
+
+		//Check collision with disk
+		if (world.isCylinderCollisionWithDisk(Vector3(new_pos.x, new_pos.y , new_pos.z) + PLAYER_OFFSET, radius, 0.8))
 		{
-			min_height = h;
-			min_dir = dir;
+			if (world.isCylinderCollisionWithDisk(Vector3(old_pos.x, old_pos.y, old_pos.z) + PLAYER_OFFSET, radius, 0.8))
+			{
+				//Landing
+				jumping = false;
+				model.transitionTo(Player_State::Standing);
+				velocity.y = 0;
+				new_pos.y = height;
+			} else
+			{
+				//Hit side of disk while falling
+				velocity.x = 0;
+				velocity.z = 0;
+				new_pos.x = old_pos.x;
+				new_pos.z = old_pos.z;
+			}
 		}
-	}
 
-	float slope = (player_height - min_height) / 0.01;
-
-	if (slope > min_slope)
+	} else
 	{
-		float a = (slope - min_slope) * 10.0f / 1000.0f;
-		Vector3 accel(min_dir.x, 0, min_dir.y);
-		accel *= a;
-		addAcceleration(accel);
+		if (world.isOnDisk(float(new_pos.x), float(new_pos.z), radius))
+		{
+			//Not Falling
+
+			//Set height
+			new_pos.y = height;
+			velocity.y = 0;
+
+			//Apply friction
+			float friction = world.getFrictionAtPosition(float(new_pos.x), float(new_pos.z));
+			velocity = velocity * pow(friction, delta_time_seconds);
+
+			//Apply Sliding
+			float min_slope = world.getSlopeFactorAtPosition(float(new_pos.x), float(new_pos.z));
+			float min_height = player_height;
+			Vector2 min_dir;
+			Vector2 dir(1, 0);
+
+			for (unsigned int i = 0; i < 60; i++)
+			{
+				dir.rotate(i * MathHelper::M_2PI / 60.0);
+				const Vector2 pos(new_pos.x + dir.x * 0.01, new_pos.z + dir.y * 0.01);
+				float h = world.getHeightAtPointPosition(float(pos.x), float(pos.y));
+				if (h < min_height)
+				{
+					min_height = h;
+					min_dir = dir;
+				}
+			}
+
+			float slope = (player_height - min_height) / 0.01;
+
+			if (slope > min_slope)
+			{
+				float a = (slope - min_slope) * 10.0f / 1000.0f;
+				Vector3 accel(min_dir.x, 0, min_dir.y);
+				accel *= a;
+				addAcceleration(accel);
+			}
+		} else
+		{
+			//Falling
+			model.transitionTo(Player_State::Falling);
+			jumping = true;
+		}
+
+
+
 	}
+
+	//Update position to new position
+	setPosition(new_pos);
+
+
 
 
 }
@@ -64,22 +121,30 @@ void Player::reset()
 	coordinate_system.setPosition(PLAYER_INIT_POS);
 	coordinate_system.setOrientation(PLAYER_INIT_FORWARD);
 	velocity = Vector3::ZERO;
+	jumping = false;
 }
 
 void Player::transitionAnimationTo(Player_State state)
 {
-	model.transitionTo(state);
+	if (!jumping)
+		model.transitionTo(state);
 }
 
 void Player::setPosition(Vector3 pos)
 {
-	coordinate_system.setPosition(pos + PLAYER_OFFSET);
+	coordinate_system.setPosition(pos);
+}
+
+Vector3 Player::getPosition() const
+{
+	return coordinate_system.getPosition();
 }
 
 void Player::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix,
 	const glm::vec3& camera_position) const
 {
-	const Vector3& pos = coordinate_system.getPosition();
+	Vector3 pos = coordinate_system.getPosition();
+	pos.y += 0.8;
 	const Vector3& forward = coordinate_system.getForward();
 	//Draw the player
 	glm::mat4 model_matrix = glm::mat4();
@@ -91,8 +156,18 @@ void Player::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_
 	model.draw(model_matrix, view_matrix, projection_matrix, camera_position);
 }
 
-void Player::drawToDepth()
+void Player::drawToDepth(const glm::mat4x4& depth_view_projection_matrix) const
 {
+	Vector3 pos = coordinate_system.getPosition();
+	pos.y += 0.8;
+	Vector3 forward = coordinate_system.getForward();
+	glm::mat4 model_matrix = glm::mat4();
+	model_matrix = glm::translate(model_matrix, glm::vec3(pos));
+
+	model_matrix = glm::rotate(model_matrix, (float(atan2(forward.x, forward.z)) - float(MathHelper::M_PI_2)), glm::vec3(coordinate_system.getUp()));;
+	glm::mat4 depth_mvp = depth_view_projection_matrix * model_matrix;
+
+	g_depth_texture.setDepthMVP(depth_mvp);
 	model.drawToDepth();
 }
 
@@ -103,5 +178,15 @@ float Player::getRadius() const
 
 void Player::addAcceleration(const Vector3& a)
 {
-	velocity += a;
+	if (!jumping)
+		velocity += a;
+}
+
+void Player::jump()
+{
+	if(jumping) return;
+	velocity = coordinate_system.getForward() * JUMP_FORWARD_SPEED + Vector3(0, JUMP_UP_SPEED, 0);
+	model.transitionTo(Player_State::Jumping);
+	jumping = true;
+
 }

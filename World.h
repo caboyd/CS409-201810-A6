@@ -54,6 +54,12 @@ public:
 	//a disk then get the height at the position on the disk
 	float getHeightAtPointPosition(float x, float z) const ;
 	float getHeightAtCirclePosition(float x, float z, float r) const;
+
+	bool isOnDisk(float x, float z) const;
+	bool isOnDisk(float x, float z, float r) const;
+
+	bool isCylinderCollisionWithDisk(const Vector3& pos, float r, float half_height) const;
+
 	//Draw all of the disks
 	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix);
 	void draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos);
