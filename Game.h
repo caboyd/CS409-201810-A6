@@ -26,7 +26,7 @@ private:
 	Player player;
 	PickupManager pickup_manager;
 
-	
+	//Camerars for behind the player and overview
 	CoordinateSystem player_camera;
 	CoordinateSystem overview_camera;
 	CoordinateSystem* active_camera = &player_camera;
@@ -45,19 +45,23 @@ private:
 	glm::mat4x4 light_view_matrix;
 
 public:
+	//Empty Constructor, Init must be used to initialize game
 	Game() = default;
 
-	//Initialize everything
+	//Initialize The models, player,world, pickup manager, shadow box
+	//lighting and camera.
 	void init();
 
-	//process keys and update game
+	//Update the game based on inputs using fixed delta time
+	//Updates player and pickups
 	void update(double fixed_delta_time);
 
-	//Updates animations
+	//Updates animations for the player using variable delta time
 	void updateAnimations(double delta_time);
 
 	void display();
 
+	//Destory the current world and creates a new one from the list of levels
 	void destroyIntoNextWorld();
 	
 private:

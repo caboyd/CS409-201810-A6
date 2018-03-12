@@ -34,14 +34,16 @@ private:
 public:
 	Player();
 
-	void init();
+	void init(const World& world);
 
 	void updateAnimation(double delta_time);
 	void update(const World& world, double delta_time);
 
-	void reset();;
+	void reset(const World& world);;
 
 	void transitionAnimationTo(Player_State state);
+
+	bool isStanding() const;
 
 	void setPosition(Vector3 pos);
 	Vector3 getPosition() const;

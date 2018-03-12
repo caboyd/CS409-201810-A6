@@ -19,6 +19,8 @@ using ObjLibrary::Vector3;
 //Global External constants available to all files
 //***************************************
 //ShadowBox.h uses these globals
+global_extern const int DEFAULT_WIN_WIDTH;
+global_extern const int DEFAULT_WIN_HEIGHT;
 global_extern const double FOV;
 global_extern const double CLIP_NEAR;
 global_extern const double CLIP_FAR;

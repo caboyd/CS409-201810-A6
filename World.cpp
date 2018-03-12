@@ -352,7 +352,7 @@ bool World::isOnDisk(float x, float z, float r) const
 	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		if( Collision::circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
+		if (Collision::circleIntersection(x, z, r, float(disk->position.x), float(disk->position.z), disk->radius))
 			return true;
 	}
 	return false;
@@ -363,9 +363,16 @@ bool World::isCylinderCollisionWithDisk(const Vector3& pos, float r, float half_
 	for (auto &disk : disks)
 	{
 		//If colliding with this disk return the height at the position on the disk
-		const Vector3 disk_pos(disk->position.x, disk->position.y - 500.0, disk->position.z);
-		if( Collision::cylinderIntersection(pos, r, half_height, disk_pos, disk->radius, 500.0f))
-			return  true;
+		if (Collision::circleIntersection(pos.x, pos.z, r, disk->position.x, disk->position.z, disk->radius))
+		{
+			float a = getHeightAtPointPosition(pos.x, pos.z) ;
+			//If position is below height map it is inside
+			if ( pos.y - half_height <= a )
+			{
+				return true;
+			}
+		}
+			
 	}
 	return false;
 }

@@ -56,7 +56,7 @@ void Game::init()
 	active_camera = &player_camera;
 
 	pickup_manager.init(&world, &rod_model, &ring_model);
-	player.init();
+	player.init(world);
 	player.coordinate_system.setPosition(world.disks[0]->position);
 
 	//Initialize for shadows
@@ -90,7 +90,7 @@ void Game::init()
 void Game::update(double fixed_delta_time)
 {
 	const float delta_time = float(fixed_delta_time);
-
+	const float delta_time_seconds = float(fixed_delta_time / 1000.0f);
 
 	//PLAYER UPDATE ************************************
 	//save old player values for calculations
@@ -100,40 +100,35 @@ void Game::update(double fixed_delta_time)
 
 	//move player
 	if (g_key_pressed['D'])
-		playerAccelerateRight(delta_time);
+		playerAccelerateRight(delta_time_seconds);
 	if (g_key_pressed['A'])
-		playerAccelerateLeft(delta_time);
+		playerAccelerateLeft(delta_time_seconds);
 	if (g_key_pressed['W'] || (g_key_pressed[MOUSE_LEFT] && g_key_pressed[MOUSE_RIGHT]) || g_key_pressed[KEY_UP_ARROW])
-		playerAccelerateForward(delta_time);
+		playerAccelerateForward(delta_time_seconds);
 	if (g_key_pressed['S'] || g_key_pressed[KEY_DOWN_ARROW])
-		playerAccelerateBackward(delta_time);
+		playerAccelerateBackward(delta_time_seconds);
 
 	//Rotate player
 	if (g_key_pressed[KEY_LEFT_ARROW])
-		playerTurnLeft(delta_time);
+		playerTurnLeft(delta_time_seconds);
 	if (g_key_pressed[KEY_RIGHT_ARROW])
-		playerTurnRight(delta_time);
+		playerTurnRight(delta_time_seconds);
 
 	//Space bar
 	if (g_key_pressed[32])
 		player.jump();
 
-	player.update(world, fixed_delta_time);
+	player.update(world, delta_time_seconds);
 
 
 	//Reset player position and orientation to defaults
 	if (g_key_pressed['R'])
 	{
-		player.reset();
-		player.coordinate_system.setPosition(world.disks[0]->position);
+		player.reset(world);
 	}
 
-	//Set the players height to height of the world
-	//const Vector3 player_position = player.coordinate_system.getPosition();
-	//const float y = world.getHeightAtCirclePosition(float(player_position.x), float(player_position.z), player.getRadius());
-	//player.setPosition(Vector3(player_position.x, y, player_position.z));
 
-
+	//Update the position of the rings
 	pickup_manager.update(fixed_delta_time);
 
 	//Do collision detection for player and rings/rods
@@ -165,17 +160,19 @@ void Game::update(double fixed_delta_time)
 		player.transitionAnimationTo(Player_State::Standing);
 	}
 
+
 	//CAMERA STUFF
 	//******************************
 
-		//Change to overview camera when 'O' held
+	
+	//Change to overview camera when 'O' held
 	if (g_key_pressed['O'])
 		active_camera = &overview_camera;
 	else
 		active_camera = &player_camera;
 
 	//Arcball rotate around the player on left click
-	if (g_key_pressed[MOUSE_LEFT] && !g_key_pressed[MOUSE_RIGHT] && !player_moved)
+	if (g_key_pressed[MOUSE_LEFT] && !g_key_pressed[MOUSE_RIGHT] && player.isStanding())
 	{
 		const double angle_y = player_camera.getForward().getAngleNormal(player_camera.getUp());
 
@@ -330,11 +327,14 @@ void Game::display()
 
 void Game::destroyIntoNextWorld()
 {
+#ifdef  _WIN32
+
 	world.destroy();
 	world.init(WORLD_FOLDER + levels[level++]);
 	if (level >= levels.size()) level = 0;
 	pickup_manager.destroy();
 	pickup_manager.init(&world, &rod_model, &ring_model);
+#endif
 }
 
 
@@ -390,6 +390,7 @@ void Game::playerAccelerateForward(float delta_time)
 	Vector3 accel = forward * PLAYER_ACCEL_FORWARD * world.getAccelFactorAtPosition(float(pos.x), float(pos.z));
 	accel *= delta_time;
 	player.addAcceleration(accel);
+
 }
 
 void Game::playerAccelerateBackward(float delta_time)

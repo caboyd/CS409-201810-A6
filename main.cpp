@@ -119,13 +119,15 @@ void init()
 
 	glEnable(GL_DEPTH_TEST);
 
+	//Initialized Renderes
 	g_text_renderer.init();
 	g_line_renderer.init();
-
-
-	game.init();
 	g_depth_texture.init();
 
+	//Initialize Game
+	game.init();
+
+	//Start delta time clock
 	g_time_counter.start();
 }
 
@@ -152,7 +154,6 @@ void keyboard(unsigned char key, int x, int y)
 				g_time_scale = 1.0f;
 		}
 		break;
-
 		//Tab cycle between worlds on win32
 #ifdef _WIN32
 	case '\t':
@@ -183,8 +184,8 @@ void keyboard(unsigned char key, int x, int y)
 			glutFullScreen();
 		else
 		{
-			g_win_width = 1280;
-			g_win_height = 960;
+			g_win_width = DEFAULT_WIN_WIDTH;
+			g_win_height = DEFAULT_WIN_HEIGHT;
 			glutReshapeWindow(g_win_width, g_win_height);
 			glutPositionWindow(0, 0);
 		}
@@ -350,40 +351,44 @@ void update()
 	//Multiply delta time by time_scale to slow or speed up game
 	const double scaled_time = g_delta_time * g_time_scale;
 
+	//Increment elapsed time and update lag
 	g_elapsed_time_nanoseconds += long long(g_delta_time * 1000 + 0.5);
 	g_update_lag += scaled_time;
 
+	//If should update
 	if (g_update_lag > FRAME_TIME_UPDATE * g_time_scale)
 	{
+		//Process all updates
 		while (g_update_lag > FRAME_TIME_UPDATE * g_time_scale)
 		{
 			game.update(FRAME_TIME_UPDATE * g_time_scale);
 			g_update_lag -= FRAME_TIME_UPDATE * g_time_scale;
 			g_update_count++;
 		}
-	}else if (g_delta_time < FRAME_TIME_DISPLAY)
+	} else if (g_delta_time < FRAME_TIME_DISPLAY)
 	{
+		//Should sleep
 		std::cout << "  slept: " << (FRAME_TIME_DISPLAY - g_delta_time);
 		sleepms(FRAME_TIME_DISPLAY - g_delta_time);
 		g_delta_time += (FRAME_TIME_DISPLAY - g_delta_time);
 	}
-	
+
 	//Update the animations every frame
 	game.updateAnimations(scaled_time);
 	g_display_count++;
 
 	//Update the fps display, but not too fast or it is unreadable
-	if (g_display_count % unsigned(FPS_DISPLAY / 10) == 0)
+	if (g_display_count % unsigned(FPS_UPDATE / 6) == 0)
 	{
 		const float alpha = 0.5;
 		//Exponential smoothing for display rate
 		g_display_fps = alpha * g_display_fps + (1 - alpha) * (1000.0 / g_delta_time);
 
 		//Average update rate
-		g_update_fps = (double(g_update_count) / (double(g_elapsed_time_nanoseconds)/1000000.0));
+		g_update_fps = (double(g_update_count) / (double(g_elapsed_time_nanoseconds) / 1000000.0));
 	}
 
-	
+	//Display frame
 	glutPostRedisplay();
 }
 

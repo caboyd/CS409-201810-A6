@@ -192,7 +192,7 @@ float Disk::getHeightAtPosition(float x, float z) const
 	float cz = (z - float(position.z)) * (heightMapSize / 2.0f) / (radius * float(MathHelper::M_SQRT2_2)) + (heightMapSize / 2.0f);
 
 	//If outside heightmap return 0
-	if ((cx > heightMapSize || cx < 0) || (cz > heightMapSize || cz < 0))
+	if ((cx >= heightMapSize || cx < 0) || (cz >= heightMapSize || cz < 0))
 		return 0.0f;
 
 	//Index in height map
@@ -205,6 +205,7 @@ float Disk::getHeightAtPosition(float x, float z) const
 	Vector3 p0;
 	const Vector3 p1(ix, heightMap[ix][kz], kz);
 	const Vector3 p2(ix + 1, heightMap[ix + 1][kz + 1], kz + 1);
+
 
 	//Upper right triangle
 	if (fx > fz)

@@ -38,6 +38,11 @@ void PlayerAnimatedModel::init()
 	animation_rate = 1;
 }
 
+Player_State PlayerAnimatedModel::getState() const
+{
+	return state;
+}
+
 void PlayerAnimatedModel::updateAnimation(double delta_time)
 {
 	int i = int(run_state);

@@ -9,6 +9,8 @@
 //Global External constants available to all files
 //***************************************
 //ShadowBox.h uses these globals
+const int DEFAULT_WIN_WIDTH = 1280;
+const int DEFAULT_WIN_HEIGHT = 960;
 const double FOV = 60.0;
 const double CLIP_NEAR = 0.1;
 const double CLIP_FAR = 1600.0;
@@ -44,10 +46,10 @@ const Vector3 PLAYER_CAMERA_INIT_POS = PLAYER_CAMERA_OFFSET;
 const Vector3 OVERVIEW_CAMERA_INIT_POS = Vector3(100.f, 200.0f, 10.0f);
 
 //Players turns 3 degrees per second
-const float TURNING_DEGREES = 3.0f / 1000.0f;
-//Player moves 10 metres per second
-const float PLAYER_ACCEL_FORWARD = 25.0f / 1000.0f;;
-const float PLAYER_ACCEL = 10.0f / 1000.0f;;
+const float TURNING_DEGREES = 3.0f;
+
+const float PLAYER_ACCEL_FORWARD = 25.0f;
+const float PLAYER_ACCEL = 10.0f;
 
 
 //Globals Externals available to all files

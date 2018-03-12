@@ -48,13 +48,15 @@ private:
 	Frame run_frames[7];
 	float time_into_frame;
 	Run_State run_state;
-	Player_State state;
+		Player_State state;
 	float animation_rate = 1;
 public:
+
 	PlayerAnimatedModel() = default;
 
 	void init();
 
+	Player_State getState() const;
 
 	void updateAnimation(double delta_time);
 

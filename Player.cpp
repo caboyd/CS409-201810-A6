@@ -8,10 +8,10 @@ extern DepthTexture depth_texture;
 Player::Player()
 {}
 
-void Player::init()
+void Player::init(const World& world)
 {
 
-	reset();
+	reset(world);
 	model.init();
 }
 
@@ -20,17 +20,14 @@ void Player::updateAnimation(double delta_time)
 	model.updateAnimation(delta_time);
 }
 
-void Player::update(const World& world, double delta_time)
+void Player::update(const World& world, double delta_time_seconds)
 {
-	std::cout << velocity << std::endl;
-	const float delta_time_seconds = float(delta_time / 1000.0);
 
 	Vector3 old_pos = getPosition();
 	Vector3 new_pos = old_pos + (velocity * delta_time_seconds);
 
-
-	float player_height = new_pos.y;
 	float height = world.getHeightAtCirclePosition(float(new_pos.x), float(new_pos.z), radius);
+
 	if (jumping)
 	{
 
@@ -72,13 +69,14 @@ void Player::update(const World& world, double delta_time)
 
 			//Apply Sliding
 			float min_slope = world.getSlopeFactorAtPosition(float(new_pos.x), float(new_pos.z));
-			float min_height = player_height;
+			float player_height = new_pos.y;
+			float min_height = new_pos.y ;
 			Vector2 min_dir;
-			Vector2 dir(1, 0);
-
+			
 			for (unsigned int i = 0; i < 60; i++)
 			{
-				dir.rotate(i * MathHelper::M_2PI / 60.0);
+				Vector2 dir(1, 0);
+				dir.rotate(MathHelper::M_2PI * (i/60.0));
 				const Vector2 pos(new_pos.x + dir.x * 0.01, new_pos.z + dir.y * 0.01);
 				float h = world.getHeightAtPointPosition(float(pos.x), float(pos.y));
 				if (h < min_height)
@@ -92,7 +90,7 @@ void Player::update(const World& world, double delta_time)
 
 			if (slope > min_slope)
 			{
-				float a = (slope - min_slope) * 10.0f / 1000.0f;
+				float a =( (slope - min_slope) * 10.0f) * delta_time_seconds;
 				Vector3 accel(min_dir.x, 0, min_dir.y);
 				accel *= a;
 				addAcceleration(accel);
@@ -116,9 +114,11 @@ void Player::update(const World& world, double delta_time)
 
 }
 
-void Player::reset()
+void Player::reset(const World& world)
 {
-	coordinate_system.setPosition(PLAYER_INIT_POS);
+	Vector3 pos =world.disks[0]->position;
+	pos.y = world.getHeightAtPointPosition(pos.x,pos.z);
+	coordinate_system.setPosition(pos);
 	coordinate_system.setOrientation(PLAYER_INIT_FORWARD);
 	velocity = Vector3::ZERO;
 	jumping = false;
@@ -128,6 +128,11 @@ void Player::transitionAnimationTo(Player_State state)
 {
 	if (!jumping)
 		model.transitionTo(state);
+}
+
+bool Player::isStanding() const
+{
+	return ( model.getState() == Player_State::Standing);
 }
 
 void Player::setPosition(Vector3 pos)
