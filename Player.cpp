@@ -34,9 +34,9 @@ void Player::update(const World& world, double delta_time_seconds)
 		velocity = velocity + Vector3(0, -9.8,0) * delta_time_seconds;
 
 		//Check collision with disk
-		if (world.isCylinderCollisionWithDisk(Vector3(new_pos.x, new_pos.y , new_pos.z) + PLAYER_OFFSET, radius, 0.8))
+		if (world.isCylinderCollisionWithDisk(Vector3(new_pos.x, new_pos.y , new_pos.z) + PLAYER_OFFSET, radius, 0.8f))
 		{
-			if (world.isCylinderCollisionWithDisk(Vector3(old_pos.x, old_pos.y, old_pos.z) + PLAYER_OFFSET, radius, 0.8))
+			if (world.isCylinderCollisionWithDisk(Vector3(old_pos.x, old_pos.y, old_pos.z) + PLAYER_OFFSET, radius, 0.8f))
 			{
 				//Landing
 				jumping = false;
@@ -69,8 +69,8 @@ void Player::update(const World& world, double delta_time_seconds)
 
 			//Apply Sliding
 			float min_slope = world.getSlopeFactorAtPosition(float(new_pos.x), float(new_pos.z));
-			float player_height = new_pos.y;
-			float min_height = new_pos.y ;
+			float player_height = float(new_pos.y);
+			float min_height = float(new_pos.y);
 			Vector2 min_dir;
 			
 			for (unsigned int i = 0; i < 60; i++)
@@ -86,11 +86,11 @@ void Player::update(const World& world, double delta_time_seconds)
 				}
 			}
 
-			float slope = (player_height - min_height) / 0.01;
+			float slope = (player_height - min_height) / 0.01f;
 
 			if (slope > min_slope)
 			{
-				float a =( (slope - min_slope) * 10.0f) * delta_time_seconds;
+				float a =( (slope - min_slope) * 10.0f) * float(delta_time_seconds);
 				Vector3 accel(min_dir.x, 0, min_dir.y);
 				accel *= a;
 				addAcceleration(accel);
@@ -117,7 +117,7 @@ void Player::update(const World& world, double delta_time_seconds)
 void Player::reset(const World& world)
 {
 	Vector3 pos =world.disks[0]->position;
-	pos.y = world.getHeightAtPointPosition(pos.x,pos.z);
+	pos.y = world.getHeightAtPointPosition(float(pos.x),float(pos.z));
 	coordinate_system.setPosition(pos);
 	coordinate_system.setOrientation(PLAYER_INIT_FORWARD);
 	velocity = Vector3::ZERO;

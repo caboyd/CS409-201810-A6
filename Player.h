@@ -12,8 +12,8 @@ static const Vector3 PLAYER_INIT_POS = Vector3(0.0f, 0.0f, 0.0f) + PLAYER_OFFSET
 static const Vector3 PLAYER_INIT_FORWARD = Vector3(0, 0, -1);
 
 //Meters per 1000 milliseconds
-static const  int JUMP_FORWARD_SPEED = 8.0;
-static const int JUMP_UP_SPEED =  12.0;
+static const float JUMP_FORWARD_SPEED = 8.0;
+static const float JUMP_UP_SPEED =  12.0;
 
 
 class Player
@@ -22,11 +22,8 @@ public:
 	//Position and Orientation
 	CoordinateSystem coordinate_system;
 
-
-
-
-	PlayerAnimatedModel model;
 private:
+		PlayerAnimatedModel model;
 	Vector3 velocity;
 	const float radius = 0.25;
 	bool jumping;

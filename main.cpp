@@ -1,7 +1,7 @@
 /*
  *
  *	Main.cpp
- *	Assignment 3
+ *	Assignment 4
  *	Author: Chris Boyd, 200225231
  *
  *	Description:
@@ -13,15 +13,17 @@
  *		disk center when they reach one they choose a new disk target to move towards.
  *
  *		Rings and rods are worth points. The player can collect them for points.
+ *		Player has acceleration and can slide down steep slopes
+ *		Player can jump and fall off of disks.
  *
  *
  *		KEY BINDINGS:
  *		[Tab]: Loads the next file in the world folder.
  *		WASD: Move/Strafe
+ *		SPACE: Jump
  *		Arrow keys: Move
  *		Left mouse button: Hold down to look around
  *		Right mouse button: Hold down to turn.
- *		Shift: Hold to move and turn faster.
  *		Left/Right mouse buttons: Hold down to move forward.
  *	    O: Hold to change to overview camera.
  *		H: to toggle between full and half speed time scale.
@@ -41,13 +43,9 @@
 
 //GLUT / OBJ inclues
 #include "lib/GetGlutWithShaders.h"
-#include "lib/ObjLibrary/ObjShader.h"
-
 #include "lib/ObjLibrary/LightingManager.h"
 
-
 //My includes
-
 #include "Sleep.h"
 #include "MathHelper.h"
 #include "Random.h"
@@ -149,7 +147,7 @@ void keyboard(unsigned char key, int x, int y)
 		if (!g_key_pressed['H'])
 		{
 			if (g_time_scale == 1.0f)
-				g_time_scale = 0.25f;
+				g_time_scale = 0.5f;
 			else
 				g_time_scale = 1.0f;
 		}
@@ -368,7 +366,6 @@ void update()
 	} else if (g_delta_time < FRAME_TIME_DISPLAY)
 	{
 		//Should sleep
-		std::cout << "  slept: " << (FRAME_TIME_DISPLAY - g_delta_time);
 		sleepms(FRAME_TIME_DISPLAY - g_delta_time);
 		g_delta_time += (FRAME_TIME_DISPLAY - g_delta_time);
 	}

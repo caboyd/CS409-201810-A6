@@ -4,7 +4,12 @@
 #include "ShadowBox.h"
 #include "Player.h"
 
-
+/**
+ *	Overarching Game class
+ *	Has state of the game
+ *	Controls all the objects in the game, updates them and draws them
+ *
+ */
 
 
 class Game
@@ -59,21 +64,25 @@ public:
 	//Updates animations for the player using variable delta time
 	void updateAnimations(double delta_time);
 
+	//Render the game
+	//Draws everything to the depth texture
+	//Then uses Depth texture to draw everything with shadows to screen
 	void display();
 
-	//Destory the current world and creates a new one from the list of levels
+	//Destory the current world and loads the next on from the worlds folder
 	void destroyIntoNextWorld();
 	
 private:
+	//Render game to depth texture for shadow mapping
 	void renderToDepthTexture(glm::mat4& depth_vp);
-	//Player functions
+
+	//Player functions to move the player
 	void playerAccelerateForward(float delta_time);
 	void playerAccelerateBackward(float delta_time);
 	void playerAccelerateLeft(float delta_time);
 	void playerAccelerateRight(float delta_time);
 	void playerTurnLeft(float delta_time);
 	void playerTurnRight(float delta_time);
-	void playerJump(float delta_time);
 
 
 

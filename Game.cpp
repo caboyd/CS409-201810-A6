@@ -271,11 +271,7 @@ void Game::display()
 	LightingManager::setShadowMap(g_depth_texture.getTexture());
 	LightingManager::setShadowMapSpaceMatrix(shadow_map_space_matrix);
 
-
-	const Vector3& player_forward = player.coordinate_system.getForward();
-	const Vector3& player_position = player.coordinate_system.getPosition();
 	const Vector3& camera_position = active_camera->getPosition();
-
 
 	//************Render to the screen with shadows and lighting*************
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -44,6 +44,7 @@ global_extern const double FRAME_TIME_DISPLAY;
 global_extern const double FIXED_TIME_STEP;
 
 
+
 //Initial Camera/Player vectors
 //Sun Dir is the direction the sun is on the skybox
 global_extern const Vector3 SUN_DIR;
