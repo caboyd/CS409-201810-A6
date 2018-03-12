@@ -340,7 +340,7 @@ float World::getHeightAtCirclePosition(const float x, const float z, const float
 			return disk->getHeightAtPosition(x, z);
 	}
 	//No collision with a disk
-	return -1000.0f;
+	return 0.0f;
 }
 
 bool World::isOnDisk(float x, float z) const

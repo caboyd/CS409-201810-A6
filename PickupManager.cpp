@@ -25,8 +25,10 @@ void PickupManager::init(World* w, ModelWithShader* rod, ModelWithShader* ring)
 	//Init disks and rods
 	for (auto& ptr : world->disks)
 	{
-		addRod(ptr->position, ptr->type + 1);
-		addRing(ptr->position);
+		Vector3 pos = ptr->position;
+		pos.y = world->getHeightAtPointPosition(float(pos.x), float(pos.z));
+		addRod(pos, ptr->type + 1);
+		addRing(pos);
 	}
 }
 
@@ -104,20 +106,20 @@ void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& proj
 		ring_model->draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
 	}
 
-	std::vector<Vector3> points;
+	//std::vector<Vector3> points;
 
-	Vector3 pos = rings[0].position;
-	points.push_back(pos);
-	pos.y += 1.0f;
-	points.push_back(pos);
-	Vector3 tar = rings[0].targetPosition;
-	tar.y += 1.0f;
-	points.push_back(tar);
-	tar.y -= 1.0f;
-	points.push_back(tar);
+	//Vector3 pos = rings[0].position;
+	//points.push_back(pos);
+	//pos.y += 1.0f;
+	//points.push_back(pos);
+	//Vector3 tar = rings[0].targetPosition;
+	//tar.y += 1.0f;
+	//points.push_back(tar);
+	//tar.y -= 1.0f;
+	//points.push_back(tar);
 
-	glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
-	g_line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
+	//glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
+	//g_line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
 }
 
 void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)
@@ -159,20 +161,20 @@ void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat
 		ring_model->drawCurrentMaterial(0);
 	}
 
-	std::vector<Vector3> points;
+	//std::vector<Vector3> points;
 
-	Vector3 pos = rings[0].position;
-	points.push_back(pos);
-	pos.y += 1.0f;
-	points.push_back(pos);
-	Vector3 tar = rings[0].targetPosition;
-	tar.y += 1.0f;
-	points.push_back(tar);
-	tar.y -= 1.0f;
-	points.push_back(tar);
+	//Vector3 pos = rings[0].position;
+	//points.push_back(pos);
+	//pos.y += 1.0f;
+	//points.push_back(pos);
+	//Vector3 tar = rings[0].targetPosition;
+	//tar.y += 1.0f;
+	//points.push_back(tar);
+	//tar.y -= 1.0f;
+	//points.push_back(tar);
 
-	glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
-	g_line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
+	//glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
+	//g_line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
 }
 
 void PickupManager::drawDepth(glm::mat4x4& depth_view_projection_matrix)
