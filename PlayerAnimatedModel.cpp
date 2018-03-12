@@ -21,13 +21,13 @@ void PlayerAnimatedModel::init()
 	run_frames[5].model = temp[5].getKeyframeModelWithShader(temp[1]);
 	run_frames[6].model = temp[1].getKeyframeModelWithShader(temp[0]);
 
-	run_frames[0].duration = 140;
-	run_frames[1].duration = 140;
-	run_frames[2].duration = 140;
-	run_frames[3].duration = 210;
-	run_frames[4].duration = 140;
-	run_frames[5].duration = 140;
-	run_frames[6].duration = 140;
+	run_frames[0].duration = 260;
+	run_frames[1].duration = 260;
+	run_frames[2].duration = 260;
+	run_frames[3].duration = 350;
+	run_frames[4].duration = 260;
+	run_frames[5].duration = 260;
+	run_frames[6].duration = 260;
 
 	temp[0].load(model_folder + "cbabe_stand.obj");
 	stand_model = temp[0].getModelWithShader();

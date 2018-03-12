@@ -30,7 +30,7 @@ const unsigned int KEY_COUNT = 265;
 
 //Framerate and Frame time
 const double FPS_UPDATE = 60.0;
-const double FPS_DISPLAY = 144.0;
+const double FPS_DISPLAY = 90.0;
 const double FRAME_TIME_UPDATE = 1000.0 / FPS_UPDATE;
 const double FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
 const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;
@@ -74,8 +74,8 @@ double g_update_lag = 0;
 long long g_update_count = 0;
 long long g_display_count = 0;
 long long g_elapsed_time_nanoseconds = 0;
-double g_update_fps = 0;
-double g_display_fps = 0;
+double g_update_fps = FPS_UPDATE;
+double g_display_fps = FPS_DISPLAY;
 
 bool g_full_screen = false;
 bool g_fullscreen_toggle_allowed = true;

@@ -363,16 +363,19 @@ void update()
 			g_update_lag -= FRAME_TIME_UPDATE * g_time_scale;
 			g_update_count++;
 		}
-	} else if (g_delta_time < FRAME_TIME_DISPLAY)
-	{
-		//Should sleep
-		sleepms(FRAME_TIME_DISPLAY - g_delta_time);
-		g_delta_time += (FRAME_TIME_DISPLAY - g_delta_time);
-	}
-
+	} 
+	
 	//Update the animations every frame
 	game.updateAnimations(scaled_time);
 	g_display_count++;
+
+	//If Should sleep
+	if (g_delta_time < FRAME_TIME_DISPLAY)
+	{
+		sleepms(FRAME_TIME_DISPLAY - g_delta_time);
+		//Increment delta time for fps display update
+		g_delta_time += (FRAME_TIME_DISPLAY - g_delta_time);
+	}
 
 	//Update the fps display, but not too fast or it is unreadable
 	if (g_display_count % unsigned(FPS_UPDATE / 6) == 0)
@@ -380,7 +383,6 @@ void update()
 		const float alpha = 0.5;
 		//Exponential smoothing for display rate
 		g_display_fps = alpha * g_display_fps + (1 - alpha) * (1000.0 / g_delta_time);
-
 		//Average update rate
 		g_update_fps = (double(g_update_count) / (double(g_elapsed_time_nanoseconds) / 1000000.0));
 	}

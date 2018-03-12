@@ -312,9 +312,9 @@ void Game::display()
 
 	player.draw(view_matrix, g_projection_matrix, camera_position);
 
-	g_text_renderer.draw("Update Rate: " + std::to_string(long(g_update_fps)), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Display Rate: " + std::to_string(long(g_display_fps)), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
-
+	g_text_renderer.draw("Update Rate: " + std::to_string(long(g_update_fps + 0.5f)), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Display Rate: " + std::to_string(long(g_display_fps + 0.5f)), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
+		
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
 
