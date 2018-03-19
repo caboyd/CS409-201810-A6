@@ -46,6 +46,8 @@ void Game::init()
 	//world.init(WORLD_FOLDER + "Small.txt");
 	//world.init(WORLD_FOLDER + "Sparse.txt");
 	//world.init(WORLD_FOLDER + "Twisted.txt");
+	world_graph.init(world);
+
 
 	player_camera.setPosition(PLAYER_CAMERA_INIT_POS);
 	player_camera.setOrientation(CAMERA_INIT_FORWARD);
@@ -164,7 +166,7 @@ void Game::update(double fixed_delta_time)
 	//CAMERA STUFF
 	//******************************
 
-	
+
 	//Change to overview camera when 'O' held
 	if (g_key_pressed['O'])
 		active_camera = &overview_camera;
@@ -253,6 +255,20 @@ void Game::updateAnimations(double delta_time)
 	player.updateAnimation(delta_time);
 }
 
+void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
+	const glm::mat4x4& projection_matrix) const
+{
+	Vector3 offset(0, 2.0, 0);
+	glm::mat4x4 vp_matrix = projection_matrix * view_matrix;
+	for (auto &node : world_graph.node_list)
+	{
+		for (auto &link : node.node_links)
+		{
+			g_line_renderer.draw(node.position + offset,world_graph.node_list[link.disk_id].position + offset,glm::vec4(0.25+ link.weight / 50.0f,1.0f- link.weight / 150.0f, 0.0f,1.0f), vp_matrix);
+		}
+	}
+}
+
 void Game::display()
 {
 	//**************Render to depth texture ***************
@@ -312,9 +328,20 @@ void Game::display()
 
 	player.draw(view_matrix, g_projection_matrix, camera_position);
 
+	displayMovementGraph(view_matrix,g_projection_matrix);
+
 	g_text_renderer.draw("Update Rate: " + std::to_string(long(g_update_fps + 0.5f)), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Display Rate: " + std::to_string(long(g_display_fps + 0.5f)), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
-		
+
+	int node_links= 0;
+	int nodes = world_graph.node_list.size();
+	for(auto node_list : world_graph.node_list)
+		node_links += node_list.node_links.size();
+	
+	
+	g_text_renderer.draw("Nodes: " + std::to_string(nodes), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Node Links: " + std::to_string(node_links), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
+	gl3w
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
 
@@ -326,7 +353,9 @@ void Game::destroyIntoNextWorld()
 #ifdef  _WIN32
 
 	world.destroy();
+	world_graph.destroy();
 	world.init(WORLD_FOLDER + levels[level++]);
+	world_graph.init(world);
 	if (level >= levels.size()) level = 0;
 	pickup_manager.destroy();
 	pickup_manager.init(&world, &rod_model, &ring_model);

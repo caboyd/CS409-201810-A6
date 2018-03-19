@@ -231,6 +231,7 @@
     <ClInclude Include="LeafyDisk.h" />
     <ClInclude Include="LineRenderer.h" />
     <ClInclude Include="main.h" />
+    <ClInclude Include="MovementGraph.h" />
     <ClInclude Include="NoiseField.h" />
     <ClInclude Include="PerformanceCounter.h" />
     <ClInclude Include="PickupManager.h" />

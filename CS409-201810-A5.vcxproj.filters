@@ -305,6 +305,9 @@
     <ClInclude Include="WindowsHelperFunctions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MovementGraph.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\ObjLibrary\ObjVbo.inl">

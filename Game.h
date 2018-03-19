@@ -3,6 +3,7 @@
 #include "World.h"
 #include "ShadowBox.h"
 #include "Player.h"
+#include "MovementGraph.h"
 
 /**
  *	Overarching Game class
@@ -28,6 +29,7 @@ private:
 
 	//Game Objects
 	World world;
+	MovementGraph world_graph;
 	Player player;
 	PickupManager pickup_manager;
 
@@ -38,7 +40,7 @@ private:
 
 	//For Rotating around player with the camera
 	bool camera_float = false;
-	
+
 	//For Swapping between Levels
 	//Current level
 	unsigned int level = 0;
@@ -64,6 +66,8 @@ public:
 	//Updates animations for the player using variable delta time
 	void updateAnimations(double delta_time);
 
+	void displayMovementGraph(const glm::mat4x4& view_matrix,
+		const glm::mat4x4& projection_matrix) const;
 	//Render the game
 	//Draws everything to the depth texture
 	//Then uses Depth texture to draw everything with shadows to screen
@@ -71,7 +75,7 @@ public:
 
 	//Destory the current world and loads the next on from the worlds folder
 	void destroyIntoNextWorld();
-	
+
 private:
 	//Render game to depth texture for shadow mapping
 	void renderToDepthTexture(glm::mat4& depth_vp);
