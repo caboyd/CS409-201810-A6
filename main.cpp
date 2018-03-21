@@ -121,6 +121,7 @@ void init()
 	g_text_renderer.init();
 	g_line_renderer.init();
 	g_depth_texture.init();
+	g_sphere_renderer.init();
 
 	//Initialize Game
 	game.init();

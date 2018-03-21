@@ -245,6 +245,7 @@
     <ClInclude Include="ShadowBox.h" />
     <ClInclude Include="SIMD.h" />
     <ClInclude Include="Sleep.h" />
+    <ClInclude Include="SphereRenderer.h" />
     <ClInclude Include="TextRenderer.h" />
     <ClInclude Include="UpdatablePriorityQueue.h" />
     <ClInclude Include="WindowsHelperFunctions.h" />

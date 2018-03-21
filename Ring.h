@@ -1,6 +1,7 @@
 #pragma once
 #pragma once
 #include "Entity.h"
+#include "MovementGraph.h"
 
 class World;
 
@@ -15,8 +16,12 @@ public:
 	bool pickedUp;
 	Vector3 targetPosition;
 	World *world;
+	MovementGraph* world_graph;
+	std::deque<unsigned> path;
+	unsigned curr_node_id;
+	unsigned target_node_id;
 
-	Ring(World* w, ModelWithShader* model, Vector3 pos);;
+	Ring(World* w, MovementGraph* mg, ModelWithShader* model);;
 
 	void update(double delta_time) override;
 };

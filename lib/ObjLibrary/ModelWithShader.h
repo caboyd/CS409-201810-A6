@@ -589,7 +589,7 @@ protected:
 		std::vector<MeshWithShader> mv_meshes;
 	};
 
-protected:
+public:
 	std::vector<MaterialWithMeshes> mv_materials;
 };
 

@@ -13,12 +13,13 @@ extern DepthTexture g_depth_texture;
 PickupManager::PickupManager()
 {}
 
-void PickupManager::init(World* w, ModelWithShader* rod, ModelWithShader* ring)
+void PickupManager::init(World* w, MovementGraph* mg, ModelWithShader* rod, ModelWithShader* ring)
 {
 	assert(w->isInitialized());
 
 	score = 0;
 	world = w;
+	world_graph = mg;
 	rod_model = rod;
 	ring_model = ring;
 
@@ -28,7 +29,7 @@ void PickupManager::init(World* w, ModelWithShader* rod, ModelWithShader* ring)
 		Vector3 pos = ptr->position;
 		pos.y = world->getHeightAtPointPosition(float(pos.x), float(pos.z));
 		addRod(pos, ptr->type + 1);
-		addRing(pos);
+		addRing();
 	}
 }
 
@@ -74,9 +75,9 @@ void PickupManager::addRod(Vector3 pos, unsigned score_value)
 	rods.emplace_back(rod_model, pos, score_value);
 }
 
-void PickupManager::addRing(Vector3 pos)
+void PickupManager::addRing()
 {
-	rings.emplace_back(world, ring_model, pos);
+	rings.emplace_back(world, world_graph, ring_model);
 }
 
 void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix) const
@@ -120,6 +121,8 @@ void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& proj
 
 	//glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
 	//g_line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
+
+
 }
 
 void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix)

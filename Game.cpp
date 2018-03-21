@@ -46,7 +46,7 @@ void Game::init()
 	//world.init(WORLD_FOLDER + "Small.txt");
 	//world.init(WORLD_FOLDER + "Sparse.txt");
 	//world.init(WORLD_FOLDER + "Twisted.txt");
-	world_graph.init(world);
+	world_graph.init(world.disks);
 
 
 	player_camera.setPosition(PLAYER_CAMERA_INIT_POS);
@@ -57,7 +57,7 @@ void Game::init()
 
 	active_camera = &player_camera;
 
-	pickup_manager.init(&world, &rod_model, &ring_model);
+	pickup_manager.init(&world,&world_graph, &rod_model, &ring_model);
 	player.init(world);
 	player.coordinate_system.setPosition(world.disks[0]->position);
 
@@ -372,7 +372,7 @@ void Game::display()
 	for (auto& node : world_graph.node_list)
 	{
 		//Dont draw numbers behind camera
-		if (active_camera->getForward().dotProduct(active_camera->getPosition() - node.position) <= 0)
+	/*	if (active_camera->getForward().dotProduct(active_camera->getPosition() - node.position) <= 0)
 		{
 			glm::mat4 model = glm::mat4();
 			glm::translate(model, glm::vec3(node.position));
@@ -381,7 +381,19 @@ void Game::display()
 			glm::vec3 coord = glm::project(glm::vec3(a), model, g_projection_matrix, viewport);
 
 			g_text_renderer.draw(std::to_string(node.node_id), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
+		}*/
+
+		Vector3 offset(0,0.1,0);
+		
+		if(active_camera == &overview_camera)
+		{
+			glm::mat4 model = glm::mat4();
+			model = glm::translate(model, glm::vec3(node.position+ offset) );
+			model =glm::scale(model,glm::vec3(3,3,3));
+			mvp_matrix = g_projection_matrix * view_matrix * model;
+			g_sphere_renderer.draw(glm::vec3(1,0,1), model,view_matrix,mvp_matrix);
 		}
+
 		//for (auto i : d)
 		//{
 		//	if (i == node.node_id)
@@ -401,18 +413,28 @@ void Game::display()
 	const Vector3 offset(0, 3.0, 0);
 	const Vector3 offset2(0.5, 2.5, 0.5);
 	glm::mat4 vp = g_projection_matrix * view_matrix;
-	if (!dq.empty())
-		for (unsigned i = 0; i < dq.size() - 1; i++)
-		{
-			g_line_renderer.addLine(world_graph.node_list[dq[i]].position + offset, world_graph.node_list[dq[i + 1]].position + offset, glm::vec4(1, 1, 1, 1));
-		}
-	if (!aq.empty())
-		for (unsigned i = 0; i < aq.size() - 1; i++)
-		{
-			g_line_renderer.addLine(world_graph.node_list[aq[i]].position + offset2, world_graph.node_list[aq[i + 1]].position + offset2, glm::vec4(0, 0, 0, 1));
-		}
-	g_line_renderer.drawLinesAndClear(vp);
+	//if (!dq.empty())
+	//	for (unsigned i = 0; i < dq.size() - 1; i++)
+	//	{
+	//		g_line_renderer.addLine(world_graph.node_list[dq[i]].position + offset, world_graph.node_list[dq[i + 1]].position + offset, glm::vec4(1, 1, 1, 1));
+	//	}
+	//if (!aq.empty())
+	//	for (unsigned i = 0; i < aq.size() - 1; i++)
+	//	{
+	//		g_line_renderer.addLine(world_graph.node_list[aq[i]].position + offset2, world_graph.node_list[aq[i + 1]].position + offset2, glm::vec4(0, 0, 0, 1));
+	//	}
 
+
+			//Draw the lines found in searches
+	std::deque<unsigned> path = pickup_manager.rings[0].path;
+	if(!path.empty())
+		for(unsigned i =0; i < path.size() - 1; i++)
+		{
+			g_line_renderer.addLine(world_graph.node_list[path[i]].position + offset, world_graph.node_list[path[i + 1]].position + offset, glm::vec4(1, 1, 1, 1));
+		}
+
+
+	g_line_renderer.drawLinesAndClear(vp);
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
@@ -428,10 +450,10 @@ void Game::destroyIntoNextWorld()
 	world.destroy();
 	world_graph.destroy();
 	world.init(WORLD_FOLDER + levels[level++]);
-	world_graph.init(world);
+	world_graph.init(world.disks);
 	if (level >= levels.size()) level = 0;
 	pickup_manager.destroy();
-	pickup_manager.init(&world, &rod_model, &ring_model);
+	pickup_manager.init(&world,&world_graph, &rod_model, &ring_model);
 #endif
 }
 

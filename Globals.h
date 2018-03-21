@@ -2,6 +2,7 @@
 
 #define global_extern extern
 #include <lib/glm/mat4x4.hpp>
+#include "SphereRenderer.h"
 
 //Forward declarations
 namespace ObjLibrary
@@ -73,6 +74,7 @@ global_extern int g_win_height;
 //Renderers for rendering text and lines
 global_extern TextRenderer g_text_renderer;
 global_extern LineRenderer g_line_renderer;
+global_extern SphereRenderer g_sphere_renderer;
 
 //Texture used for shadow mapping
 global_extern DepthTexture g_depth_texture;

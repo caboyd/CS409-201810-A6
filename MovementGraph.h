@@ -1,10 +1,10 @@
 #pragma once
-
-#include "World.h"
 #include "Collision.h"
 #include "MathHelper.h"
 #include <deque>
+#include <memory>
 #include "UpdatablePriorityQueue.h"
+#include "Disk.h"
 
 static const float HIGH_VALUE = FLT_MAX;
 
@@ -63,8 +63,7 @@ public:
 		unsigned a_star_visits;
 	unsigned dijkstra_visits;
 
-	MovementGraph()
-	{}
+	MovementGraph() = default;
 
 	void destroy()
 	{
@@ -77,15 +76,14 @@ public:
 		destroy();
 	}
 
-	void init(const World& world)
+	void init(const std::vector<std::unique_ptr<Disk>>& disks)
 	{
 
-		unsigned size = world.disks.size();
+		unsigned size = disks.size();
 		a_star_visits = 0;
 		dijkstra_visits = 0;
-		const std::vector<std::unique_ptr<Disk>>& disks = world.disks;
 		node_list.resize(0);
-		disk_node_list.resize(world.disks.size());
+		disk_node_list.resize(disks.size());
 
 		for (auto& node : disk_node_list)
 			node = {};
@@ -261,7 +259,7 @@ public:
 
 
 		node_list[node_start_id].path_node_to_start = node_start_id;
-		node_list[node_start_id].gcost_from_start = node_list[node_start_id].position.getDistance(node_list[node_end_id].position);;
+		node_list[node_start_id].gcost_from_start = float(node_list[node_start_id].position.getDistance(node_list[node_end_id].position));
 		queue_start.enqueueOrSetPriority(node_start_id, node_list[node_start_id].gcost_from_start);
 
 		while (!queue_start.isQueueEmpty())
@@ -270,10 +268,7 @@ public:
 			a_star_visits++;
 			//Build the path
 			if (curr == node_end_id)
-			{
-			
-				return getPath(node_start_id, node_end_id);
-			}
+			break;
 				
 
 			node_list[curr].visited_from_start = true;
@@ -305,13 +300,14 @@ public:
 			}
 		}
 
-
+		return getPath(node_start_id, node_end_id);
 	}
 
 
 	float heuristicCostEstimate(unsigned link_node_id, unsigned node_end_id)
 	{
-		return node_list[link_node_id].position.getDistance(node_list[node_end_id].position);
+
+		return float(node_list[link_node_id].position.getDistance(node_list[node_end_id].position));
 	}
 
 	float getPathCost(std::deque<unsigned> q)

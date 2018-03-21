@@ -62,6 +62,7 @@ int g_win_height = 960;
 //Renderers for rendering text and lines
 TextRenderer g_text_renderer;
 LineRenderer g_line_renderer;
+SphereRenderer g_sphere_renderer;
 DepthTexture g_depth_texture;
 
 //High precision timer for calculated delta time

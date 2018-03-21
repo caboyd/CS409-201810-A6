@@ -311,6 +311,9 @@
     <ClInclude Include="UpdatablePriorityQueue.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="SphereRenderer.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\ObjLibrary\ObjVbo.inl">
