@@ -30,7 +30,7 @@ const unsigned int KEY_COUNT = 265;
 
 //Framerate and Frame time
 const double FPS_UPDATE = 60.0;
-const double FPS_DISPLAY = 90.0;
+const double FPS_DISPLAY = 1000.0;
 const double FRAME_TIME_UPDATE = 1000.0 / FPS_UPDATE;
 const double FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
 const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;

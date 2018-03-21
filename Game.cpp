@@ -258,15 +258,17 @@ void Game::updateAnimations(double delta_time)
 void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
 	const glm::mat4x4& projection_matrix) const
 {
+	glDisable(GL_DEPTH_TEST);
 	Vector3 offset(0, 2.0, 0);
 	glm::mat4x4 vp_matrix = projection_matrix * view_matrix;
 	for (auto &node : world_graph.node_list)
 	{
 		for (auto &link : node.node_links)
 		{
-			g_line_renderer.draw(node.position + offset,world_graph.node_list[link.disk_id].position + offset,glm::vec4(0.25+ link.weight / 50.0f,1.0f- link.weight / 150.0f, 0.0f,1.0f), vp_matrix);
+			g_line_renderer.draw(node.position + offset, world_graph.node_list[link.node_id].position + offset, glm::vec4(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f), vp_matrix);
 		}
 	}
+	glEnable(GL_DEPTH_TEST);
 }
 
 void Game::display()
@@ -328,22 +330,82 @@ void Game::display()
 
 	player.draw(view_matrix, g_projection_matrix, camera_position);
 
-	displayMovementGraph(view_matrix,g_projection_matrix);
+	displayMovementGraph(view_matrix, g_projection_matrix);
 
 	g_text_renderer.draw("Update Rate: " + std::to_string(long(g_update_fps + 0.5f)), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Display Rate: " + std::to_string(long(g_display_fps + 0.5f)), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
 
-	int node_links= 0;
+	int node_links = 0;
 	int nodes = world_graph.node_list.size();
-	for(auto node_list : world_graph.node_list)
+	for (auto node_list : world_graph.node_list)
 		node_links += node_list.node_links.size();
-	
-	
+
+
 	g_text_renderer.draw("Nodes: " + std::to_string(nodes), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Node Links: " + std::to_string(node_links), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
-	gl3w
+
+
+	static unsigned count = 0;
+	static unsigned count2 = 0;
+	static unsigned mem_used = 0;
+	static bool mem_done = false;
+	count++;
+	if (count > world_graph.node_list.size() - 1){
+		count = 0;
+		count2++;
+	}
+	if(count2 > world_graph.node_list.size() - 1){
+		count2 = 0;
+		mem_done = true;
+	}
+	std::deque<unsigned> d = world_graph.dijkstraSearch(count2, count);
+	if(!mem_done)
+	{
+		mem_used += d.size() * 4;
+	}
+	g_text_renderer.draw("Paths Completed : " + std::to_string(world_graph.node_list.size()*count2 + count) + " / " + std::to_string(world_graph.node_list.size()*world_graph.node_list.size()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Mem Used for path: " + std::to_string(mem_used) + " bytes", 2, float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
+
+	glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
+	for (auto& node : world_graph.node_list)
+	{
+		//Dont draw numbers behind camera
+		if (active_camera->getForward().dotProduct(active_camera->getPosition() - node.position) <= 0)
+		{
+			glm::mat4 model = glm::mat4();
+			glm::translate(model, glm::vec3(node.position));
+			model *= view_matrix;
+			Vector3 a = node.position + ((world.disks[node.disk_id]->position - node.position).getNormalized() * 2);
+			glm::vec3 coord = glm::project(glm::vec3(a), model, g_projection_matrix, viewport);
+
+			g_text_renderer.draw(std::to_string(node.node_id), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
+		}
+		//for (auto i : d)
+		//{
+		//	if (i == node.node_id)
+		//	{
+		//		glm::mat4 model = glm::mat4();
+		//		glm::translate(model, glm::vec3(node.position));
+		//		model *= view_matrix;
+
+		//		glm::vec3 coord = glm::project(glm::vec3(node.position), model, g_projection_matrix, viewport);
+
+		//		g_text_renderer.draw("*", coord.x, coord.y, 0.5f, glm::vec3(0.1, 1, 0));
+		//	}
+		//}
+	}
+
+	Vector3 offset(0, 3.0, 0);
+	glm::mat4 vp = g_projection_matrix * view_matrix;
+	if (!d.empty())
+		for (unsigned i = 0; i < d.size() - 1; i++)
+		{
+			g_line_renderer.draw(world_graph.node_list[d[i]].position + offset, world_graph.node_list[d[i + 1]].position + offset, glm::vec4(1, 1, 1, 1), vp);
+		}
+
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
+
 
 	// send the current image to the screen - any drawing after here will not display
 }
