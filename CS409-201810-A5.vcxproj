@@ -246,6 +246,7 @@
     <ClInclude Include="SIMD.h" />
     <ClInclude Include="Sleep.h" />
     <ClInclude Include="TextRenderer.h" />
+    <ClInclude Include="UpdatablePriorityQueue.h" />
     <ClInclude Include="WindowsHelperFunctions.h" />
     <ClInclude Include="World.h" />
   </ItemGroup>
@@ -262,6 +263,7 @@
     <None Include="lib\ObjLibrary\ObjShaderManyLights1Shadow.frag" />
     <None Include="lib\ObjLibrary\ObjShaderShadow.vert" />
     <None Include="lib\ObjLibrary\ObjVbo.inl" />
+    <None Include="UpdatablePriorityQueue.inl" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="lib\ObjLibrary\ObjLibrary-development-log.txt" />

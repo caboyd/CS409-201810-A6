@@ -34,6 +34,7 @@ private:
 	const std::string shader_folder = "assets/shaders/";
 	const std::string line_shader_vert = "line.vert";
 	const std::string line_shader_frag = "line.frag";
+	std::vector<Point> points;
 
 	GLuint VAO, VBO;
 	GLuint line_program_id;
@@ -58,6 +59,10 @@ public:
 	//Each line requires two vertexes, to draw a line between 3 points, the second point must be duplicated
 	void draw(const std::vector<Point>& vertexData, glm::mat4& vp_matrix) const;
 
+
+	void addLine(const Vector3& p1, const Vector3& p2, const glm::vec4& color);
+
+	void drawLinesAndClear(glm::mat4& vp_matrix);
 };
 
 inline void LineRenderer::init()
@@ -101,6 +106,33 @@ inline void LineRenderer::draw(const std::vector<Point>& vertexData, glm::mat4& 
 
 	glLineWidth(2.0f);
 	glDrawArrays(GL_LINES, 0, num_verts);
+	//glBindVertexArray(0);
+}
+
+inline void LineRenderer::addLine(const Vector3& p1, const Vector3& p2, const glm::vec4& color)
+{
+	points.emplace_back(glm::vec3(p1), color);
+	points.emplace_back(glm::vec3(p2), color);
+
+}
+
+inline void LineRenderer::drawLinesAndClear(glm::mat4& vp_matrix)
+{
+	const size_t num_verts = points.size();
+	if(num_verts ==0) return;
+	glUseProgram(line_program_id);
+
+	//glBindVertexArray(VAO);
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	// fill with data
+	
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * num_verts, &points[0], GL_STREAM_DRAW);
+	glUniformMatrix4fv(mvp_id, 1, false, &(vp_matrix[0][0]));
+
+	glLineWidth(2.0f);
+	glDrawArrays(GL_LINES, 0, num_verts);
+	points.clear();
 	//glBindVertexArray(0);
 }
 

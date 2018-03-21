@@ -308,6 +308,9 @@
     <ClInclude Include="MovementGraph.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="UpdatablePriorityQueue.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\ObjLibrary\ObjVbo.inl">
@@ -345,6 +348,9 @@
     </None>
     <None Include="assets\Shaders\text.vert">
       <Filter>Resource Files</Filter>
+    </None>
+    <None Include="UpdatablePriorityQueue.inl">
+      <Filter>Header Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

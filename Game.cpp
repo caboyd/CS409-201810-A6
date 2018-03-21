@@ -265,7 +265,7 @@ void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
 	{
 		for (auto &link : node.node_links)
 		{
-			g_line_renderer.draw(node.position + offset, world_graph.node_list[link.node_id].position + offset, glm::vec4(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f), vp_matrix);
+			g_line_renderer.draw(node.position + offset, world_graph.node_list[link.dest_node_id].position + offset, glm::vec4(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f), vp_matrix);
 		}
 	}
 	glEnable(GL_DEPTH_TEST);
@@ -344,28 +344,30 @@ void Game::display()
 	g_text_renderer.draw("Nodes: " + std::to_string(nodes), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Node Links: " + std::to_string(node_links), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
 
-
 	static unsigned count = 0;
 	static unsigned count2 = 0;
-	static unsigned mem_used = 0;
-	static bool mem_done = false;
 	count++;
-	if (count > world_graph.node_list.size() - 1){
+	
+	if (count > world_graph.node_list.size() - 1)
+	{
 		count = 0;
 		count2++;
 	}
-	if(count2 > world_graph.node_list.size() - 1){
-		count2 = 0;
-		mem_done = true;
-	}
-	std::deque<unsigned> d = world_graph.dijkstraSearch(count2, count);
-	if(!mem_done)
+	if (count2 > world_graph.node_list.size() - 1)
 	{
-		mem_used += d.size() * 4;
+		count2 = 0;
 	}
-	g_text_renderer.draw("Paths Completed : " + std::to_string(world_graph.node_list.size()*count2 + count) + " / " + std::to_string(world_graph.node_list.size()*world_graph.node_list.size()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Mem Used for path: " + std::to_string(mem_used) + " bytes", 2, float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
+	std::deque<unsigned> aq = world_graph.aStarSearch(count2, count);
+	std::deque<unsigned> dq = world_graph.dijkstraSearch(count2, count);
 
+
+	g_text_renderer.draw("Paths Completed : " + std::to_string(world_graph.node_list.size()*count2 + count) + " / " + std::to_string(world_graph.node_list.size()*world_graph.node_list.size()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
+	
+	g_text_renderer.draw("Dijkstra cost: " + std::to_string(world_graph.getPathCost(dq)), 2, float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(world_graph.dijkstra_visits) + " 100%", 2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("A* cost: " + std::to_string(world_graph.getPathCost(aq)), 2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.a_star_visits) + " " +std::to_string(100*float(world_graph.a_star_visits)/float(world_graph.dijkstra_visits)) + "%", 2, float(g_win_height - 184), 0.4f, glm::vec3(0, 1, 0));
+	//Draw the node ids
 	glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
 	for (auto& node : world_graph.node_list)
 	{
@@ -395,13 +397,22 @@ void Game::display()
 		//}
 	}
 
-	Vector3 offset(0, 3.0, 0);
+	//Draw the lines found in searches
+	const Vector3 offset(0, 3.0, 0);
+	const Vector3 offset2(0.5, 2.5, 0.5);
 	glm::mat4 vp = g_projection_matrix * view_matrix;
-	if (!d.empty())
-		for (unsigned i = 0; i < d.size() - 1; i++)
+	if (!dq.empty())
+		for (unsigned i = 0; i < dq.size() - 1; i++)
 		{
-			g_line_renderer.draw(world_graph.node_list[d[i]].position + offset, world_graph.node_list[d[i + 1]].position + offset, glm::vec4(1, 1, 1, 1), vp);
+			g_line_renderer.addLine(world_graph.node_list[dq[i]].position + offset, world_graph.node_list[dq[i + 1]].position + offset, glm::vec4(1, 1, 1, 1));
 		}
+	if (!aq.empty())
+		for (unsigned i = 0; i < aq.size() - 1; i++)
+		{
+			g_line_renderer.addLine(world_graph.node_list[aq[i]].position + offset2, world_graph.node_list[aq[i + 1]].position + offset2, glm::vec4(0, 0, 0, 1));
+		}
+	g_line_renderer.drawLinesAndClear(vp);
+
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);

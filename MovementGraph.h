@@ -4,6 +4,7 @@
 #include "Collision.h"
 #include "MathHelper.h"
 #include <deque>
+#include "UpdatablePriorityQueue.h"
 
 static const float HIGH_VALUE = FLT_MAX;
 
@@ -21,8 +22,8 @@ struct Node
 	bool visited_from_end;
 	unsigned path_node_to_start;
 	unsigned path_node_to_end;
-	float distance_from_start;
-	float distance_from_end;
+	float gcost_from_start;
+	float gcost_from_end;
 	std::vector<NodeLink> node_links;
 	Node(const unsigned node_id, const unsigned disk_id, const Vector3 pos)
 		:node_id(node_id), disk_id(disk_id), position(pos)
@@ -32,18 +33,22 @@ struct Node
 		visited_from_end = false;
 		path_node_to_start = NO_VERTEX_FOUND;
 		path_node_to_end = NO_VERTEX_FOUND;
-		distance_from_start = HIGH_VALUE;
-		distance_from_end = HIGH_VALUE;
+		gcost_from_start = HIGH_VALUE;
+		gcost_from_end = HIGH_VALUE;
 	};
 	Node() {};
 };
 
 struct NodeLink
 {
+	unsigned source_node_id;
+	unsigned dest_node_id;
 	unsigned disk_id;
-	unsigned node_id;
 	float weight;
-	NodeLink(unsigned node_id, unsigned disk_id, float weight) :node_id(node_id), disk_id(disk_id), weight(weight) {};
+
+	NodeLink(unsigned source_id, unsigned dest_id, unsigned disk_id, float weight)
+		:source_node_id(source_id), dest_node_id(dest_id), disk_id(disk_id), weight(weight)
+	{};
 	NodeLink() = default;
 };
 
@@ -55,6 +60,8 @@ public:
 	const float node_offset = 0.7f;
 	std::vector<Node> node_list;
 	std::vector<std::vector<unsigned>> disk_node_list;
+		unsigned a_star_visits;
+	unsigned dijkstra_visits;
 
 	MovementGraph()
 	{}
@@ -74,6 +81,8 @@ public:
 	{
 
 		unsigned size = world.disks.size();
+		a_star_visits = 0;
+		dijkstra_visits = 0;
 		const std::vector<std::unique_ptr<Disk>>& disks = world.disks;
 		node_list.resize(0);
 		disk_node_list.resize(world.disks.size());
@@ -123,8 +132,8 @@ public:
 
 	void addLink(unsigned disk_id_i, unsigned node_id_i, unsigned disk_id_j, unsigned node_id_j, float weight)
 	{
-		node_list[node_id_i].node_links.emplace_back(node_id_j, disk_id_j, weight);
-		node_list[node_id_j].node_links.emplace_back(node_id_i, disk_id_i, weight);
+		node_list[node_id_i].node_links.emplace_back(node_id_i, node_id_j, disk_id_j, weight);
+		node_list[node_id_j].node_links.emplace_back(node_id_j, node_id_i, disk_id_i, weight);
 	}
 
 	Vector3 calculateNodePosition(const Disk& disk_i, const Disk& disk_j) const
@@ -186,55 +195,140 @@ public:
 	std::deque<unsigned> dijkstraSearch(unsigned node_start_id, unsigned node_end_id)
 	{
 		resetAll();
+	dijkstra_visits = 0;
 		std::deque<unsigned> path;
 
 		//Current node we are at
 		unsigned curr;
 
 		node_list[node_start_id].path_node_to_start = node_start_id;
-		node_list[node_start_id].distance_from_start = 0;
+		node_list[node_start_id].gcost_from_start = 0;
 
 
 		while (true)
 		{
 			curr = findNextNodeFromStart();
-
+			dijkstra_visits++;
 			if (curr == NO_VERTEX_FOUND) break;
-			if(curr == node_end_id) break;
+			if (curr == node_end_id) break;
 
 			node_list[curr].visited_from_start = true;
 
-			if(node_list[curr].node_links.empty()) continue;
+			if (node_list[curr].node_links.empty()) continue;
 
 			//Look through all linked nodes and update if path is shorter
-			for(auto& link: node_list[curr].node_links)
+			for (auto& link : node_list[curr].node_links)
 			{
-				if(!node_list[link.node_id].visited_from_start)
+				if (!node_list[link.dest_node_id].visited_from_start)
 				{
-					if(node_list[curr].distance_from_start + link.weight < node_list[link.node_id].distance_from_start)
+					if (node_list[curr].gcost_from_start + link.weight < node_list[link.dest_node_id].gcost_from_start)
 					{
-						node_list[link.node_id].distance_from_start = node_list[curr].distance_from_start + link.weight;
-						node_list[link.node_id].path_node_to_start = curr;
+						node_list[link.dest_node_id].gcost_from_start = node_list[curr].gcost_from_start + link.weight;
+						node_list[link.dest_node_id].path_node_to_start = curr;
 					}
 				}
-			
+
 			}
 		}
+		return getPath(node_start_id, node_end_id);
+	}
 
-		if(curr == NO_VERTEX_FOUND) std::cout << "Didnt find path\n";
 
-		//Build the path
-		while(curr != node_start_id)
+	std::deque<unsigned> getPath(unsigned node_start_id, unsigned node_end_id)
+	{
+
+		std::deque<unsigned> path;
+		while (node_end_id != node_start_id)
 		{
-			path.push_front(curr);
-			curr = node_list[curr].path_node_to_start;
-			if(curr == NO_VERTEX_FOUND) std::cout << "Path error at:" << curr << std::endl;
+
+			path.push_front(node_end_id);
+		//	std::cout << node_end_id << " cost: " << node_list[node_end_id].gcost_from_start << std::endl;
+			node_end_id = node_list[node_end_id].path_node_to_start;
+
+			if (node_end_id == NO_VERTEX_FOUND) std::cout << "Path error at:" << node_end_id << std::endl;
 		}
+		//std::cout << std::endl;
 
 		return path;
 	}
 
+	std::deque<unsigned> aStarSearch(unsigned node_start_id, unsigned node_end_id)
+	{
+		resetAll();
+		a_star_visits = 0;
+		UpdatablePriorityQueue<float> queue_start;
+		queue_start.setCapacityAndMaximumQueueSize(node_list.size(), node_list.size());
 
+
+		node_list[node_start_id].path_node_to_start = node_start_id;
+		node_list[node_start_id].gcost_from_start = node_list[node_start_id].position.getDistance(node_list[node_end_id].position);;
+		queue_start.enqueueOrSetPriority(node_start_id, node_list[node_start_id].gcost_from_start);
+
+		while (!queue_start.isQueueEmpty())
+		{
+			const unsigned curr = queue_start.peekAndDequeue();
+			a_star_visits++;
+			//Build the path
+			if (curr == node_end_id)
+			{
+			
+				return getPath(node_start_id, node_end_id);
+			}
+				
+
+			node_list[curr].visited_from_start = true;
+
+			if (node_list[curr].node_links.empty()) continue;
+
+			//Look through all linked nodes and update if path is shorter
+			for (const NodeLink& link : node_list[curr].node_links)
+			{
+				//If in closed set ignore because already evaluated
+				if (node_list[link.dest_node_id].visited_from_start) continue;
+				//if(!queue_start.isEnqueued(link.dest_node_id))
+				//	queue_start.enqueueOrSetPriority(link.dest_node_id, HIGH_VALUE);
+
+				const float g_score = node_list[curr].gcost_from_start + link.weight;
+				const float h_score = heuristicCostEstimate(link.dest_node_id,node_end_id);
+
+				//If better path
+				if (g_score < node_list[link.dest_node_id].gcost_from_start)
+				{
+					//f = g + h
+					node_list[link.dest_node_id].gcost_from_start = g_score;
+
+					node_list[link.dest_node_id].path_node_to_start = curr;
+					queue_start.enqueueOrSetPriority(link.dest_node_id, node_list[link.dest_node_id].gcost_from_start + h_score);
+				}
+
+
+			}
+		}
+
+
+	}
+
+
+	float heuristicCostEstimate(unsigned link_node_id, unsigned node_end_id)
+	{
+		return node_list[link_node_id].position.getDistance(node_list[node_end_id].position);
+	}
+
+	float getPathCost(std::deque<unsigned> q)
+	{
+		if(q.size() == 0) return 0;
+		float cost = 0;
+		for (unsigned i = 0; i < q.size() - 1; i++)
+		{
+			//find link
+			for (auto j : node_list[q[i]].node_links)
+			{
+				if (j.dest_node_id == q[i + 1])
+					cost += j.weight;
+			}
+		}
+		return cost;
+	}
 
 	unsigned findNextNodeFromStart()
 	{
@@ -243,16 +337,15 @@ public:
 		for (unsigned i = 0; i < node_list.size(); i++)
 		{
 			//Finds vertex with smallest distance that is unknown
-			if (node_list[i].distance_from_start < shortestDistance && !node_list[i].visited_from_start)
+			if (node_list[i].gcost_from_start < shortestDistance && !node_list[i].visited_from_start)
 			{
 				nextVertex = i;
-				shortestDistance = node_list[i].distance_from_start;
+				shortestDistance = node_list[i].gcost_from_start;
 			}
 		}
 		return nextVertex;
 	}
 
-	
 
 	void resetAll()
 	{
@@ -262,8 +355,8 @@ public:
 			node.visited_from_end = false;
 			node.path_node_to_start = NO_VERTEX_FOUND;
 			node.path_node_to_end = NO_VERTEX_FOUND;
-			node.distance_from_start = HIGH_VALUE;
-			node.distance_from_end = HIGH_VALUE;
+			node.gcost_from_start = HIGH_VALUE;
+			node.gcost_from_end = HIGH_VALUE;
 		}
 	}
 };
