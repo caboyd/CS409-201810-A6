@@ -181,6 +181,7 @@
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MathHelper.h" />
     <ClCompile Include="LeafyDisk.cpp" />
+    <ClCompile Include="MovementGraph.cpp" />
     <ClCompile Include="NoiseField.cpp" />
     <ClCompile Include="PickupManager.cpp" />
     <ClCompile Include="Player.cpp" />

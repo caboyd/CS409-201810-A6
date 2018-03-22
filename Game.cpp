@@ -255,23 +255,6 @@ void Game::updateAnimations(double delta_time)
 	player.updateAnimation(delta_time);
 }
 
-void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
-	const glm::mat4x4& projection_matrix) const
-{
-
-	if (active_camera == &overview_camera)
-		glDisable(GL_DEPTH_TEST);
-	Vector3 offset(0, 0.2, 0);
-	glm::mat4x4 vp_matrix = projection_matrix * view_matrix;
-	for (auto &node : world_graph.node_list)
-	{
-		for (auto &link : node.node_links)
-		{
-			g_line_renderer.draw(node.position + offset, world_graph.node_list[link.dest_node_id].position + offset, glm::vec4(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f), vp_matrix);
-		}
-	}
-	glEnable(GL_DEPTH_TEST);
-}
 
 void Game::display()
 {
@@ -334,11 +317,36 @@ void Game::display()
 
 	displayMovementGraph(view_matrix, g_projection_matrix);
 
-	g_text_renderer.draw("Update Rate: " + std::to_string(long(g_update_fps + 0.5f)), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Display Rate: " + std::to_string(long(g_display_fps + 0.5f)), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
+
+
+	//Draw the node ids
+	//displayNodeNameplates(view_matrix);
+
+	//Draw the Search path for overview camera
+	displaySearchPathSpheres(view_matrix);
+
+	//Draw the line of Ring0 from current position to end node
+	displayRingZeroPath(view_matrix);
+
+
+	//Draw useful text on the screen
+	const unsigned a_visits = world_graph.getMemorizedAStarVisits(),
+		d_visits = world_graph.getMemorizedDijsktraVisits(),
+		mm_visits = world_graph.getMemorizedmmVisits();
+
+	//Number of node visits for the ring0 path seach per algorithm
+	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
+		float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + std::to_string(100 * float(a_visits) / float(d_visits)) + "%",
+		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + std::to_string(100 * float(mm_visits) / float(d_visits)) + "%",
+		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
+
+	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Display Rate: " + std::to_string(long(round(g_display_fps))), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
 
 	int node_links = 0;
-	int nodes = world_graph.node_list.size();
+	const int nodes = world_graph.node_list.size();
 	for (auto node_list : world_graph.node_list)
 		node_links += node_list.node_links.size();
 
@@ -346,124 +354,42 @@ void Game::display()
 	g_text_renderer.draw("Nodes: " + std::to_string(nodes), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Node Links: " + std::to_string(node_links), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
 
-	static unsigned count = 0;
-	static unsigned count2 = 0;
-	count++;
 
-	if (count > world_graph.node_list.size() - 1)
+
+
+	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
+	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
+
+
+	// send the current image to the screen - any drawing after here will not display
+}
+
+
+
+void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
+	const glm::mat4x4& projection_matrix) const
+{
+
+	if (active_camera == &overview_camera)
+		glDisable(GL_DEPTH_TEST);
+	Vector3 offset(0, 0.2, 0);
+	glm::mat4x4 vp_matrix = projection_matrix * view_matrix;
+	for (auto &node : world_graph.node_list)
 	{
-		count = 0;
-		count2++;
-	}
-	if (count2 > world_graph.node_list.size() - 1)
-	{
-		count2 = 0;
-	}
-	std::deque<unsigned> aq = world_graph.aStarSearch(count2, count);
-	std::deque<unsigned> dq = world_graph.dijkstraSearch(count2, count);
-
-
-	g_text_renderer.draw("Paths Completed : " + std::to_string(world_graph.node_list.size()*count2 + count) + " / " + std::to_string(world_graph.node_list.size()*world_graph.node_list.size()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
-
-	g_text_renderer.draw("Dijkstra cost: " + std::to_string(world_graph.getPathCost(dq)), 2, float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(world_graph.dijkstra_visits) + " 100%", 2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("A* cost: " + std::to_string(world_graph.getPathCost(aq)), 2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.a_star_visits) + " " + std::to_string(100 * float(world_graph.a_star_visits) / float(world_graph.dijkstra_visits)) + "%", 2, float(g_win_height - 184), 0.4f, glm::vec3(0, 1, 0));
-	//Draw the node ids
-	glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
-	for (auto& node : world_graph.node_list)
-	{
-		//Dont draw numbers behind camera
-		//if (active_camera->getForward().dotProduct(active_camera->getPosition() - node.position) <= 0)
-		//{
-		//	glm::mat4 model = glm::mat4();
-		//	glm::translate(model, glm::vec3(node.position));
-		//	model *= view_matrix;
-		//	Vector3 a = node.position + ((world.disks[node.disk_id]->position - node.position).getNormalized() * 2);
-		//	glm::vec3 coord = glm::project(glm::vec3(a), model, g_projection_matrix, viewport);
-
-		//	g_text_renderer.draw(std::to_string(node.node_id), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
-		//}
-
-
-
-
-		//for (auto i : d)
-		//{
-		//	if (i == node.node_id)
-		//	{
-		//		glm::mat4 model = glm::mat4();
-		//		glm::translate(model, glm::vec3(node.position));
-		//		model *= view_matrix;
-
-		//		glm::vec3 coord = glm::project(glm::vec3(node.position), model, g_projection_matrix, viewport);
-
-		//		g_text_renderer.draw("*", coord.x, coord.y, 0.5f, glm::vec3(0.1, 1, 0));
-		//	}
-		//}
-	}
-
-	const std::vector<NodeSearchData>& search_data = world_graph.getMemoizedSearchData();
-	if (!search_data.empty())
-		if (active_camera == &overview_camera)
+		for (auto &link : node.node_links)
 		{
-			//Collect data 
-			unsigned start_node_id = 0;
-			unsigned end_node_id = 0;
-			float highest_cost = 0;
-			float highest_priority = 0;
-			float lowest_priority = 99999999;
-
-			for (unsigned i = 0; i < search_data.size(); i++)
-			{
-
-				if (search_data[i].visited_from_start)
-				{
-					if (search_data[i].given_cost_start_to_end == 0) start_node_id = i;
-					if (search_data[i].given_cost_start_to_end > highest_cost)
-					{
-						highest_cost = search_data[i].given_cost_start_to_end;
-						end_node_id = i;
-					}
-					highest_priority = max(search_data[i].priority_start_to_end, highest_priority);
-					lowest_priority = min(search_data[i].priority_start_to_end, lowest_priority);
-				}
-			}
-
-			for (unsigned i = 0; i < search_data.size(); i++)
-			{
-				if (search_data[i].visited_from_start)
-				{
-					float prio_frac = (search_data[i].priority_start_to_end - lowest_priority) / (highest_priority - lowest_priority);
-					float scale = 1.5;
-					Vector3 color(0.0, (1.0 - prio_frac/2.0), 1.0);
-
-					if (search_data[i].on_path)
-					{
-						scale = 3;
-						//color = Vector3(0.6, 0, 1);
-					}
-					if (i == start_node_id) color = Vector3(0, 1, 1);
-					if (i == end_node_id)color = Vector3(1, 1, 1);
-					const Vector3& pos = world_graph.node_list[i].position;
-					glm::mat4 model = glm::mat4();
-					model = glm::translate(model, glm::vec3(pos + Vector3(0, 0.2, 0)));
-					model = glm::scale(model, glm::vec3(scale, scale, scale));
-					mvp_matrix = g_projection_matrix * view_matrix * model;
-					g_sphere_renderer.draw(glm::vec3(color), model, view_matrix, mvp_matrix);
-
-				}
-
-
-			}
+			g_line_renderer.draw(node.position + offset, world_graph.node_list[link.dest_node_id].position + offset, glm::vec4(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f), vp_matrix);
 		}
+	}
+	glEnable(GL_DEPTH_TEST);
+}
 
-
-
-	const Vector3 offset(0, 1.0, 0);
-	//Draw the lines found in searches
+void Game::displayRingZeroPath(const glm::mat4& view_matrix)
+{
+	//Draw the Path found in search
 	std::deque<unsigned> path = pickup_manager.rings[0].path;
 	const Ring& ring = pickup_manager.rings[0];
+	const Vector3 offset(0, 1.0, 0);
 	g_line_renderer.addLine(ring.position, ring.position + offset, glm::vec4(1, 1, 1, 1));
 	g_line_renderer.addLine(ring.position + offset, ring.targetPosition + offset, glm::vec4(1, 1, 1, 1));
 	if (!path.empty())
@@ -475,31 +401,110 @@ void Game::display()
 		}
 
 	}
-
-
 	glDisable(GL_DEPTH_TEST);
 	glm::mat4 vp = g_projection_matrix * view_matrix;
 	g_line_renderer.drawLinesAndClear(vp);
 	glEnable(GL_DEPTH_TEST);
-	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
-	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
-
-
-	// send the current image to the screen - any drawing after here will not display
 }
 
-void Game::destroyIntoNextWorld()
+void Game::displayNodeNameplates(const glm::mat4& view_matrix)
 {
-#ifdef  _WIN32
+	glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
+	for (auto& node : world_graph.node_list)
+	{
+		//Dont draw numbers behind camera
+		if (active_camera->getForward().dotProduct(active_camera->getPosition() - node.position) <= 0)
+		{
+			glm::mat4 model = glm::mat4();
+			glm::translate(model, glm::vec3(node.position));
+			model *= view_matrix;
+			Vector3 a = node.position + ((world.disks[node.disk_id]->position - node.position).getNormalized() * 2);
+			glm::vec3 coord = glm::project(glm::vec3(a), model, g_projection_matrix, viewport);
 
-	world.destroy();
-	world_graph.destroy();
-	world.init(WORLD_FOLDER + levels[level++]);
-	world_graph.init(world.disks);
-	if (level >= levels.size()) level = 0;
-	pickup_manager.destroy();
-	pickup_manager.init(&world, &world_graph, &rod_model, &ring_model);
-#endif
+			g_text_renderer.draw(std::to_string(node.node_id), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
+		}
+
+	}
+}
+
+void Game::displaySearchPathSpheres(const glm::mat4& view_matrix)
+{
+	const std::vector<NodeSearchData>& search_data = world_graph.getMemorizedSearchData();
+	unsigned start_node_id = 0;
+	unsigned end_node_id = 0;
+	unsigned meeting_node_id = 0;
+	if (!search_data.empty())
+		if (active_camera == &overview_camera)
+		{
+			//Collect data About the search to draw the spheres
+			float highest_priority_start = 0;
+			float lowest_priority_start = 99999999.0f;
+			float highest_priority_end = 0;
+			float lowest_priority_end = 99999999.0f;
+
+			for (unsigned i = 0; i < search_data.size(); i++)
+			{
+				const SearchData& node_start_data = search_data[i].start;
+				const SearchData& node_end_data = search_data[i].end;
+				if (node_start_data.visited && node_end_data.visited) meeting_node_id = i;
+				if (node_end_data.visited)
+				{
+					if (node_end_data.given_cost == 0) end_node_id = i;
+					highest_priority_end = max(node_end_data.priority, highest_priority_end);
+					lowest_priority_end = min(node_end_data.priority, lowest_priority_end);
+				}
+				if (node_start_data.visited)
+				{
+					if (node_start_data.given_cost == 0) start_node_id = i;
+					highest_priority_start = max(node_start_data.priority, highest_priority_start);
+					lowest_priority_start = min(node_start_data.priority, lowest_priority_start);
+				}
+			}
+			highest_priority_start = search_data[meeting_node_id].start.priority;
+			highest_priority_end = search_data[meeting_node_id].end.priority;
+			//Loops through spheres on path and draws them with certaian color based on priority
+			for (unsigned i = 0; i < search_data.size(); i++)
+			{
+				const SearchData& node_data_start = search_data[i].start;
+				const SearchData& node_data_end = search_data[i].end;
+
+				//If not visited dont draw them
+				if (!node_data_end.visited && !node_data_start.visited)
+					continue;
+
+				Vector3 color;
+				float scale = 1.5;
+
+				//If on path make them bigger
+				if (node_data_start.on_path || node_data_end.on_path)
+					scale = 3;
+
+
+				if (node_data_start.visited)
+				{
+					float color_frac = 1.0f - (node_data_start.priority - lowest_priority_start) / (highest_priority_start - lowest_priority_start) / 2.0f;
+					color = Vector3(0, color_frac, 1.0);
+				} else if (node_data_end.visited)
+				{
+					float color_frac = 1.0f - (node_data_end.priority - lowest_priority_end) / (highest_priority_end - lowest_priority_end);
+					color = Vector3(1, color_frac, 1);
+				}
+
+				//Set thses colors for distinguished nodes
+				if (i == start_node_id) color = Vector3(0, 1, 1);
+				if (i == end_node_id)color = Vector3(1, 1, 1);
+				if (i == meeting_node_id) color = Vector3(0.6, 0, 1);
+
+				//Draw the sphere
+				const Vector3& pos = world_graph.node_list[i].position;
+				glm::mat4 model = glm::mat4();
+				model = glm::translate(model, glm::vec3(pos + Vector3(0, 0.2, 0)));
+				model = glm::scale(model, glm::vec3(scale, scale, scale));
+				const glm::mat4 mvp_matrix = g_projection_matrix * view_matrix * model;
+				g_sphere_renderer.draw(glm::vec3(color), model, view_matrix, mvp_matrix);
+
+			}
+		}
 }
 
 
@@ -546,6 +551,21 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 	world.drawDepth(depth_vp);
 	pickup_manager.drawDepth(depth_vp);
 
+}
+
+void Game::destroyIntoNextWorld()
+{
+#ifdef  _WIN32
+
+	world.destroy();
+	world_graph.destroy();
+	world.init(WORLD_FOLDER + levels[level++]);
+	world_graph.init(world.disks);
+	if (level >= levels.size()) level = 0;
+	pickup_manager.destroy();
+	pickup_manager.init(&world, &world_graph, &rod_model, &ring_model);
+	player.reset(world);
+#endif
 }
 
 void Game::playerAccelerateForward(float delta_time)

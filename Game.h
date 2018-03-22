@@ -77,6 +77,9 @@ public:
 	void destroyIntoNextWorld();
 
 private:
+	void displayRingZeroPath(const glm::mat4& view_matrix);
+	void displayNodeNameplates(const glm::mat4& view_matrix);
+	void displaySearchPathSpheres(const glm::mat4& view_matrix);
 	//Render game to depth texture for shadow mapping
 	void renderToDepthTexture(glm::mat4& depth_vp);
 

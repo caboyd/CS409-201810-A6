@@ -156,7 +156,7 @@ void keyboard(unsigned char key, int x, int y)
 		//Tab cycle between worlds on win32
 #ifdef _WIN32
 	case '\t':
-		if (!g_key_pressed['\t'])
+		if (!g_key_pressed['\t']){}
 			game.destroyIntoNextWorld();
 		break;
 #endif

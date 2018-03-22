@@ -41,10 +41,10 @@ inline void Ring::update(double delta_time)
 		Vector3 center_to_ring = position - center;
 		//Vector3 dir_center_to_target = targetPosition - center;
 		Vector3 dir_pos_to_target = targetPosition - position;
-		float tangent_angle = center_to_ring.getRotatedY(MathHelper::M_PI_2).getAngle(dir_pos_to_target);
-		
+		double tangent_angle = center_to_ring.getRotatedY(MathHelper::M_PI_2).getAngle(dir_pos_to_target);
 
-		float rad = world->disks[world_graph->node_list[curr_node_id].disk_id]->radius - 0.7;
+
+		float rad = world->disks[world_graph->node_list[curr_node_id].disk_id]->radius - 0.7f;
 
 		float angle = distance / rad;
 
@@ -73,18 +73,28 @@ inline void Ring::update(double delta_time)
 	position.y = world->getHeightAtCirclePosition(float(position.x), float(position.z), radius) + 0.1f;
 
 	//If on center of disk get new target
-	if (Collision::pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), 0.1))
+	if (Collision::pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), 0.1f))
 	{
 		if (path.empty())
 		{
 			//Get a random node that is not this same node
 			unsigned rand = Random::randu(world_graph->node_list.size() - 1);
-			while(rand == curr_node_id) rand = Random::randu(world_graph->node_list.size() - 1);
+			while (rand == curr_node_id) rand = Random::randu(world_graph->node_list.size() - 1);
 
-			//Get the path between the nodes
-			path = world_graph->aStarSearch(curr_node_id, rand);
+
 			//Remembers Ring 0s search data for display later
-			if (index == 0) world_graph->memoizeLastSearch();
+			if (index == 0)
+			{
+				//Perform all the searches so we can record the visits required for all
+				path = world_graph->dijkstraSearch(curr_node_id, rand);
+				path = world_graph->aStarSearch(curr_node_id, rand);
+				path = world_graph->mmSearch(curr_node_id, rand);
+				world_graph->memorizeLastSearch();
+			} else
+			{
+				//Get the path between the nodes
+				path = world_graph->mmSearch(curr_node_id, rand);
+			}
 			//Pop the node off the front and set it as the target
 			target_node_id = path.front();
 			path.pop_front();

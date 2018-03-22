@@ -125,6 +125,7 @@ void PlayerAnimatedModel::drawToDepth() const
 	{
 	case Player_State::Running:
 	case Player_State::Reversing:
+	case Player_State::Strafing:
 	{
 		float tween = time_into_frame / run_frames[(int)run_state].duration;
 		g_depth_texture.enableTween(tween);
