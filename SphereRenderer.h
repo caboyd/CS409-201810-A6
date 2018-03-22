@@ -24,12 +24,12 @@ public:
 		const glm::mat4x4& model_view_projection_matrix)const
 	{
 
-		const ObjShader::ShaderUniforms t_uniforms = mat.activate(model_matrix,view_matrix,model_view_projection_matrix);
+		const ObjShader::ShaderUniforms t_uniforms = mat.activate(model_matrix, view_matrix, model_view_projection_matrix);
 		glUniform3f(t_uniforms.m_emission, color.x, color.y, color.z);
-		glUniform3f(t_uniforms.m_ambient	, color.x, color.y, color.z);
-		glUniform3f(t_uniforms.m_diffuse, color.x, color.y, color.z);
+		glUniform3f(t_uniforms.m_ambient, 0, 0, 0);
+		glUniform3f(t_uniforms.m_diffuse, 0, 0, 0);
 		glUniform1f(t_uniforms.m_transparency, 1.0f);
 		sphere.drawCurrentMaterial(0);
-	//	sphere.draw(model_matrix,view_matrix,model_view_projection_matrix);
+		//	sphere.draw(model_matrix,view_matrix,model_view_projection_matrix);
 	}
 };

@@ -77,7 +77,7 @@ void PickupManager::addRod(Vector3 pos, unsigned score_value)
 
 void PickupManager::addRing()
 {
-	rings.emplace_back(world, world_graph, ring_model);
+	rings.emplace_back(rings.size(), world, world_graph, ring_model);
 }
 
 void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix) const
@@ -164,20 +164,7 @@ void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat
 		ring_model->drawCurrentMaterial(0);
 	}
 
-	//std::vector<Vector3> points;
 
-	//Vector3 pos = rings[0].position;
-	//points.push_back(pos);
-	//pos.y += 1.0f;
-	//points.push_back(pos);
-	//Vector3 tar = rings[0].targetPosition;
-	//tar.y += 1.0f;
-	//points.push_back(tar);
-	//tar.y -= 1.0f;
-	//points.push_back(tar);
-
-	//glm::mat4x4 mvp_matrix = projection_matrix * view_matrix;
-	//g_line_renderer.draw(points, glm::vec4(1.0, 1.0, 1.0, 1.0), mvp_matrix);
 }
 
 void PickupManager::drawDepth(glm::mat4x4& depth_view_projection_matrix)

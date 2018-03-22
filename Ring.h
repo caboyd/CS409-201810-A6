@@ -8,6 +8,7 @@ class World;
 class Ring : public Entity
 {
 public:
+	unsigned index;
 	unsigned int pointValue;
 	float velocity;
 	float rotVelocity;
@@ -21,7 +22,7 @@ public:
 	unsigned curr_node_id;
 	unsigned target_node_id;
 
-	Ring(World* w, MovementGraph* mg, ModelWithShader* model);;
+	Ring(unsigned i, World* w, MovementGraph* mg, ModelWithShader* model);;
 
 	void update(double delta_time) override;
 };
