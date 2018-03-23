@@ -136,8 +136,8 @@ void main()
 		light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z-bias/shadow_coord.w)) ));
 
 		//NOTE: Use this for Sampler2D textures
-		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/7000.0).z  <  (shadow_coord.z-bias) ){
-		//	light_factor-= (shadow_coord.w) * (1.0/4.0);
+		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z-bias/shadow_coord.w) ){
+		//	light_factor-= (shadow_coord.w) * (1.0/16.0);
 		//}
 	}
 	

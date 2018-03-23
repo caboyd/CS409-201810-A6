@@ -120,7 +120,14 @@ void main()
 		//Multiple by shadow_coord.w to fade shadows in and out, and vertexes not in the shadow map will have full light.
 		//Use poissonDisk to remove hard edges on shadow
 		//subtract by bias to remove shadow acne and z-fighting
-		light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z-bias)) ));
+
+		//NOTE: Use this for Sampler2DShadow textures
+		light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z-bias/shadow_coord.w)) ));
+
+		//NOTE: Use this for Sampler2D textures
+		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z-bias/shadow_coord.w) ){
+		//	light_factor-= (shadow_coord.w) * (1.0/16.0);
+		//}
 	}
 
 	
