@@ -19,17 +19,20 @@ using ObjLibrary::Vector3;
 using namespace ObjLibrary;
 
 
+
+
 class LineRenderer
 {
-private:
+public:
 	struct Point
 	{
 		glm::vec3 pos;
 		glm::vec4 color;
 		Point() = default;
 		Point(glm::vec3 pos, glm::vec4 color) :pos(pos), color(color) {}
+		Point(Vector3 pos, glm::vec4 color):pos(glm::vec3(pos)), color(color){};
 	};
-
+private:
 
 	const std::string shader_folder = "assets/shaders/";
 	const std::string line_shader_vert = "line.vert";
@@ -49,6 +52,8 @@ public:
 	//Initializes the shader program and VAO
 	void init();
 
+	void preAllocateLine(unsigned size);
+
 	//Draws Lines connecting the specified 2 points using the giving color and vp matrix
 	void draw(const Vector3& p1, const Vector3& p2, const glm::vec4& color, glm::mat4& vp_matrix) const;
 
@@ -60,9 +65,11 @@ public:
 	void draw(const std::vector<Point>& vertexData, glm::mat4& vp_matrix) const;
 
 
-	void addLine(const Vector3& p1, const Vector3& p2, const glm::vec4& color);
+	void addLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color);
 
-	void drawLinesAndClear(glm::mat4& vp_matrix);
+	void drawLinesAndClear(const glm::mat4& vp_matrix);
+
+	void drawPointList(const std::vector<Point>& point_list, const glm::mat4& vp_matrix) const;
 };
 
 inline void LineRenderer::init()
@@ -109,24 +116,29 @@ inline void LineRenderer::draw(const std::vector<Point>& vertexData, glm::mat4& 
 	//glBindVertexArray(0);
 }
 
-inline void LineRenderer::addLine(const Vector3& p1, const Vector3& p2, const glm::vec4& color)
+inline void LineRenderer::preAllocateLine(unsigned size)
 {
-	points.emplace_back(glm::vec3(p1), color);
-	points.emplace_back(glm::vec3(p2), color);
+	points.reserve(size);
+}
+
+inline void LineRenderer::addLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color)
+{
+	points.emplace_back(p1, color);
+	points.emplace_back(p2, color);
 
 }
 
-inline void LineRenderer::drawLinesAndClear(glm::mat4& vp_matrix)
+inline void LineRenderer::drawLinesAndClear(const glm::mat4& vp_matrix)
 {
 	const size_t num_verts = points.size();
-	if(num_verts ==0) return;
+	if (num_verts == 0) return;
 	glUseProgram(line_program_id);
 
 	//glBindVertexArray(VAO);
 	glBindBuffer(GL_ARRAY_BUFFER, VBO);
 
 	// fill with data
-	
+
 	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * num_verts, &points[0], GL_STREAM_DRAW);
 	glUniformMatrix4fv(mvp_id, 1, false, &(vp_matrix[0][0]));
 
@@ -134,6 +146,24 @@ inline void LineRenderer::drawLinesAndClear(glm::mat4& vp_matrix)
 	glDrawArrays(GL_LINES, 0, num_verts);
 	points.clear();
 	//glBindVertexArray(0);
+}
+
+inline void LineRenderer::drawPointList(const std::vector<Point>& point_list, const glm::mat4& vp_matrix) const
+{
+	const size_t num_verts = point_list.size();
+	if (num_verts == 0) return;
+	glUseProgram(line_program_id);
+
+
+	glBindBuffer(GL_ARRAY_BUFFER, VBO);
+
+	// fill with data
+	glBufferData(GL_ARRAY_BUFFER, sizeof(Point) * num_verts, &point_list[0], GL_STREAM_DRAW);
+	glUniformMatrix4fv(mvp_id, 1, false, &(vp_matrix[0][0]));
+
+	glLineWidth(2.0f);
+	glDrawArrays(GL_LINES, 0, num_verts);
+
 }
 
 inline void LineRenderer::draw(const std::vector<Vector3>& points, const glm::vec4& color, glm::mat4& vp_matrix) const

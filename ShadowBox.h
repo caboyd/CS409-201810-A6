@@ -41,7 +41,8 @@ private:
 	float SHADOW_DISTANCE;
 
 
-	float OFFSET = 7.0;
+	const float OFFSET = 7.0f;
+	const float TRANSITION_DISTANCE = 5.0f;
 
 	glm::vec4 UP = glm::vec4(0, 1, 0, 0);
 	glm::vec4 FORWARD = glm::vec4(0, 0, -1, 0);
@@ -287,5 +288,10 @@ public:
 	float getShadowDistance() const
 	{
 		return SHADOW_DISTANCE;
+	}
+
+	float getShadowFadeDistance() const
+	{
+		return SHADOW_DISTANCE + TRANSITION_DISTANCE;
 	}
 };

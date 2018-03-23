@@ -152,12 +152,11 @@ void Disk::drawDepth(const glm::mat4x4& depth_view_projection_matrix) const
 		for (unsigned int j = 0; j < mesh_count; j++)
 		{
 			const ObjLibrary::MeshWithShader& m = model->getMesh(i, j);
+			
 			m.draw();
 		}
 
 	}
-
-
 
 	if (heightMapModel.getMeshCountTotal() > 0)
 	{
@@ -174,6 +173,7 @@ void Disk::drawDepth(const glm::mat4x4& depth_view_projection_matrix) const
 		mat_count = heightMapModel.getMaterialCount();
 		for (unsigned int i = 0; i < mat_count; i++)
 		{
+			
 			const unsigned int mesh_count = heightMapModel.getMeshCount(i);
 			for (unsigned int j = 0; j < mesh_count; j++)
 			{

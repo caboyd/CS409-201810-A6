@@ -4,6 +4,7 @@
 #include "ShadowBox.h"
 #include "Player.h"
 #include "MovementGraph.h"
+#include "LineRenderer.h"
 
 /**
  *	Overarching Game class
@@ -46,6 +47,7 @@ private:
 	unsigned int level = 0;
 	//list of level file names to load
 	std::vector<std::string> levels;
+	std::vector<LineRenderer::Point> world_graph_point_line;
 
 	//Used for Lighting and Shadows
 	ShadowBox shadow_box;
@@ -55,6 +57,7 @@ public:
 	//Empty Constructor, Init must be used to initialize game
 	Game() = default;
 
+	void initWorldGraphPointLine();
 	//Initialize The models, player,world, pickup manager, shadow box
 	//lighting and camera.
 	void init();
@@ -77,9 +80,9 @@ public:
 	void destroyIntoNextWorld();
 
 private:
-	void displayRingZeroPath(const glm::mat4& view_matrix);
-	void displayNodeNameplates(const glm::mat4& view_matrix);
-	void displaySearchPathSpheres(const glm::mat4& view_matrix);
+	void displayRingZeroPath(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
+	void displayNodeNameplates(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
+	void displaySearchPathSpheres(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
 	//Render game to depth texture for shadow mapping
 	void renderToDepthTexture(glm::mat4& depth_vp);
 

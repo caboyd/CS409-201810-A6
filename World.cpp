@@ -172,8 +172,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 	glUniformMatrix4fv(uniforms.m_view_matrix, 1, false, &(view_matrix[0][0]));
 	glUniform3fv(uniforms.m_camera_pos, 1, &(camera_pos.x));
 
-
-
+	const glm::mat4 vp_matrix = projection_matrix * view_matrix;
 
 	//Call draw on each black disk base
 	for (auto const& disk : disks)
@@ -182,7 +181,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 		glm::mat4x4 model_matrix = glm::mat4();
 		model_matrix = glm::translate(model_matrix, glm::vec3(disk->position));
 		model_matrix = glm::scale(model_matrix, glm::vec3(disk->radius, 1, disk->radius));
-		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+		const glm::mat4x4 mvp_matrix = vp_matrix * model_matrix;
 
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
 		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
@@ -202,12 +201,11 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 			glm::mat4x4 model_matrix = glm::mat4();
 			model_matrix = glm::translate(model_matrix, glm::vec3(disk->position));
 			model_matrix = glm::scale(model_matrix, glm::vec3(disk->radius, 1, disk->radius));
-			glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+			const glm::mat4x4 mvp_matrix = vp_matrix * model_matrix;
 
 			glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
 			glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
 			disk->model->drawCurrentMaterial(0);
-
 		}
 
 		top.activate(uniforms);
@@ -216,7 +214,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 			glm::mat4x4 model_matrix = glm::mat4();
 			model_matrix = glm::translate(model_matrix, glm::vec3(disk->position));
 			model_matrix = glm::scale(model_matrix, glm::vec3(disk->radius, 1, disk->radius));
-			glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+			glm::mat4x4 mvp_matrix = vp_matrix * model_matrix;
 
 			glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
 			glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
@@ -232,7 +230,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 				pos.y += 0.00001f;
 				model_matrix = glm::translate(model_matrix, pos);
 				model_matrix = glm::scale(model_matrix, glm::vec3(corner * 2 / disk->heightMapSize, 1, corner * 2 / disk->heightMapSize));
-				mvp_matrix = projection_matrix * view_matrix *  model_matrix;
+				mvp_matrix = vp_matrix * model_matrix;
 
 				glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
 				glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
@@ -244,7 +242,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 
 }
 
-void World::drawDepth(glm::mat4x4& depth_view_projection_matrix)
+void World::drawDepth(const glm::mat4& depth_view_projection_matrix)const
 {
 	//Call draw depth on each disk
 	for (auto const& disk : disks)
@@ -252,6 +250,43 @@ void World::drawDepth(glm::mat4x4& depth_view_projection_matrix)
 		disk->drawDepth(depth_view_projection_matrix);
 	}
 
+}
+
+void World::drawDepthOptimized(const Vector3& position, float radius, const glm::mat4& depth_view_projection_matrix) const
+{
+	const ObjLibrary::MeshWithShader& m1 = IcyModel.getMesh(0, 0);
+	const ObjLibrary::MeshWithShader& m2 = IcyModel.getMesh(1, 0);
+	const ObjLibrary::MeshWithShader& m3 = IcyModel.getMesh(2, 0);
+
+	for (auto const& disk : disks)
+	{
+		//Skip disks outside shadow distance radius
+		if (position.getDistanceSquared(disk->position) > pow((radius + disk->radius),2)) continue;
+		glm::mat4x4 model_matrix = glm::mat4();
+		glm::mat4x4 pos_matrix = glm::mat4();
+		const glm::vec3 pos = disk->position;
+
+		const float radius = disk->radius;
+		pos_matrix = glm::translate(pos_matrix, pos);
+		model_matrix = glm::scale(pos_matrix, glm::vec3(radius, 1, radius));
+
+		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
+		g_depth_texture.setDepthMVP(depth_mvp);
+
+		m1.draw();
+		m2.draw();
+		m3.draw();
+
+
+		model_matrix = glm::mat4();
+		const float corner = float(radius * MathHelper::M_SQRT2_2);
+		model_matrix = glm::scale(pos_matrix, glm::vec3(corner * 2.0f / float(disk->heightMapSize), 1.0f, corner * 2.0f / float(disk->heightMapSize)));
+
+		depth_mvp = depth_view_projection_matrix * model_matrix;
+		g_depth_texture.setDepthMVP(depth_mvp);
+
+		disk->heightMapModel.getMesh(0, 0).draw();
+	}
 }
 
 float World::getSpeedFactorAtPosition(float x, float z)const
@@ -365,14 +400,14 @@ bool World::isCylinderCollisionWithDisk(const Vector3& pos, float r, float half_
 		//If colliding with this disk return the height at the position on the disk
 		if (Collision::circleIntersection(float(pos.x), float(pos.z), r, float(disk->position.x), float(disk->position.z), disk->radius))
 		{
-			float a = getHeightAtPointPosition(float(pos.x), float(pos.z)) ;
+			float a = getHeightAtPointPosition(float(pos.x), float(pos.z));
 			//If position is below height map it is inside
-			if ( pos.y - half_height <= a )
+			if (pos.y - half_height <= a)
 			{
 				return true;
 			}
 		}
-			
+
 	}
 	return false;
 }

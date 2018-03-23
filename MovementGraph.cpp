@@ -2,6 +2,8 @@
 
 void MovementGraph::destroy()
 {
+	node_link_count = 0;
+	node_count = 0;
 	node_list.clear();
 	disk_node_list.clear();
 	search_data.clear();
@@ -316,6 +318,16 @@ unsigned MovementGraph::getMemorizedmmVisits() const
 	return memorized_mm_visits;
 }
 
+unsigned MovementGraph::getNodeCount() const
+{
+	return node_count;
+}
+
+unsigned MovementGraph::getNodeLinkCount() const
+{
+	return node_link_count;
+}
+
 std::deque<unsigned> MovementGraph::getPath(unsigned node_start_id, unsigned node_end_id)
 {
 	std::deque<unsigned> path;
@@ -392,6 +404,7 @@ unsigned MovementGraph::addNode(const Vector3& position, unsigned disk_index)
 {
 	const unsigned id = node_list.size();
 	node_list.emplace_back(id, disk_index, position);
+	node_count++;
 	return id;
 }
 
@@ -400,6 +413,7 @@ void MovementGraph::addLink(unsigned disk_id_i, unsigned node_id_i, unsigned dis
 {
 	node_list[node_id_i].node_links.emplace_back(node_id_i, node_id_j, disk_id_j, weight);
 	node_list[node_id_j].node_links.emplace_back(node_id_j, node_id_i, disk_id_i, weight);
+	node_link_count += 2;
 }
 
 Vector3 MovementGraph::calculateNodePosition(const Disk& disk_i, const Disk& disk_j) const

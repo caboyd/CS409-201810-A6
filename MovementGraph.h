@@ -96,6 +96,8 @@ private:
 	unsigned memorized_a_star_visits{};
 	unsigned memorized_dijkstra_visits{};
 	unsigned memorized_mm_visits{};
+	unsigned node_count{};
+	unsigned node_link_count{};
 
 public:
 	std::vector<Node> node_list;
@@ -121,6 +123,8 @@ public:
 	unsigned getMemorizedAStarVisits() const;
 	unsigned getMemorizedDijsktraVisits() const;
 	unsigned getMemorizedmmVisits() const;
+	unsigned getNodeCount() const;
+	unsigned getNodeLinkCount() const;
 
 private:
 	//Helpers for Search functions

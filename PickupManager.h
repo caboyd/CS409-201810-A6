@@ -43,7 +43,8 @@ public:
 
 	//Draw all of the disks to the depthRTT Shader
 	//depthMatrixID is the uniform location for the DepthMVP matrix that will be calculated here
-	void drawDepth(glm::mat4x4& depth_view_projection_matrix);
+	void drawDepth(const glm::mat4x4& depth_view_projection_matrix) const;
+	void drawDepthOptimized(const Vector3& position, float radius, const glm::mat4x4& depth_view_projection_matrix) const;
 
 	void destroy();
 };

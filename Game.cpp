@@ -15,6 +15,23 @@ const glm::mat4 BIAS_MATRIX(
 );
 
 
+void Game::initWorldGraphPointLine()
+{
+	const glm::vec3 offset(0, 0.2, 0);
+	world_graph_point_line.clear();
+	world_graph_point_line.reserve(world_graph.getNodeLinkCount() * 2);
+	for (auto &node : world_graph.node_list)
+	{
+		for (auto &link : node.node_links)
+		{
+			glm::vec4 color(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f);
+			world_graph_point_line.emplace_back(node.position + offset, color);
+			world_graph_point_line.emplace_back(world_graph.node_list[link.dest_node_id].position + offset, color);
+
+		}
+	}
+}
+
 void Game::init()
 {
 	ObjShader::load();
@@ -48,6 +65,8 @@ void Game::init()
 	//world.init(WORLD_FOLDER + "Twisted.txt");
 	world_graph.init(world.disks);
 
+
+	initWorldGraphPointLine();
 
 	player_camera.setPosition(PLAYER_CAMERA_INIT_POS);
 	player_camera.setOrientation(CAMERA_INIT_FORWARD);
@@ -323,10 +342,10 @@ void Game::display()
 	//displayNodeNameplates(view_matrix);
 
 	//Draw the Search path for overview camera
-	displaySearchPathSpheres(view_matrix);
+	displaySearchPathSpheres(view_matrix, g_projection_matrix);
 
 	//Draw the line of Ring0 from current position to end node
-	displayRingZeroPath(view_matrix);
+	displayRingZeroPath(view_matrix, g_projection_matrix);
 
 
 	//Draw useful text on the screen
@@ -345,14 +364,8 @@ void Game::display()
 	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Display Rate: " + std::to_string(long(round(g_display_fps))), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
 
-	int node_links = 0;
-	const int nodes = world_graph.node_list.size();
-	for (auto node_list : world_graph.node_list)
-		node_links += node_list.node_links.size();
-
-
-	g_text_renderer.draw("Nodes: " + std::to_string(nodes), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Node Links: " + std::to_string(node_links), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Nodes: " + std::to_string(world_graph.getNodeCount()), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Node Links: " + std::to_string(world_graph.getNodeLinkCount()), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
 
 
 
@@ -372,32 +385,29 @@ void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
 
 	if (active_camera == &overview_camera)
 		glDisable(GL_DEPTH_TEST);
-	Vector3 offset(0, 0.2, 0);
-	glm::mat4x4 vp_matrix = projection_matrix * view_matrix;
-	for (auto &node : world_graph.node_list)
-	{
-		for (auto &link : node.node_links)
-		{
-			g_line_renderer.draw(node.position + offset, world_graph.node_list[link.dest_node_id].position + offset, glm::vec4(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f), vp_matrix);
-		}
-	}
+
+	glm::mat4 vp = projection_matrix * view_matrix;
+
+	g_line_renderer.drawPointList(world_graph_point_line, vp);
 	glEnable(GL_DEPTH_TEST);
 }
 
-void Game::displayRingZeroPath(const glm::mat4& view_matrix)
+void Game::displayRingZeroPath(const glm::mat4& view_matrix,
+	const glm::mat4x4& projection_matrix) const
 {
 	//Draw the Path found in search
 	std::deque<unsigned> path = pickup_manager.rings[0].path;
 	const Ring& ring = pickup_manager.rings[0];
-	const Vector3 offset(0, 1.0, 0);
-	g_line_renderer.addLine(ring.position, ring.position + offset, glm::vec4(1, 1, 1, 1));
-	g_line_renderer.addLine(ring.position + offset, ring.targetPosition + offset, glm::vec4(1, 1, 1, 1));
+	const glm::vec3 offset(0, 1.0, 0);
+	g_line_renderer.preAllocateLine(path.size() * 2 + 6);
+	g_line_renderer.addLine(glm::vec3(ring.position), glm::vec3(ring.position + offset), glm::vec4(1, 1, 1, 1));
+	g_line_renderer.addLine(glm::vec3(ring.position + offset), glm::vec3(ring.targetPosition + offset), glm::vec4(1, 1, 1, 1));
 	if (!path.empty())
 	{
-		g_line_renderer.addLine(world_graph.node_list[ring.target_node_id].position + offset, world_graph.node_list[path[0]].position + offset, glm::vec4(1, 1, 1, 1));
+		g_line_renderer.addLine(glm::vec3(world_graph.node_list[ring.target_node_id].position + offset), glm::vec3(world_graph.node_list[path[0]].position + offset), glm::vec4(1, 1, 1, 1));
 		for (unsigned i = 0; i < path.size() - 1; i++)
 		{
-			g_line_renderer.addLine(world_graph.node_list[path[i]].position + offset, world_graph.node_list[path[i + 1]].position + offset, glm::vec4(1, 1, 1, 1));
+			g_line_renderer.addLine(glm::vec3(world_graph.node_list[path[i]].position + offset), glm::vec3(world_graph.node_list[path[i + 1]].position + offset), glm::vec4(1, 1, 1, 1));
 		}
 
 	}
@@ -407,7 +417,8 @@ void Game::displayRingZeroPath(const glm::mat4& view_matrix)
 	glEnable(GL_DEPTH_TEST);
 }
 
-void Game::displayNodeNameplates(const glm::mat4& view_matrix)
+void Game::displayNodeNameplates(const glm::mat4& view_matrix,
+	const glm::mat4x4& projection_matrix) const
 {
 	glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
 	for (auto& node : world_graph.node_list)
@@ -427,7 +438,8 @@ void Game::displayNodeNameplates(const glm::mat4& view_matrix)
 	}
 }
 
-void Game::displaySearchPathSpheres(const glm::mat4& view_matrix)
+void Game::displaySearchPathSpheres(const glm::mat4& view_matrix,
+	const glm::mat4x4& projection_matrix) const
 {
 	const std::vector<NodeSearchData>& search_data = world_graph.getMemorizedSearchData();
 	unsigned start_node_id = 0;
@@ -548,8 +560,8 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 	player.drawToDepth(depth_vp);
 
 	//Draw the world to the depth texture
-	world.drawDepth(depth_vp);
-	pickup_manager.drawDepth(depth_vp);
+	world.drawDepthOptimized(player_position, shadow_box.getShadowFadeDistance(), depth_vp);
+	pickup_manager.drawDepthOptimized(player_position, shadow_box.getShadowFadeDistance(), depth_vp);
 
 }
 
@@ -561,6 +573,7 @@ void Game::destroyIntoNextWorld()
 	world_graph.destroy();
 	world.init(WORLD_FOLDER + levels[level++]);
 	world_graph.init(world.disks);
+	initWorldGraphPointLine();
 	if (level >= levels.size()) level = 0;
 	pickup_manager.destroy();
 	pickup_manager.init(&world, &world_graph, &rod_model, &ring_model);
