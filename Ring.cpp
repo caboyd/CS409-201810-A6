@@ -75,6 +75,7 @@ inline void Ring::update(double delta_time)
 	//If on center of disk get new target
 	if (Collision::pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), 0.1f))
 	{
+		curr_node_id = target_node_id;
 		if (path.empty())
 		{
 			//Get a random node that is not this same node
@@ -96,17 +97,10 @@ inline void Ring::update(double delta_time)
 				path = world_graph->mmSearch(curr_node_id, rand);
 			}
 			//Pop the node off the front and set it as the target
-			target_node_id = path.front();
-			path.pop_front();
-			targetPosition = world_graph->node_list[target_node_id].position;
-		} else
-		{
-			//Reached node so pop a new one off
-			curr_node_id = target_node_id;
-			target_node_id = path.front();
-			path.pop_front();
-			targetPosition = world_graph->node_list[target_node_id].position;
 		}
+			target_node_id = path.front();
+			path.pop_front();
+			targetPosition = world_graph->node_list[target_node_id].position;
 
 	}
 }
