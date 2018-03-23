@@ -59,7 +59,7 @@ inline void Ring::update(double delta_time)
 		position = center + center_to_ring;
 
 		//To Make sure we don't drift off the radius
-		position = center + center_to_ring.getNormalized() * rad;;
+		position = center + center_to_ring.getNormalized() * rad;
 
 	} else
 	{

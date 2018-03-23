@@ -148,16 +148,22 @@ void keyboard(unsigned char key, int x, int y)
 		if (!g_key_pressed['H'])
 		{
 			if (g_time_scale == 1.0f)
-				g_time_scale = 0.5f;
+				g_time_scale = TIME_SCALE_FACTOR;
 			else
 				g_time_scale = 1.0f;
+
+			g_update_count = 0;
+			g_elapsed_time_nanoseconds = 0;
 		}
 		break;
 		//Tab cycle between worlds on win32
 #ifdef _WIN32
 	case '\t':
-		if (!g_key_pressed['\t']){}
-			game.destroyIntoNextWorld();
+		if (!g_key_pressed['\t'])
+		{
+				game.destroyIntoNextWorld();
+		}
+		
 		break;
 #endif
 	case 'L':
@@ -355,13 +361,13 @@ void update()
 	g_update_lag += scaled_time;
 
 	//If should update
-	if (g_update_lag > FRAME_TIME_UPDATE * g_time_scale)
+	if (g_update_lag > FRAME_TIME_UPDATE )
 	{
 		//Process all updates
-		while (g_update_lag > FRAME_TIME_UPDATE * g_time_scale)
+		while (g_update_lag > FRAME_TIME_UPDATE)
 		{
-			game.update(FRAME_TIME_UPDATE * g_time_scale);
-			g_update_lag -= FRAME_TIME_UPDATE * g_time_scale;
+			game.update(FRAME_TIME_UPDATE );
+			g_update_lag -= FRAME_TIME_UPDATE ;
 			g_update_count++;
 		}
 	} 

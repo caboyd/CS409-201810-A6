@@ -356,9 +356,9 @@ void Game::display()
 	//Number of node visits for the ring0 path seach per algorithm
 	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
 		float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + std::to_string(100 * float(a_visits) / float(d_visits)) + "%",
+	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + std::to_string(unsigned(100 * float(a_visits) / float(d_visits))) + "%",
 		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + std::to_string(100 * float(mm_visits) / float(d_visits)) + "%",
+	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + std::to_string(unsigned(100 * float(mm_visits) / float(d_visits))) + "%",
 		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
 
 	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
@@ -488,8 +488,8 @@ void Game::displaySearchPathSpheres(const glm::mat4& view_matrix,
 				float scale = 1.5;
 
 				//If on path make them bigger
-				if (node_data_start.on_path || node_data_end.on_path)
-					scale = 3;
+				if(i == start_node_id || i == end_node_id || i == meeting_node_id)
+					scale = 3.0;
 
 
 				if (node_data_start.visited)
@@ -620,14 +620,14 @@ void Game::playerAccelerateRight(float delta_time)
 
 void Game::playerTurnLeft(float delta_time)
 {
-	const float player_turn = float(TURNING_DEGREES * delta_time);
+	const float player_turn = float(TURNING_DEGREES/g_time_scale * delta_time);
 	player.coordinate_system.rotateAroundUp(player_turn);
 }
 
 
 void Game::playerTurnRight(float delta_time)
 {
-	const float player_turn = float(TURNING_DEGREES * delta_time);
+	const float player_turn = float(TURNING_DEGREES/g_time_scale * delta_time);
 	player.coordinate_system.rotateAroundUp(-player_turn);
 }
 

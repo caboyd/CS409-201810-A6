@@ -9,8 +9,8 @@
 //Global External constants available to all files
 //***************************************
 //ShadowBox.h uses these globals
-const int DEFAULT_WIN_WIDTH = 1280;
-const int DEFAULT_WIN_HEIGHT = 960;
+const int DEFAULT_WIN_WIDTH = 960;
+const int DEFAULT_WIN_HEIGHT = 720;
 const double FOV = 60.0;
 const double CLIP_NEAR = 0.1;
 const double CLIP_FAR = 1600.0;
@@ -34,6 +34,7 @@ const double FPS_DISPLAY = 90.0;
 const double FRAME_TIME_UPDATE = 1000.0 / FPS_UPDATE;
 const double FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
 const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;
+const double TIME_SCALE_FACTOR = 5.0;
 
 
 //Initial Camera/Player vectors
@@ -56,8 +57,8 @@ const float PLAYER_ACCEL = 10.0f;
 //***************************************
 
 //Windows width and height
-int g_win_width = 1280;
-int g_win_height = 960;
+int g_win_width = DEFAULT_WIN_WIDTH;
+int g_win_height = DEFAULT_WIN_HEIGHT;
 
 //Renderers for rendering text and lines
 TextRenderer g_text_renderer;

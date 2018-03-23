@@ -11,7 +11,6 @@ static const unsigned NO_VERTEX_FOUND = -1;
 
 struct SearchData
 {
-	bool on_path;
 	bool visited;
 	unsigned path_node;
 	float given_cost;
@@ -23,7 +22,6 @@ struct SearchData
 
 	void init()
 	{
-		on_path = false;
 		visited = false;
 		path_node = NO_VERTEX_FOUND;
 		given_cost = HIGH_VALUE;

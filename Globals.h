@@ -43,7 +43,7 @@ global_extern const double FPS_DISPLAY;
 global_extern const double FRAME_TIME_UPDATE;
 global_extern const double FRAME_TIME_DISPLAY;
 global_extern const double FIXED_TIME_STEP;
-
+global_extern const double TIME_SCALE_FACTOR;
 
 
 //Initial Camera/Player vectors

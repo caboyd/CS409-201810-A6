@@ -310,7 +310,7 @@ unsigned MovementGraph::getMemorizedAStarVisits() const
 
 unsigned MovementGraph::getMemorizedDijsktraVisits() const
 {
-	 return memorized_dijkstra_visits;
+	return memorized_dijkstra_visits;
 }
 
 unsigned MovementGraph::getMemorizedmmVisits() const
@@ -331,13 +331,11 @@ unsigned MovementGraph::getNodeLinkCount() const
 std::deque<unsigned> MovementGraph::getPath(unsigned node_start_id, unsigned node_end_id)
 {
 	std::deque<unsigned> path;
-	search_data[node_end_id].start.on_path = true;
 	while (node_end_id != node_start_id)
 	{
 		path.push_front(node_end_id);
 		//	std::cout << node_end_id << " cost: " << node_list[node_end_id].gcost_from_start << std::endl;
 		node_end_id = search_data[node_end_id].start.path_node;
-		search_data[node_end_id].start.on_path = true;
 		if (node_end_id == NO_VERTEX_FOUND) std::cout << "Path error at:" << node_end_id << std::endl;
 	}
 	//std::cout << std::endl;
@@ -348,29 +346,33 @@ std::deque<unsigned> MovementGraph::getPath(unsigned node_start_id, unsigned nod
 std::deque<unsigned> MovementGraph::getmmPath(unsigned node_start_id, unsigned node_meeting_id,
 	unsigned node_end_id)
 {
-	unsigned curr_node = node_meeting_id;
 	std::deque<unsigned> path;
-	search_data[curr_node].start.on_path = true;
+
+	//Start at middle and go to start for path
+	unsigned curr_node = node_meeting_id;
+	
+	//Note: We won't push the start node because it not part of the path
 	while (curr_node != node_start_id)
 	{
 		path.push_front(curr_node);
-		//	std::cout << node_end_id << " cost: " << node_list[node_end_id].gcost_from_start << std::endl;
 		curr_node = search_data[curr_node].start.path_node;
-		search_data[curr_node].start.on_path = true;
-		if (curr_node == NO_VERTEX_FOUND) std::cout << "Path error at:" << node_meeting_id << std::endl;
 	}
 
+	//Start and middle and go to end for path
 	curr_node = node_meeting_id;
-	search_data[curr_node].end.on_path = true;
+
+	//Skip the meeting node here so we dont push it on the queue twice
+	if (curr_node != node_end_id)
+		curr_node = search_data[curr_node].end.path_node;
+
 	while (curr_node != node_end_id)
 	{
 		path.push_back(curr_node);
-		//	std::cout << node_end_id << " cost: " << node_list[node_end_id].gcost_from_start << std::endl;
 		curr_node = search_data[curr_node].end.path_node;
-		search_data[curr_node].end.on_path = true;
-		if (curr_node == NO_VERTEX_FOUND) std::cout << "Path error at:" << node_meeting_id << std::endl;
 	}
-	//std::cout << std::endl;
+
+	//Push the end node
+	path.push_back(node_end_id);
 
 	return path;
 }
@@ -413,7 +415,7 @@ void MovementGraph::addLink(unsigned disk_id_i, unsigned node_id_i, unsigned dis
 {
 	node_list[node_id_i].node_links.emplace_back(node_id_i, node_id_j, disk_id_j, weight);
 	node_list[node_id_j].node_links.emplace_back(node_id_j, node_id_i, disk_id_i, weight);
-	node_link_count += 2;
+	node_link_count++;
 }
 
 Vector3 MovementGraph::calculateNodePosition(const Disk& disk_i, const Disk& disk_j) const
