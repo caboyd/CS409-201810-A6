@@ -11,20 +11,17 @@
 
 #include <iostream>
 #include <map>
-
 #include "lib/GetGlutWithShaders.h"
+#include "lib/ObjLibrary/ObjShader.h"
 
 //GLM inclues
 #include "lib/glm/glm.hpp"
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "lib/glm/gtc/type_ptr.hpp"
-#include "lib/ObjLibrary/ObjShader.h"
+
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
-
-extern int g_win_width;
-extern int g_win_height;
 
 struct Character
 {
@@ -44,12 +41,12 @@ private:
 public:
 
 	std::map<GLchar, Character> Characters;
-	GLuint VAO, VBO;
-	GLuint text_program_id;
+	GLuint VAO{}, VBO{};
+	GLuint text_program_id{};
 
 	//Uniform location
-	GLuint projection_id;
-	GLuint text_color_id;
+	GLuint projection_id{};
+	GLuint text_color_id{};
 
 	TextRenderer() = default;
 
@@ -129,9 +126,9 @@ public:
 		glGenBuffers(1, &VBO);
 		glBindVertexArray(VAO);
 		glBindBuffer(GL_ARRAY_BUFFER, VBO);
-		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, NULL, GL_DYNAMIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(GLfloat) * 6 * 4, nullptr, GL_DYNAMIC_DRAW);
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+		glVertexAttribPointer(0, 4, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), nullptr);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 
@@ -151,17 +148,15 @@ public:
 		glActiveTexture(GL_TEXTURE0);
 		glBindVertexArray(VAO);
 
-		// Iterate through all characters
-		std::string::const_iterator c;
-		for (c = text.begin(); c != text.end(); c++)
+		for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
 		{
-			Character ch = Characters[*c];
+			const Character ch = Characters[*c];
 
-			GLfloat xpos = x + ch.Bearing.x * scale;
-			GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
+			const GLfloat xpos = x + ch.Bearing.x * scale;
+			const GLfloat ypos = y - (ch.Size.y - ch.Bearing.y) * scale;
 
-			GLfloat w = ch.Size.x * scale;
-			GLfloat h = ch.Size.y * scale;
+			const GLfloat w = ch.Size.x * scale;
+			const GLfloat h = ch.Size.y * scale;
 			// Update VBO for each character
 			GLfloat vertices[6][4] = {
 				{ xpos,     ypos + h,   0.0, 0.0 },
@@ -194,10 +189,9 @@ public:
 	float getWidth(std::string text, float scale)
 	{
 		float width = 0;
-		std::string::const_iterator c;
-		for (c = text.begin(); c != text.end(); c++)
+		for (std::string::const_iterator c = text.begin(); c != text.end(); ++c)
 		{
-			Character ch = Characters[*c];
+			const Character ch = Characters[*c];
 			width +=  (ch.Advance >> 6) * scale;
 		}
 		return width;

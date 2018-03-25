@@ -1,15 +1,17 @@
 #pragma once
+#include <iomanip> // setprecision
+#include <sstream> // stringstream
 
 //Helper function to get all the files in a folder on windows
 #ifdef _WIN32
-#include <windows.h>
-std::vector<std::string> getFileNamesInFolder(const std::string& folder)
+#include <Windows.h>
+inline std::vector<std::string> getFileNamesInFolder(const std::string& folder)
 {
 	std::vector<std::string> names;
 	std::string search_path = folder + "/*.*";
 	WIN32_FIND_DATAA fd;
-	HANDLE hFind = FindFirstFileA(search_path.c_str(), &fd);
-	if (hFind != INVALID_HANDLE_VALUE)
+	HANDLE file_handle = FindFirstFileA(search_path.c_str(), &fd);
+	if (file_handle != INVALID_HANDLE_VALUE)
 	{
 		do
 		{
@@ -19,9 +21,22 @@ std::vector<std::string> getFileNamesInFolder(const std::string& folder)
 			{
 				names.emplace_back(fd.cFileName);
 			}
-		} while (::FindNextFileA(hFind, &fd));
-		::FindClose(hFind);
+		} while (::FindNextFileA(file_handle, &fd));
+		::FindClose(file_handle);
 	}
 	return names;
 }
 #endif
+
+inline std::string realToString(const float x, int precision)
+{
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(precision) << x;
+	return stream.str();
+}
+inline std::string realToString(const double x, int precision)
+{
+	std::stringstream stream;
+	stream << std::fixed << std::setprecision(precision) << x;
+	return stream.str();
+}

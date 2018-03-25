@@ -21,16 +21,21 @@ enum DiskType
 class Disk
 {
 public:
-	ObjLibrary::ModelWithShader* model;
-	ObjLibrary::ModelWithShader heightMapModel;
-	std::vector<std::vector<float>> heightMap;
-	unsigned int heightMapSize;
-	Vector3 position;
-	float radius;
-	DiskType type;
+	ObjLibrary::ModelWithShader* model{};
+	ObjLibrary::ModelWithShader heightMapModel{};
+	std::vector<std::vector<float>> heightMap{};
+	unsigned int heightMapSize{};
+	Vector3 position{};
+	float radius{};
+	DiskType type{};
 
 public:
 	Disk() = default;
+	Disk(const Disk& other) = default;
+	Disk(Disk&& other) = default;
+	Disk& operator=(const Disk& other) = default;
+	Disk& operator=(Disk&& other) = default;
+
 	virtual ~Disk() = default;
 
 	//Virtual function. Sub classes must define a function to generate a height map

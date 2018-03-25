@@ -20,13 +20,13 @@ void Game::initWorldGraphPointLine()
 	const glm::vec3 offset(0, 0.2, 0);
 	world_graph_point_line.clear();
 	world_graph_point_line.reserve(world_graph.getNodeLinkCount() * 2);
-	for (auto &node : world_graph.node_list)
+	for (auto &node : world_graph.getNodeList())
 	{
 		for (auto &link : node.node_links)
 		{
 			glm::vec4 color(0.25 + link.weight / 50.0f, 1.0f - link.weight / 150.0f, 0.0f, 1.0f);
 			world_graph_point_line.emplace_back(node.position + offset, color);
-			world_graph_point_line.emplace_back(world_graph.node_list[link.dest_node_id].position + offset, color);
+			world_graph_point_line.emplace_back(world_graph.getNodeList()[link.dest_node_id].position + offset, color);
 
 		}
 	}
@@ -353,22 +353,22 @@ void Game::display()
 		d_visits = world_graph.getMemorizedDijsktraVisits(),
 		mm_visits = world_graph.getMemorizedmmVisits();
 
-	//Number of node visits for the ring0 path seach per algorithm
-	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
-		float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + std::to_string(unsigned(100 * float(a_visits) / float(d_visits))) + "%",
-		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + std::to_string(unsigned(100 * float(mm_visits) / float(d_visits))) + "%",
-		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
+
 
 	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Display Rate: " + std::to_string(long(round(g_display_fps))), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Time Scale: " + realToString(g_time_scale, 2) + 'x', 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Nodes: " + std::to_string(world_graph.getNodeCount()), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Node Links: " + std::to_string(world_graph.getNodeLinkCount()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
 
-	g_text_renderer.draw("Nodes: " + std::to_string(world_graph.getNodeCount()), 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Node Links: " + std::to_string(world_graph.getNodeLinkCount()), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
 
-
-
+		//Number of node visits for the ring0 path seach per algorithm
+	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
+		float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + realToString(100 * float(a_visits) / float(d_visits),2) + "%",
+		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + realToString(100 * float(mm_visits) / float(d_visits),2) + "%",
+		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
@@ -404,15 +404,21 @@ void Game::displayRingZeroPath(const glm::mat4& view_matrix,
 	g_line_renderer.addLine(glm::vec3(ring.position + offset), glm::vec3(ring.targetPosition + offset), glm::vec4(1, 1, 1, 1));
 	if (!path.empty())
 	{
-		g_line_renderer.addLine(glm::vec3(world_graph.node_list[ring.target_node_id].position + offset), glm::vec3(world_graph.node_list[path[0]].position + offset), glm::vec4(1, 1, 1, 1));
+		g_line_renderer.addLine(
+			glm::vec3(world_graph.getNodeList()[ring.target_node_id].position + offset),
+			glm::vec3(world_graph.getNodeList()[path[0]].position + offset),
+			glm::vec4(1, 1, 1, 1));
 		for (unsigned i = 0; i < path.size() - 1; i++)
 		{
-			g_line_renderer.addLine(glm::vec3(world_graph.node_list[path[i]].position + offset), glm::vec3(world_graph.node_list[path[i + 1]].position + offset), glm::vec4(1, 1, 1, 1));
+			g_line_renderer.addLine(
+				glm::vec3(world_graph.getNodeList()[path[i]].position + offset),
+				glm::vec3(world_graph.getNodeList()[path[i + 1]].position + offset),
+				glm::vec4(1, 1, 1, 1));
 		}
 
 	}
 	glDisable(GL_DEPTH_TEST);
-	glm::mat4 vp = g_projection_matrix * view_matrix;
+	const glm::mat4 vp = g_projection_matrix * view_matrix;
 	g_line_renderer.drawLinesAndClear(vp);
 	glEnable(GL_DEPTH_TEST);
 }
@@ -420,8 +426,8 @@ void Game::displayRingZeroPath(const glm::mat4& view_matrix,
 void Game::displayNodeNameplates(const glm::mat4& view_matrix,
 	const glm::mat4x4& projection_matrix) const
 {
-	glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
-	for (auto& node : world_graph.node_list)
+	const glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
+	for (auto& node : world_graph.getNodeList())
 	{
 		//Dont draw numbers behind camera
 		if (active_camera->getForward().dotProduct(active_camera->getPosition() - node.position) <= 0)
@@ -430,7 +436,7 @@ void Game::displayNodeNameplates(const glm::mat4& view_matrix,
 			glm::translate(model, glm::vec3(node.position));
 			model *= view_matrix;
 			Vector3 a = node.position + ((world.disks[node.disk_id]->position - node.position).getNormalized() * 2);
-			glm::vec3 coord = glm::project(glm::vec3(a), model, g_projection_matrix, viewport);
+			const glm::vec3 coord = glm::project(glm::vec3(a), model, g_projection_matrix, viewport);
 
 			g_text_renderer.draw(std::to_string(node.node_id), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
 		}
@@ -508,7 +514,7 @@ void Game::displaySearchPathSpheres(const glm::mat4& view_matrix,
 				if (i == meeting_node_id) color = Vector3(0.6, 0, 1);
 
 				//Draw the sphere
-				const Vector3& pos = world_graph.node_list[i].position;
+				const Vector3& pos = world_graph.getNodeList()[i].position;
 				glm::mat4 model = glm::mat4();
 				model = glm::translate(model, glm::vec3(pos + Vector3(0, 0.2, 0)));
 				model = glm::scale(model, glm::vec3(scale, scale, scale));

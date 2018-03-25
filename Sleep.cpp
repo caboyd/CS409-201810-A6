@@ -8,43 +8,21 @@
 
 
 
-#ifdef _WIN32
+#if defined(_WIN32) || defined(__WIN32__)
 
-	#include <windows.h>  // needed for Sleep(millisec)
+	#include <Windows.h>  // needed for Sleep(millisec)
 
-	void sleep (double seconds)
+	void sleep (const double seconds)
 	{
 		assert(seconds >= 0.0);
 
-		int milliseconds = (int)(seconds * 1000.0);
+		const int milliseconds = int(seconds * 1000.0);
 
 		if(milliseconds > 0)
 			Sleep(milliseconds);
 	}
 
-	void sleepms (double milliseconds)
-	{
-		assert(milliseconds >= 0.0);
-
-		if(milliseconds > 0)
-			Sleep(int(milliseconds));
-	}
-
-#elif __WIN32__
-
-	#include <windows.h>  // needed for Sleep(millisec)
-
-	void sleep (double seconds)
-	{
-		assert(seconds >= 0.0);
-
-		int milliseconds = (int)(seconds * 1000.0);
-
-		if(milliseconds > 0)
-			Sleep(milliseconds);
-	}
-
-	void sleepms (double milliseconds)
+	void sleepms (const double milliseconds)
 	{
 		assert(milliseconds >= 0.0);
 

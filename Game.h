@@ -12,8 +12,6 @@
  *	Controls all the objects in the game, updates them and draws them
  *
  */
-
-
 class Game
 {
 
@@ -44,13 +42,18 @@ private:
 
 	//For Swapping between Levels
 	//Current level
-	unsigned int level = 0;
+	unsigned int level = 1;
 	//list of level file names to load
 	std::vector<std::string> levels;
+
+	//Holds the movement graph's line data for faster drawing
+	//of the movement graph lines
 	std::vector<LineRenderer::Point> world_graph_point_line;
 
 	//Used for Lighting and Shadows
+	//The shadow box that updates the view area of the shadow maps
 	ShadowBox shadow_box;
+	//The view matrix of the light source that is used for shadows
 	glm::mat4x4 light_view_matrix;
 
 public:
@@ -69,20 +72,31 @@ public:
 	//Updates animations for the player using variable delta time
 	void updateAnimations(double delta_time);
 
+	//Displays weighted lines with different colors between each
+	//node in the movement graph
 	void displayMovementGraph(const glm::mat4x4& view_matrix,
 		const glm::mat4x4& projection_matrix) const;
+
 	//Render the game
 	//Draws everything to the depth texture
 	//Then uses Depth texture to draw everything with shadows to screen
+	//Draws the UI
 	void display();
 
-	//Destory the current world and loads the next on from the worlds folder
+	//Destory the current world and loads the next one from the worlds folder
+	//Rebuilds the movement graph and world and resets player position and score
 	void destroyIntoNextWorld();
 
 private:
+	//Draws a line btween each node on the path for ring 0
 	void displayRingZeroPath(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
+	
+	//Draws the id number of the node as text above each node for debugging purposes
 	void displayNodeNameplates(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
+
+	//Draws the Spheres with fading colors based on the search data obtained from the movement graph searches
 	void displaySearchPathSpheres(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
+
 	//Render game to depth texture for shadow mapping
 	void renderToDepthTexture(glm::mat4& depth_vp);
 

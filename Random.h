@@ -21,9 +21,9 @@ public:
 	static unsigned int randu(unsigned int max);
 
 	//Get random double from [min, max]
-	static double randd(const double min, const double max);
+	static double randd(double min, double max);
 
 	//Get random float from [min, max]
-	static float randf(const float min, const float max);
+	static float randf(float min, float max);
 };
 

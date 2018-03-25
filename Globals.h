@@ -23,9 +23,11 @@ using ObjLibrary::Vector3;
 global_extern const int DEFAULT_WIN_WIDTH;
 global_extern const int DEFAULT_WIN_HEIGHT;
 global_extern const double FOV;
+//Clip planes for view matrix
 global_extern const double CLIP_NEAR;
 global_extern const double CLIP_FAR;
 
+//Key codes
 global_extern const unsigned int KEY_UP_ARROW;
 global_extern const unsigned int KEY_DOWN_ARROW;
 global_extern const unsigned int KEY_LEFT_ARROW;
@@ -61,6 +63,9 @@ global_extern const float TURNING_DEGREES;
 global_extern const float PLAYER_ACCEL_FORWARD;
 global_extern const float PLAYER_ACCEL;
 
+global_extern const double TIME_SCALES[];
+global_extern const int TIME_SCALE_COUNT;
+
 //Globals Externals available to all files
 //***************************************
 
@@ -83,6 +88,7 @@ global_extern DepthTexture g_depth_texture;
 global_extern PerformanceCounter g_time_counter;
 
 //Current time scale to allow for slow motion or speed up
+global_extern int g_time_scale_id;
 global_extern double g_time_scale;
 
 //Time elapsed since last frame

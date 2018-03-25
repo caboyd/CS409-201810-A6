@@ -29,7 +29,7 @@ private:
 	bool jumping;
 
 public:
-	Player();
+	Player() = default;
 
 	void init(const World& world);
 

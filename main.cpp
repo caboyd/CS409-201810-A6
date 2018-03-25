@@ -26,7 +26,7 @@
  *		Right mouse button: Hold down to turn.
  *		Left/Right mouse buttons: Hold down to move forward.
  *	    O: Hold to change to overview camera.
- *		H: to toggle between full and half speed time scale.
+ *		H: to toggle the time scale
  *		L: Toggles Lighting
  *
  *
@@ -143,17 +143,26 @@ void keyboard(unsigned char key, int x, int y)
 	//These should only happen on key down not hold
 	switch (key)
 	{
-	case 'H':
-		//Time Scale to half speed
-		if (!g_key_pressed['H'])
+	case '+':
+		if (!g_key_pressed['+'])
 		{
-			if (g_time_scale == 1.0f)
-				g_time_scale = TIME_SCALE_FACTOR;
-			else
-				g_time_scale = 1.0f;
-
-			g_update_count = 0;
-			g_elapsed_time_nanoseconds = 0;
+		g_time_scale_id--;
+		if (g_time_scale_id < 0) 
+			g_time_scale_id = 0;
+		g_time_scale = TIME_SCALES[g_time_scale_id];
+		g_update_count = 0;
+		g_elapsed_time_nanoseconds = 0;
+		}
+		break;
+	case '-':
+		if (!g_key_pressed['-'])
+		{
+		g_time_scale_id++;
+		if (g_time_scale_id > TIME_SCALE_COUNT) 
+			g_time_scale_id = TIME_SCALE_COUNT;
+		g_time_scale = TIME_SCALES[g_time_scale_id];
+		g_update_count = 0;
+		g_elapsed_time_nanoseconds = 0;
 		}
 		break;
 		//Tab cycle between worlds on win32
@@ -161,9 +170,9 @@ void keyboard(unsigned char key, int x, int y)
 	case '\t':
 		if (!g_key_pressed['\t'])
 		{
-				game.destroyIntoNextWorld();
+			game.destroyIntoNextWorld();
 		}
-		
+
 		break;
 #endif
 	case 'L':
@@ -361,17 +370,17 @@ void update()
 	g_update_lag += scaled_time;
 
 	//If should update
-	if (g_update_lag > FRAME_TIME_UPDATE )
+	if (g_update_lag > FRAME_TIME_UPDATE)
 	{
 		//Process all updates
 		while (g_update_lag > FRAME_TIME_UPDATE)
 		{
-			game.update(FRAME_TIME_UPDATE );
-			g_update_lag -= FRAME_TIME_UPDATE ;
+			game.update(FRAME_TIME_UPDATE);
+			g_update_lag -= FRAME_TIME_UPDATE;
 			g_update_count++;
 		}
-	} 
-	
+	}
+
 	//Update the animations every frame
 	game.updateAnimations(scaled_time);
 	g_display_count++;

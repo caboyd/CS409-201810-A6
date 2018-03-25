@@ -1,6 +1,5 @@
 #pragma once
 #include "lib/glm/glm.hpp"
-#include "lib/glm/gtc/matrix_transform.hpp"
 #include "lib/ObjLibrary/Vector3.h"
 
 //Leverages the Vector3 class by managing a position, forward, and up vector
@@ -29,13 +28,15 @@ public:
 		const ObjLibrary::Vector3& forward);
 
 	//Copy Constructor
-	CoordinateSystem(const CoordinateSystem& other);
+	CoordinateSystem(const CoordinateSystem& other) = default;
+	CoordinateSystem(CoordinateSystem&& other) = default;
 
 	//Destructor
-	~CoordinateSystem();
+	~CoordinateSystem() = default;
 
 	//Assignmnent Operator
-	CoordinateSystem& operator=(const CoordinateSystem& other);
+	CoordinateSystem& operator=(const CoordinateSystem& other) = default;
+	CoordinateSystem& operator=(CoordinateSystem&& other) = default;
 
 	//Getters
 	const ObjLibrary::Vector3& getPosition() const;

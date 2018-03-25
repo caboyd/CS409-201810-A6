@@ -178,6 +178,7 @@
     <ClCompile Include="lib\ObjLibrary\TextureManager.cpp" />
     <ClCompile Include="lib\ObjLibrary\Vector2.cpp" />
     <ClCompile Include="lib\ObjLibrary\Vector3.cpp" />
+    <ClCompile Include="LineRenderer.cpp" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="MathHelper.h" />
     <ClCompile Include="LeafyDisk.cpp" />

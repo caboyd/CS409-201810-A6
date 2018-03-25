@@ -5,9 +5,6 @@
 
 using namespace ObjLibrary;
 
-
-
-
 class IcyDisk : public Disk
 {
 private:

@@ -34,7 +34,9 @@ const double FPS_DISPLAY = 90.0;
 const double FRAME_TIME_UPDATE = 1000.0 / FPS_UPDATE;
 const double FRAME_TIME_DISPLAY = 1000.0 / FPS_DISPLAY;
 const double FIXED_TIME_STEP = 1.0 / FPS_UPDATE;
-const double TIME_SCALE_FACTOR = 5.0;
+
+const int TIME_SCALE_COUNT = 10;
+const double TIME_SCALES[TIME_SCALE_COUNT + 1] = { 50.0, 20.0, 10.0, 4.0, 2.0, 1.0, 0.5, 0.25, 0.1, 0.05, 0.01};
 
 
 //Initial Camera/Player vectors
@@ -93,9 +95,8 @@ int g_mouse_dx = 0, g_mouse_dy = 0;
 //This is used to snap the mouse back to its position so it doesn't leave the window
 int g_mouse_locked_x = 0, g_mouse_locked_y = 0;
 
-
-
 //Current time scale to allow for slow motion or speed up
-double g_time_scale = 1.0f;
+int g_time_scale_id = 5;
+double g_time_scale = TIME_SCALES[g_time_scale_id];
 
 glm::mat4 g_projection_matrix = glm::mat4();

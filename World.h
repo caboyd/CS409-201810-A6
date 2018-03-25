@@ -28,7 +28,7 @@ public:
 	ObjLibrary::ModelWithShader GreyRockModel;
 
 	//Where the world has already been initted
-	bool initialized;
+	bool initialized{};
 
 	//Radius of the world
 	float worldRadius = 0;

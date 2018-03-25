@@ -2,6 +2,7 @@
 #include "lib/ObjLibrary/Vector3.h"
 #include "MathHelper.h"
 #include "lib/ObjLibrary/Vector2.h"
+#include "lib/glm/gtc/matrix_transform.hpp"
 
 CoordinateSystem::CoordinateSystem()
 {
@@ -16,28 +17,6 @@ CoordinateSystem::CoordinateSystem(const ObjLibrary::Vector3& pos, const ObjLibr
 CoordinateSystem::CoordinateSystem(const ObjLibrary::Vector3& pos, const ObjLibrary::Vector3& forward)
 {
 	init(pos, forward, calculateUpVector(forward));
-}
-
-CoordinateSystem::CoordinateSystem(const CoordinateSystem& other)
-{
-	position = other.position;
-	forward = other.forward;
-	up = other.up;
-}
-
-CoordinateSystem::~CoordinateSystem()
-{}
-
-CoordinateSystem& CoordinateSystem::operator=(const CoordinateSystem& other)
-{
-	if (&other != this)
-	{
-		position = other.position;
-		forward = other.forward;
-		up = other.up;
-
-	}
-	return *this;
 }
 
 const ObjLibrary::Vector3& CoordinateSystem::getPosition() const

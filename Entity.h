@@ -5,6 +5,7 @@
 using ObjLibrary::Vector3;
 using ObjLibrary::ModelWithShader;
 
+//Asbtract Entity class that has a model and a position, sclalar, rotation
 class Entity
 {
 public:
@@ -13,7 +14,7 @@ public:
 		: model(model)
 	{}
 
-	explicit Entity(ModelWithShader* model, const Vector3 pos)
+	explicit Entity(ModelWithShader* model, const Vector3& pos)
 		: position(pos), model(model)
 	{}
 

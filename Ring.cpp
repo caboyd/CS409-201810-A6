@@ -3,6 +3,7 @@
 #include "Collision.h"
 #include "MovementGraph.h"
 #include "Random.h"
+#include "MathHelper.h"
 
 
 Ring::Ring(unsigned i, World* w, MovementGraph* mg, ModelWithShader* model) : Entity(model)
@@ -18,9 +19,9 @@ Ring::Ring(unsigned i, World* w, MovementGraph* mg, ModelWithShader* model) : En
 	halfHeight = 0.1f;
 	velocity = 2.5f / 1000.0f;
 	rotVelocity = 1.3f;
-	curr_node_id = Random::randu(world_graph->node_list.size() - 1);;
+	curr_node_id = Random::randu(world_graph->getNodeList().size() - 1);;
 	target_node_id = curr_node_id;
-	targetPosition = world_graph->node_list[target_node_id].position;
+	targetPosition = world_graph->getNodeList()[target_node_id].position;
 	position = targetPosition;
 	this->position.y += 0.1f;
 }
@@ -32,29 +33,32 @@ inline void Ring::update(double delta_time)
 
 	const float speed_factor = world->getSpeedFactorAtPosition(float(position.x), float(position.z));
 	const float distance = velocity * float(delta_time) * speed_factor;
-	if (world_graph->node_list[curr_node_id].disk_id == world_graph->node_list[target_node_id].disk_id)
+
+	if (world_graph->getNodeList()[curr_node_id].disk_id == world_graph->getNodeList()[target_node_id].disk_id)
 	{
-		//Arc around disk
+		//Arc rotate around disk
+
 		double old_dist = position.getDistance(targetPosition);
 		Vector3 old_pos = position;
-		Vector3 center = world->disks[world_graph->node_list[curr_node_id].disk_id]->position;
+		const Vector3 center = world->disks[world_graph->getNodeList()[curr_node_id].disk_id]->position;
 		Vector3 center_to_ring = position - center;
 		//Vector3 dir_center_to_target = targetPosition - center;
-		Vector3 dir_pos_to_target = targetPosition - position;
-		double tangent_angle = center_to_ring.getRotatedY(MathHelper::M_PI_2).getAngle(dir_pos_to_target);
+		const Vector3 dir_pos_to_target = targetPosition - position;
+		const double tangent_angle = center_to_ring.getRotatedY(MathHelper::M_PI_2).getAngle(dir_pos_to_target);
 
 
-		float rad = world->disks[world_graph->node_list[curr_node_id].disk_id]->radius - 0.7f;
+		//The radius to rotate around the the disk radius - 0.7;
+		const float rad = world->disks[world_graph->getNodeList()[curr_node_id].disk_id]->radius - 0.7f;
 
-		float angle = distance / rad;
+		//The angle to rotate using arc length formula
+		const float angle = distance / rad;
 
+		//Rotate around the disk in the shorter direction
 		if (tangent_angle < MathHelper::M_PI_2)
-		{
 			center_to_ring.rotateY(angle);
-		} else
-		{
+		else
 			center_to_ring.rotateY(-angle);
-		}
+
 
 		position = center + center_to_ring;
 
@@ -63,13 +67,15 @@ inline void Ring::update(double delta_time)
 
 	} else
 	{
-		//Move direct
+		//Move direct to another disk
+
 		position += direction * distance;
 	}
 
-	float rot = rotVelocity * distance;
-	forward.rotateY(rot);
+	//Rotate the ring's forward based on how much we moved
+	forward.rotateY(rotVelocity * distance);
 
+	//Set the rings height based on the world height at the position
 	position.y = world->getHeightAtCirclePosition(float(position.x), float(position.z), radius) + 0.1f;
 
 	//If on center of disk get new target
@@ -79,8 +85,8 @@ inline void Ring::update(double delta_time)
 		if (path.empty())
 		{
 			//Get a random node that is not this same node
-			unsigned rand = Random::randu(world_graph->node_list.size() - 1);
-			while (rand == curr_node_id) rand = Random::randu(world_graph->node_list.size() - 1);
+			unsigned rand = Random::randu(world_graph->getNodeList().size() - 1);
+			while (rand == curr_node_id) rand = Random::randu(world_graph->getNodeList().size() - 1);
 
 
 			//Remembers Ring 0s search data for display later
@@ -98,9 +104,9 @@ inline void Ring::update(double delta_time)
 			}
 			//Pop the node off the front and set it as the target
 		}
-			target_node_id = path.front();
-			path.pop_front();
-			targetPosition = world_graph->node_list[target_node_id].position;
+		target_node_id = path.front();
+		path.pop_front();
+		targetPosition = world_graph->getNodeList()[target_node_id].position;
 
 	}
 }

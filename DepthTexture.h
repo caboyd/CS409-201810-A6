@@ -10,19 +10,11 @@ using namespace ObjLibrary;
 //Manages the depth buffer and texture for use with generating shadows
 class DepthTexture
 {
-public:
-	//Default texture size
-	
-private:
-
-
 	const std::string shader_folder = "assets/shaders/";
 	const std::string quad_shader_vert = "passthrough.vert";
 	const std::string quad_shader_frag = "simpletexture.frag";
 	const std::string depthRTT_vert = "depthRTT.vert";
 	const std::string depthRTT_frag = "depthRTT.frag";
-
-	
 
 	GLuint quad_program_id;
 	GLuint depth_program_id;

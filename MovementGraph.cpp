@@ -1,4 +1,5 @@
 #include "MovementGraph.h"
+#include "UpdatablePriorityQueue.h"
 
 void MovementGraph::destroy()
 {
@@ -12,7 +13,7 @@ void MovementGraph::destroy()
 
 void MovementGraph::init(const std::vector<std::unique_ptr<Disk>>& disks)
 {
-	unsigned size = disks.size();
+	const unsigned size = disks.size();
 	assert(size > 0);
 	a_star_visits = 0;
 	dijkstra_visits = 0;
@@ -171,31 +172,37 @@ std::deque<unsigned> MovementGraph::aStarSearch(unsigned node_start_id, unsigned
 
 std::deque<unsigned> MovementGraph::mmSearch(unsigned node_start_id, unsigned node_end_id)
 {
+	//Clear search data and fill heuristics
 	resetSearchDataWithHeuristics(node_start_id, node_end_id);
 	mm_visits = 0;
+	//Open List 1
 	UpdatablePriorityQueue<float> queue_start;
+	//Open List 2
 	UpdatablePriorityQueue<float> queue_end;
+	//Current Node
 	unsigned curr = NO_VERTEX_FOUND;
+
 	queue_start.setCapacityAndMaximumQueueSize(node_list.size(), node_list.size());
 	queue_end.setCapacityAndMaximumQueueSize(node_list.size(), node_list.size());
 
 	//Add start node to Open List 1
 	search_data[node_start_id].start.path_node = node_start_id;
 	search_data[node_start_id].start.given_cost = 0;
-	search_data[node_start_id].start.priority = search_data[node_start_id].start.given_cost + search_data[node_start_id]
-		.start.heuristic;
+	search_data[node_start_id].start.priority = search_data[node_start_id].start.given_cost
+		+ search_data[node_start_id].start.heuristic;
 	queue_start.enqueueOrSetPriority(node_start_id, search_data[node_start_id].start.priority);
 
 	//Add end node to Open List 2
 	search_data[node_end_id].end.path_node = node_end_id;
 	search_data[node_end_id].end.given_cost = 0;
-	search_data[node_end_id].end.priority = search_data[node_end_id].end.given_cost + search_data[node_end_id]
-		.end.heuristic;
+	search_data[node_end_id].end.priority = search_data[node_end_id].end.given_cost
+		+ search_data[node_end_id].end.heuristic;
 	queue_end.enqueueOrSetPriority(node_end_id, search_data[node_end_id].end.priority);
 
 	//If both are empty no path found
 	while (!queue_start.isQueueEmpty() && !queue_end.isQueueEmpty())
 	{
+		//Look at both open lists
 		float p1 = HIGH_VALUE;
 		float p2 = HIGH_VALUE;
 		if (!queue_start.isQueueEmpty())
@@ -203,7 +210,7 @@ std::deque<unsigned> MovementGraph::mmSearch(unsigned node_start_id, unsigned no
 		if (!queue_end.isQueueEmpty())
 			p2 = queue_end.peekPriority();
 
-		bool popped_from_start_queue = false;
+		bool popped_from_start_queue;
 		SearchData* curr_node_search_data;
 
 		//Pop the node with lowest priority
@@ -227,28 +234,27 @@ std::deque<unsigned> MovementGraph::mmSearch(unsigned node_start_id, unsigned no
 			popped_from_start_queue = false;
 		}
 
+		//Increment the node vists
 		mm_visits++;
 
-
-		//This node has been visited
+		//Mark this node as visited
+		//Put it on the closed list
 		curr_node_search_data->visited = true;
 
 		//Look through all linked nodes and update if path is shorter
 		for (const NodeLink& link : node_list[curr].node_links)
 		{
 			//Get the correct search data based on whether we are searching from the start or the end currently
-			SearchData* linked_node_search_data = popped_from_start_queue
-				? &search_data[link.dest_node_id].start
-				: &search_data[link.dest_node_id].end;
+			SearchData* linked_node_search_data = popped_from_start_queue ?
+				&search_data[link.dest_node_id].start : &search_data[link.dest_node_id].end;
 
-			//If in closed set ignore because already evaluated
+			//If node has been visited (On Closed List) then skip it
 			if (linked_node_search_data->visited) continue;
-			//if(!queue_start.isEnqueued(link.dest_node_id))
-			//	queue_start.enqueueOrSetPriority(link.dest_node_id, HIGH_VALUE);
 
+			//Calculate the new g score for this link
 			const float g_score = curr_node_search_data->given_cost + link.weight;
 
-			//If better path
+			//If this path is a more optimal path
 			if (g_score < linked_node_search_data->given_cost)
 			{
 				//f = g + h
@@ -256,11 +262,10 @@ std::deque<unsigned> MovementGraph::mmSearch(unsigned node_start_id, unsigned no
 				linked_node_search_data->given_cost = g_score;
 				//update priority f = g + h
 				linked_node_search_data->priority = g_score + linked_node_search_data->heuristic;
-				//Mark the node we came from
+				//Set the path node as the node we came from
 				linked_node_search_data->path_node = curr;
 
-				//Update open list with priority (f = g + h)
-				//Update prority on correct queue
+				//Update the correct open list with the lower priority (f = g + h)
 				if (popped_from_start_queue)
 					queue_start.enqueueOrSetPriority(link.dest_node_id, linked_node_search_data->priority);
 				else
@@ -268,9 +273,13 @@ std::deque<unsigned> MovementGraph::mmSearch(unsigned node_start_id, unsigned no
 			}
 		}
 	}
-	//Meet in the middle is visited from both direction
+	//The current node is the meet in the middle node
+	//Mark that it has visited from both direction
+	//It is on both Closed List 1 and 2
 	search_data[curr].end.visited = true;
 	search_data[curr].start.visited = true;
+
+	//Build and return the path
 	return getmmPath(node_start_id, curr, node_end_id);
 }
 
@@ -281,7 +290,7 @@ float MovementGraph::getPathCost(std::deque<unsigned> q) const
 	for (unsigned i = 0; i < q.size() - 1; i++)
 	{
 		//find link
-		for (auto j : node_list[q[i]].node_links)
+		for (const auto j : node_list[q[i]].node_links)
 		{
 			if (j.dest_node_id == q[i + 1])
 				cost += j.weight;
@@ -318,6 +327,11 @@ unsigned MovementGraph::getMemorizedmmVisits() const
 	return memorized_mm_visits;
 }
 
+const std::vector<Node>& MovementGraph::getNodeList() const
+{
+	return node_list;
+}
+
 unsigned MovementGraph::getNodeCount() const
 {
 	return node_count;
@@ -334,11 +348,8 @@ std::deque<unsigned> MovementGraph::getPath(unsigned node_start_id, unsigned nod
 	while (node_end_id != node_start_id)
 	{
 		path.push_front(node_end_id);
-		//	std::cout << node_end_id << " cost: " << node_list[node_end_id].gcost_from_start << std::endl;
 		node_end_id = search_data[node_end_id].start.path_node;
-		if (node_end_id == NO_VERTEX_FOUND) std::cout << "Path error at:" << node_end_id << std::endl;
 	}
-	//std::cout << std::endl;
 
 	return path;
 }
@@ -350,15 +361,15 @@ std::deque<unsigned> MovementGraph::getmmPath(unsigned node_start_id, unsigned n
 
 	//Start at middle and go to start for path
 	unsigned curr_node = node_meeting_id;
-	
-	//Note: We won't push the start node because it not part of the path
+
+	//Note: This won't push the start node because it is not part of the path
 	while (curr_node != node_start_id)
 	{
 		path.push_front(curr_node);
 		curr_node = search_data[curr_node].start.path_node;
 	}
 
-	//Start and middle and go to end for path
+	//Start at middle and go to end for path
 	curr_node = node_meeting_id;
 
 	//Skip the meeting node here so we dont push it on the queue twice
@@ -380,9 +391,7 @@ std::deque<unsigned> MovementGraph::getmmPath(unsigned node_start_id, unsigned n
 void MovementGraph::resetSearchData()
 {
 	for (auto& node : search_data)
-	{
 		node.init();
-	}
 }
 
 void MovementGraph::resetSearchDataWithHeuristics(unsigned node_start_id, unsigned node_end_id)
@@ -421,11 +430,10 @@ void MovementGraph::addLink(unsigned disk_id_i, unsigned node_id_i, unsigned dis
 Vector3 MovementGraph::calculateNodePosition(const Disk& disk_i, const Disk& disk_j) const
 {
 	//dir
-	Vector3 dir = (disk_j.position - disk_i.position).getNormalized();
+	const Vector3 dir = (disk_j.position - disk_i.position).getNormalized();
 	//Position of node is edge of disk in the direction
-	Vector3 pos = disk_i.position + dir * disk_i.radius;
-	//Move nodes 0.5 metres inward from edge of disk
-	pos -= dir * node_offset;
+	//nodes are 0.7 metres inward from edge of disk
+	Vector3 pos = disk_i.position + dir * (disk_i.radius - node_offset);
 	return pos;
 }
 

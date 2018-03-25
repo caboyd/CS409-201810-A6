@@ -229,7 +229,7 @@ float Disk::getHeightAtPosition(float x, float z) const
 	Vector2 p00(p0.x, p0.z);
 	Vector2 p11(p1.x, p1.z);
 	Vector2 p22(p2.x, p2.z);
-	MathHelper::Barycentric(p, p00, p11, p22, u, v, w);
+	MathHelper::barycentric(p, p00, p11, p22, u, v, w);
 	height = float(u * p0.y + v * p1.y + w * p2.y);
 	//**
 

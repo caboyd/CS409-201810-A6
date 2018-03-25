@@ -2,11 +2,9 @@
 #include "MathHelper.h"
 #include "World.h"
 #include "DepthTexture.h"
+#include "lib/glm/gtc/matrix_transform.hpp"
 
 extern DepthTexture depth_texture;
-
-Player::Player()
-{}
 
 void Player::init(const World& world)
 {

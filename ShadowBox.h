@@ -47,14 +47,15 @@ private:
 	glm::vec4 UP = glm::vec4(0, 1, 0, 0);
 	glm::vec4 FORWARD = glm::vec4(0, 0, -1, 0);
 
-	float minX, maxX;
-	float minY, maxY;
-	float minZ, maxZ;
-	glm::mat4x4* lightViewMatrix;
+	float min_x, max_x;
+	float min_y, max_y;
+	float min_z, max_z;
+	glm::mat4x4* light_view_matrix;
 	CoordinateSystem** cam;
 
-	float farHeight, farWidth, nearHeight, nearWidth;
+	float far_height, far_width, near_height, near_width;
 public:
+
 	/**
 	* Creates a new shadow box and calculates some initial values relating to
 	* the camera's view frustum, namely the width and height of the near plane
@@ -71,15 +72,14 @@ public:
 	*			 - The edge of the shadow box, how far we want to see shadows.
 	*			 a higher value will have lower quality shadows.
 	*/
-	ShadowBox() {}
 	void init(glm::mat4x4* light_view_matrix, CoordinateSystem** camera, const float shadow_distance = DEFAULT_SHADOW_DISTANCE)
 	{
 		this->SHADOW_DISTANCE = shadow_distance;
-		this->lightViewMatrix = light_view_matrix;
+		this->light_view_matrix = light_view_matrix;
 		this->cam = camera;
 		calculateWidthsAndHeights();
 	}
-
+	ShadowBox() = default;
 	/**
 	* Updates the bounds of the shadow box based on the light direction and the
 	* camera's view frustum, to make sure that the box covers the smallest area
@@ -105,38 +105,38 @@ public:
 		{
 			if (first)
 			{
-				minX = points[i].x;
-				maxX = points[i].x;
-				minY = points[i].y;
-				maxY = points[i].y;
-				minZ = points[i].z;
-				maxZ = points[i].z;
+				min_x = points[i].x;
+				max_x = points[i].x;
+				min_y = points[i].y;
+				max_y = points[i].y;
+				min_z = points[i].z;
+				max_z = points[i].z;
 				first = false;
 				continue;
 			}
-			if (points[i].x > maxX)
+			if (points[i].x > max_x)
 			{
-				maxX = points[i].x;
-			} else if (points[i].x < minX)
+				max_x = points[i].x;
+			} else if (points[i].x < min_x)
 			{
-				minX = points[i].x;
+				min_x = points[i].x;
 			}
-			if (points[i].y > maxY)
+			if (points[i].y > max_y)
 			{
-				maxY = points[i].y;
-			} else if (points[i].y < minY)
+				max_y = points[i].y;
+			} else if (points[i].y < min_y)
 			{
-				minY = points[i].y;
+				min_y = points[i].y;
 			}
-			if (points[i].z > maxZ)
+			if (points[i].z > max_z)
 			{
-				maxZ = points[i].z;
-			} else if (points[i].z < minZ)
+				max_z = points[i].z;
+			} else if (points[i].z < min_z)
 			{
-				minZ = points[i].z;
+				min_z = points[i].z;
 			}
 		}
-		maxZ += OFFSET;
+		max_z += OFFSET;
 	}
 
 	/**
@@ -147,12 +147,12 @@ public:
 	*/
 	Vector3 getCenter() const
 	{
-		const float x = (minX + maxX) / 2.0f;
-		const float y = (minY + maxY) / 2.0f;
-		const float z = (minZ + maxZ) / 2.0f;
+		const float x = (min_x + max_x) / 2.0f;
+		const float y = (min_y + max_y) / 2.0f;
+		const float z = (min_z + max_z) / 2.0f;
 		const glm::vec4 cen = glm::vec4(x, y, z, 1);
 
-		const glm::mat4x4 inverted_light = glm::inverse(*lightViewMatrix);
+		const glm::mat4x4 inverted_light = glm::inverse(*light_view_matrix);
 		Vector3 result(inverted_light * cen);
 		return result;
 	}
@@ -162,7 +162,7 @@ public:
 	*/
 	float getWidth() const
 	{
-		return maxX - minX;
+		return max_x - min_x;
 	}
 
 	/**
@@ -170,7 +170,7 @@ public:
 	*/
 	float getHeight() const
 	{
-		return maxY - minY;
+		return max_y - min_y;
 	}
 
 	/**
@@ -178,7 +178,7 @@ public:
 	*/
 	float getLength() const
 	{
-		return maxZ - minZ;
+		return max_z - min_z;
 	}
 
 	/**
@@ -204,23 +204,23 @@ public:
 		const Vector3 right_vector = forward_vector.crossProduct(up_vector);
 		const Vector3 down_vector = -up_vector;
 		const Vector3 left_vector = -right_vector;
-		const Vector3 far_top = center_far + Vector3(up_vector.x * farHeight,
-			up_vector.y * farHeight, up_vector.z * farHeight);
-		const Vector3 far_bottom = center_far + Vector3(down_vector.x * farHeight,
-			down_vector.y * farHeight, down_vector.z * farHeight);
-		const Vector3 near_top = center_near + Vector3(up_vector.x * nearHeight,
-			up_vector.y * nearHeight, up_vector.z * nearHeight);
-		const Vector3 near_bottom = center_near + Vector3(down_vector.x * nearHeight,
-			down_vector.y * nearHeight, down_vector.z * nearHeight);
-		glm::vec4* points = new glm::vec4[8];
-		points[0] = calculateLightSpaceFrustumCorner(far_top, right_vector, farWidth);
-		points[1] = calculateLightSpaceFrustumCorner(far_top, left_vector, farWidth);
-		points[2] = calculateLightSpaceFrustumCorner(far_bottom, right_vector, farWidth);
-		points[3] = calculateLightSpaceFrustumCorner(far_bottom, left_vector, farWidth);
-		points[4] = calculateLightSpaceFrustumCorner(near_top, right_vector, nearWidth);
-		points[5] = calculateLightSpaceFrustumCorner(near_top, left_vector, nearWidth);
-		points[6] = calculateLightSpaceFrustumCorner(near_bottom, right_vector, nearWidth);
-		points[7] = calculateLightSpaceFrustumCorner(near_bottom, left_vector, nearWidth);
+		const Vector3 far_top = center_far + Vector3(up_vector.x * far_height,
+			up_vector.y * far_height, up_vector.z * far_height);
+		const Vector3 far_bottom = center_far + Vector3(down_vector.x * far_height,
+			down_vector.y * far_height, down_vector.z * far_height);
+		const Vector3 near_top = center_near + Vector3(up_vector.x * near_height,
+			up_vector.y * near_height, up_vector.z * near_height);
+		const Vector3 near_bottom = center_near + Vector3(down_vector.x * near_height,
+			down_vector.y * near_height, down_vector.z * near_height);
+		auto* points = new glm::vec4[8];
+		points[0] = calculateLightSpaceFrustumCorner(far_top, right_vector, far_width);
+		points[1] = calculateLightSpaceFrustumCorner(far_top, left_vector, far_width);
+		points[2] = calculateLightSpaceFrustumCorner(far_bottom, right_vector, far_width);
+		points[3] = calculateLightSpaceFrustumCorner(far_bottom, left_vector, far_width);
+		points[4] = calculateLightSpaceFrustumCorner(near_top, right_vector, near_width);
+		points[5] = calculateLightSpaceFrustumCorner(near_top, left_vector, near_width);
+		points[6] = calculateLightSpaceFrustumCorner(near_bottom, right_vector, near_width);
+		points[7] = calculateLightSpaceFrustumCorner(near_bottom, left_vector, near_width);
 		return points;
 	}
 
@@ -241,7 +241,7 @@ public:
 	{
 		const Vector3 point = start_point + Vector3(direction.x * width, direction.y * width, direction.z * width);
 		glm::vec4 point4f = glm::vec4(point.x, point.y, point.z, 1.0f);
-		point4f = *lightViewMatrix * point4f;
+		point4f = *light_view_matrix * point4f;
 		return point4f;
 	}
 
@@ -265,10 +265,10 @@ public:
 	*/
 	void calculateWidthsAndHeights()
 	{
-		farWidth = float(SHADOW_DISTANCE * tan(glm::radians(FOV)));
-		nearWidth = float(CLIP_NEAR * tan(glm::radians(FOV)));
-		farHeight = farWidth / getAspectRatio();
-		nearHeight = nearWidth / getAspectRatio();
+		far_width = float(SHADOW_DISTANCE * tan(glm::radians(FOV)));
+		near_width = float(CLIP_NEAR * tan(glm::radians(FOV)));
+		far_height = far_width / getAspectRatio();
+		near_height = near_width / getAspectRatio();
 	}
 
 	/**
