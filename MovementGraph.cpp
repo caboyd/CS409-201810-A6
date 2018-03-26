@@ -39,17 +39,17 @@ void MovementGraph::init(const std::vector<std::unique_ptr<Disk>>& disks)
 			unsigned node_id_i = addNode(position_i, i);
 			unsigned node_id_j = addNode(position_j, j);
 
-			float weight_ij = calculateWeightBetweenDisks(disks, node_id_i, node_id_j);
+			const float weight_ij = calculateWeightBetweenDisks(disks, node_id_i, node_id_j);
 			addLink(i, node_id_i, j, node_id_j, weight_ij);
 
 			for (auto& node_id_k : disk_node_list[i])
 			{
-				float weight_ik = calculateWeightSameDisk(disks, node_id_i, node_id_k);
+				const float weight_ik = calculateWeightSameDisk(disks, node_id_i, node_id_k);
 				addLink(i, node_id_i, node_list[node_id_k].disk_id, node_id_k, weight_ik);
 			}
 			for (auto& node_id_k : disk_node_list[j])
 			{
-				float weight_jk = calculateWeightSameDisk(disks, node_id_j, node_id_k);
+				const float weight_jk = calculateWeightSameDisk(disks, node_id_j, node_id_k);
 				addLink(j, node_id_j, node_list[node_id_k].disk_id, node_id_k, weight_jk);
 			}
 
@@ -149,16 +149,16 @@ std::deque<unsigned> MovementGraph::aStarSearch(unsigned node_start_id, unsigned
 			//if(!queue_start.isEnqueued(link.dest_node_id))
 			//	queue_start.enqueueOrSetPriority(link.dest_node_id, HIGH_VALUE);
 
-			const float g_score = search_data[curr].start.given_cost + link.weight;
+			const float given_cost = search_data[curr].start.given_cost + link.weight;
 
 			//If better path
-			if (g_score < search_data[link.dest_node_id].start.given_cost)
+			if (given_cost < search_data[link.dest_node_id].start.given_cost)
 			{
 				//f = g + h
 				//update g
-				search_data[link.dest_node_id].start.given_cost = g_score;
+				search_data[link.dest_node_id].start.given_cost = given_cost;
 				//update priority f = g + h
-				search_data[link.dest_node_id].start.priority = g_score + search_data[link.dest_node_id].start.heuristic;
+				search_data[link.dest_node_id].start.priority = given_cost + search_data[link.dest_node_id].start.heuristic;
 				//Mark the node we came from
 				search_data[link.dest_node_id].start.path_node = curr;
 				//Update open list with priority (f = g + h)

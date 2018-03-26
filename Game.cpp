@@ -139,6 +139,7 @@ void Game::update(double fixed_delta_time)
 	if (g_key_pressed[32])
 		player.jump();
 
+	//Update the player
 	player.update(world, delta_time_seconds);
 
 
@@ -158,15 +159,13 @@ void Game::update(double fixed_delta_time)
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
 	if (player.coordinate_system.getPosition() != last_player_pos)
 	{
-		player_moved = true;
 		camera_float = false;
 	}
 
 	if (player.coordinate_system.getForward() != last_player_forward)
 		camera_float = false;
-
-	const Vector3& player_forward = player.coordinate_system.getForward();
-
+	
+	//Update the animation states for the player
 	if (g_key_pressed['W'] || (g_key_pressed[MOUSE_LEFT] && g_key_pressed[MOUSE_RIGHT]) || g_key_pressed[KEY_UP_ARROW])
 	{
 		player.transitionAnimationTo(Player_State::Running);
@@ -264,8 +263,6 @@ void Game::update(double fixed_delta_time)
 
 	//Overview camera follows player position
 	overview_camera.lookAt(player.coordinate_system.getPosition());
-
-
 
 }
 
@@ -626,14 +623,14 @@ void Game::playerAccelerateRight(float delta_time)
 
 void Game::playerTurnLeft(float delta_time)
 {
-	const float player_turn = float(TURNING_DEGREES/g_time_scale * delta_time);
+	const float player_turn = float(TURNING_DEGREES * delta_time);
 	player.coordinate_system.rotateAroundUp(player_turn);
 }
 
 
 void Game::playerTurnRight(float delta_time)
 {
-	const float player_turn = float(TURNING_DEGREES/g_time_scale * delta_time);
+	const float player_turn = float(TURNING_DEGREES * delta_time);
 	player.coordinate_system.rotateAroundUp(-player_turn);
 }
 

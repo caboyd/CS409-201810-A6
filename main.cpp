@@ -1,7 +1,7 @@
 /*
  *
  *	Main.cpp
- *	Assignment 4
+ *	Assignment 5
  *	Author: Chris Boyd, 200225231
  *
  *	Description:
@@ -15,7 +15,13 @@
  *		Rings and rods are worth points. The player can collect them for points.
  *		Player has acceleration and can slide down steep slopes
  *		Player can jump and fall off of disks.
- *
+ *		
+ *		A graph is built from the world and displayed using colored lines depeding on the weight.
+ *		Rings choose a random node destination and use Meet in the middle pathfinding to find a path
+ *		to a goal.
+ *		
+ *		In the overview camera colored spheres represent the search algorithm results for ring 0.
+ *		The white line is the path of ring 0
  *
  *		KEY BINDINGS:
  *		[Tab]: Loads the next file in the world folder.
@@ -26,9 +32,10 @@
  *		Right mouse button: Hold down to turn.
  *		Left/Right mouse buttons: Hold down to move forward.
  *	    O: Hold to change to overview camera.
- *		H: to toggle the time scale
  *		L: Toggles Lighting
  *
+ *		+: Increase time scale
+ *		-: Decrease time scale
  *
  */
 
@@ -69,11 +76,13 @@ int main(int argc, char* argv[])
 	srand(unsigned(time(nullptr)));
 	Random::init();
 
+	glutInit(&argc, argv);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA | GLUT_MULTISAMPLE);
+	glutInitContextVersion (3, 3);
+
 	glutInitWindowSize(g_win_width, g_win_height);
 	glutInitWindowPosition(0, 0);
 
-	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB | GLUT_MULTISAMPLE);
 	glutCreateWindow("Disk Game");
 
 	// add shader initialization here

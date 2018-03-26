@@ -61,7 +61,7 @@ struct NodeLink
 {
 	unsigned source_node_id;
 	unsigned dest_node_id;
-	unsigned disk_id;
+	unsigned disk_id;	 
 	float weight;
 
 	NodeLink(unsigned source_id, unsigned dest_id, unsigned disk_id, float weight)
