@@ -16,11 +16,13 @@ class DepthTexture
 	const std::string depthRTT_vert = "depthRTT.vert";
 	const std::string depthRTT_frag = "depthRTT.frag";
 
+
 	GLuint quad_program_id;
 	GLuint depth_program_id;
 	GLuint quad_vertexbuffer;
 	GLuint depth_frame_buffer;
 	GLuint depth_texture;
+		GLuint VAO;
 	GLint tex_id;
 	GLint depth_matrix_id;
 	GLint tween_enabled_id;
@@ -58,7 +60,7 @@ public:
 	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 	//		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 	//and Change shader to Sampler2D
-	void renderDepthTextureToQuad(unsigned int offsetX, unsigned int offsetY, unsigned int width,
-		unsigned int height) const;
+	void renderDepthTextureToQuad(unsigned offsetX, unsigned offsetY, unsigned width,
+		unsigned height) const;
 
 };

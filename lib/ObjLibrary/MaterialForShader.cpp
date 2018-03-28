@@ -245,7 +245,7 @@ const ObjShader::ShaderUniforms& MaterialForShader :: activate (const glm::mat4x
 	const ObjShader::ShaderUniforms& uniforms = ObjShader::activateShader();
 	activate(uniforms);
 
-	glUniform1i(uniforms.m_tween_enabled, 0);
+
 	glUniformMatrix4fv(uniforms.m_model_matrix,					1, false, &(model_matrix[0][0]));
 	glUniformMatrix4fv(uniforms.m_view_matrix,					1, false, &(view_matrix[0][0]));
 	glUniformMatrix4fv(uniforms.m_model_view_projection_matrix,	1, false, &(model_view_projection_matrix[0][0]));
@@ -393,6 +393,9 @@ void MaterialForShader :: activate (const ObjShader::ShaderUniforms& uniforms) c
 	glUniform1i(uniforms.m_shininess_channel,    m_shininess_channel);
 
 	glUniform1iv(uniforms.m_a_is_texture_active, 6, ma_is_texture_active);
+
+	glUniform1i(uniforms.m_tween_enabled, 0);
+	glUniform1f(uniforms.m_tween_factor, 0);
 }
 
 

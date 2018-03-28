@@ -160,8 +160,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 }
 void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix, const glm::vec3& camera_pos)
 {
-
-
+		
 	//For each disk draw all the black cylinder bases
 //Setup to draw the black disk cylinders for all disks
 	const MaterialForShader& base = disks[0]->model->getMaterial(1);
@@ -171,6 +170,7 @@ void World::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat4x4& pro
 
 	glUniformMatrix4fv(uniforms.m_view_matrix, 1, false, &(view_matrix[0][0]));
 	glUniform3fv(uniforms.m_camera_pos, 1, &(camera_pos.x));
+
 
 	const glm::mat4 vp_matrix = projection_matrix * view_matrix;
 
@@ -284,8 +284,8 @@ void World::drawDepthOptimized(const Vector3& position, float radius, const glm:
 
 		depth_mvp = depth_view_projection_matrix * model_matrix;
 		g_depth_texture.setDepthMVP(depth_mvp);
-
-		disk->heightMapModel.getMesh(0, 0).draw();
+		if(disk->heightMapModel.getMeshCountTotal() > 0)
+			disk->heightMapModel.getMesh(0, 0).draw();
 	}
 }
 

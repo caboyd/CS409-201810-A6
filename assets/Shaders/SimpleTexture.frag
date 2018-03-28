@@ -7,5 +7,6 @@ in vec2 UV;
 
 void main()
 {
-	color = texture(texture1, UV);
+	float depth = texture(texture1, UV).r;
+	color = vec4(depth,depth,depth,1.0);
 }

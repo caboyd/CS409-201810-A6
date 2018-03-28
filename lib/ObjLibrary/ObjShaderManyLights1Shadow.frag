@@ -46,7 +46,7 @@ uniform sampler2D      ambient_texture;
 uniform sampler2D      diffuse_texture;
 uniform sampler2D     specular_texture;
 uniform sampler2D    shininess_texture;
-uniform sampler2DShadow     shadow_map;
+uniform sampler2D     shadow_map;
 
 uniform int       transparency_channel;
 uniform int          shininess_channel;
@@ -107,10 +107,10 @@ void main()
 	//Computes a z-bias to remove z-fighting and shadow acne
 	vec3 n = normalize( normal_cameraspace);
     vec3 l = normalize( light_direction_cameraspace ) ;
-	//l = normalize(light_position[0].xyz);
-	//n = normalized_normal;
+	l = normalize(to_camera-light_position[0].xyz);
+	n = normalized_normal;
 	float cosTheta = clamp( dot( n,l ), 0,1 );
-	float bias = 0.002*tan(acos(cosTheta));
+	float bias = 0.005*tan(acos(cosTheta));
 	bias = clamp(bias, 0.0, 0.005);
 
 	// Sample the shadow map up to 16 times
@@ -133,12 +133,12 @@ void main()
 		//subtract by bias to remove shadow acne and z-fighting		
 
 		//NOTE: Use this for Sampler2DShadow textures
-		light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z-bias/shadow_coord.w)) ));
+		//light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z-bias/shadow_coord.w)) ));
 
 		//NOTE: Use this for Sampler2D textures
-		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z-bias/shadow_coord.w) ){
-		//	light_factor-= (shadow_coord.w) * (1.0/16.0);
-		//}
+		if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z) ){
+			light_factor-= (shadow_coord.w) * (1.0/16.0);
+		}
 	}
 	
 

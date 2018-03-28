@@ -92,11 +92,11 @@ void main()
 
     //Shaodw_coord.w will be used to fade in and out shadows softly when they are far from camera
 	vec4 to_camera_view_space = view_matrix * world_position;
-    float distance = length(to_camera_view_space.xyz);
+    float distance1 = length(to_camera_view_space.xyz);
 
-	distance = distance - (shadow_distance - transition_distance);
-    distance = distance / transition_distance;
-    shadow_coord.w = clamp(1.0 - distance, 0.0, 1.0);
+	distance1 = distance1 - (shadow_distance - transition_distance);
+    distance1 = distance1 / transition_distance;
+    shadow_coord.w = clamp(1.0 - distance1, 0.0, 1.0);
 }
 
 

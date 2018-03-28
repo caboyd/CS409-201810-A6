@@ -26,22 +26,23 @@
 #include "CoordinateSystem.h"
 using namespace ObjLibrary;
 
-#define DEFAULT_SHADOW_DISTANCE 35.0
+#define DEFAULT_SHADOW_DISTANCE 25.0
 
-extern const double CLIP_NEAR;
-extern const double CLIP_FAR;
-extern const double FOV;
+
+
 extern int g_win_width;
 extern int g_win_height;
 
 class ShadowBox
 {
 
-private:
+public:
 	float SHADOW_DISTANCE;
 
-
-	const float OFFSET = 7.0f;
+	const float FOV = 45.0f;
+	const float OFFSET = 4.0f;
+	const float CLIP_NEAR = 1.0f;
+	const float CLIP_FAR = 96.0f;
 	const float TRANSITION_DISTANCE = 5.0f;
 
 	glm::vec4 UP = glm::vec4(0, 1, 0, 0);
@@ -88,16 +89,17 @@ public:
 	*/
 	void update()
 	{
-		const glm::mat4 rotation = glm::transpose(calculateCameraRotationMatrix());
+		//const glm::mat4 rotation = glm::transpose(calculateCameraRotationMatrix());
 
-		const Vector3 forward_vector(rotation * -FORWARD);
+		const Vector3 forward_vector = (*cam)->getForward();
+		const Vector3 up_vector = (*cam)->getUp();
 		const Vector3 to_far = forward_vector * SHADOW_DISTANCE;
-		const Vector3 to_near = forward_vector * CLIP_NEAR;
+		const Vector3 to_near = forward_vector * (CLIP_NEAR );
 
 		const Vector3 center_near = to_near + (*cam)->getPosition();
 		const Vector3 center_far = to_far + (*cam)->getPosition();
 
-		glm::vec4* points = calculateFrustumVertices(rotation, forward_vector, center_near,
+		glm::vec4* points = calculateFrustumVertices(up_vector, forward_vector, center_near,
 			center_far);
 
 		bool first = true;
@@ -197,21 +199,18 @@ public:
 	*            plane.
 	* @return The positions of the vertices of the frustum in light space.
 	*/
-	glm::vec4* calculateFrustumVertices(const glm::mat4x4& rotation, const Vector3& forward_vector,
+	glm::vec4* calculateFrustumVertices(const Vector3& up_vector, const Vector3& forward_vector,
 		const Vector3& center_near, const Vector3& center_far) const
 	{
-		const Vector3 up_vector(rotation * UP);
+
 		const Vector3 right_vector = forward_vector.crossProduct(up_vector);
 		const Vector3 down_vector = -up_vector;
 		const Vector3 left_vector = -right_vector;
-		const Vector3 far_top = center_far + Vector3(up_vector.x * far_height,
-			up_vector.y * far_height, up_vector.z * far_height);
-		const Vector3 far_bottom = center_far + Vector3(down_vector.x * far_height,
-			down_vector.y * far_height, down_vector.z * far_height);
-		const Vector3 near_top = center_near + Vector3(up_vector.x * near_height,
-			up_vector.y * near_height, up_vector.z * near_height);
-		const Vector3 near_bottom = center_near + Vector3(down_vector.x * near_height,
-			down_vector.y * near_height, down_vector.z * near_height);
+		const Vector3 far_top = center_far + up_vector * far_height;
+		const Vector3 far_bottom = center_far + down_vector * far_height;
+		const Vector3 near_top = center_near + up_vector * near_height;
+		const Vector3 near_bottom = center_near + down_vector *  near_height;
+
 		auto* points = new glm::vec4[8];
 		points[0] = calculateLightSpaceFrustumCorner(far_top, right_vector, far_width);
 		points[1] = calculateLightSpaceFrustumCorner(far_top, left_vector, far_width);
@@ -266,7 +265,7 @@ public:
 	void calculateWidthsAndHeights()
 	{
 		far_width = float(SHADOW_DISTANCE * tan(glm::radians(FOV)));
-		near_width = float(CLIP_NEAR * tan(glm::radians(FOV)));
+		near_width = float((CLIP_NEAR) * tan(glm::radians(FOV)));
 		far_height = far_width / getAspectRatio();
 		near_height = near_width / getAspectRatio();
 	}
@@ -292,6 +291,6 @@ public:
 
 	float getShadowFadeDistance() const
 	{
-		return SHADOW_DISTANCE + TRANSITION_DISTANCE;
+		return SHADOW_DISTANCE*2 + TRANSITION_DISTANCE;
 	}
 };

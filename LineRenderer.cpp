@@ -26,7 +26,7 @@ void LineRenderer::init()
 }
 
 
-void LineRenderer::draw(const std::vector<Point>& vertexData, glm::mat4& vp_matrix) const
+void LineRenderer::draw(const std::vector<Point>& vertexData, const glm::mat4& vp_matrix) const
 {
 	glUseProgram(line_program_id);
 
@@ -95,7 +95,7 @@ void LineRenderer::drawPointList(const std::vector<Point>& point_list, const glm
 
 }
 
-void LineRenderer::draw(const std::vector<Vector3>& points, const glm::vec4& color, glm::mat4& vp_matrix) const
+void LineRenderer::draw(const std::vector<Vector3>& points, const glm::vec4& color, const glm::mat4& vp_matrix) const
 {
 	std::vector<Point> vertex_data;
 	vertex_data.resize(points.size() * 2 - 2);
@@ -110,7 +110,7 @@ void LineRenderer::draw(const std::vector<Vector3>& points, const glm::vec4& col
 	draw(vertex_data, vp_matrix);
 }
 
-void LineRenderer::draw(const Vector3& p1, const Vector3& p2, const glm::vec4& color, glm::mat4& vp_matrix)  const
+void LineRenderer::draw(const Vector3& p1, const Vector3& p2, const glm::vec4& color, const glm::mat4& vp_matrix)  const
 {
 	std::vector<Point> vertex_data;
 	vertex_data.resize(2);

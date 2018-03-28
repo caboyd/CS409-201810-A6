@@ -77,8 +77,8 @@ int main(int argc, char* argv[])
 	Random::init();
 
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGBA | GLUT_MULTISAMPLE);
-	glutInitContextVersion (3, 3);
+	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB | GLUT_MULTISAMPLE);
+	//glutInitContextVersion (4, 4);
 
 	glutInitWindowSize(g_win_width, g_win_height);
 	glutInitWindowPosition(0, 0);
@@ -152,6 +152,19 @@ void keyboard(unsigned char key, int x, int y)
 	//These should only happen on key down not hold
 	switch (key)
 	{
+	case '9':
+		g_polygon_offset_factor -= 0.1f;
+		break;
+	case '0':
+		g_polygon_offset_factor += 0.1f;
+		break;
+	case '1':
+		g_polygon_offset_units -= 0.1f;
+		break;
+	case '2':
+		g_polygon_offset_units += 0.1f;
+		break;
+
 	case '+':
 		if (!g_key_pressed['+'])
 		{

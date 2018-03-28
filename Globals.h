@@ -124,3 +124,5 @@ global_extern int g_mouse_locked_x, g_mouse_locked_y;
 
 //Screen space projection matrix
 global_extern glm::mat4 g_projection_matrix;
+
+global_extern float g_polygon_offset_factor, g_polygon_offset_units;

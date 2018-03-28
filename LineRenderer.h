@@ -48,14 +48,14 @@ public:
 	void preAllocateLine(unsigned size);
 
 	//Draws Lines connecting the specified 2 points using the giving color and vp matrix
-	void draw(const Vector3& p1, const Vector3& p2, const glm::vec4& color, glm::mat4& vp_matrix) const;
+	void draw(const Vector3& p1, const Vector3& p2, const glm::vec4& color, const glm::mat4& vp_matrix) const;
 
 	//Draws Lines connecting the specified pooints using the giving color and mvp matrix
-	void draw(const std::vector<Vector3>& points, const glm::vec4& color, glm::mat4& vp_matrix) const;
+	void draw(const std::vector<Vector3>& points, const glm::vec4& color, const glm::mat4& vp_matrix) const;
 
 	//Draws Lines using the specified point vertexData, and mxp_matrix
 	//Each line requires two vertexes, to draw a line between 3 points, the second point must be duplicated
-	void draw(const std::vector<Point>& vertexData, glm::mat4& vp_matrix) const;
+	void draw(const std::vector<Point>& vertexData, const glm::mat4& vp_matrix) const;
 
 	//Add a line to the points vector
 	void addLine(const glm::vec3& p1, const glm::vec3& p2, const glm::vec4& color);

@@ -2,6 +2,8 @@
 #include <cassert>
 #include <iostream>
 
+extern float g_polygon_offset_factor;
+extern float g_polygon_offset_units;
 
 DepthTexture::DepthTexture()
 {
@@ -50,35 +52,27 @@ unsigned DepthTexture::getTexture() const
 }
 
 void DepthTexture::renderDepthTextureToQuad(unsigned offsetX, unsigned offsetY, unsigned width,
-                                                   unsigned height) const
+	unsigned height) const
 {
 	assert(initialized);
 	glViewport(offsetX, offsetY, width, height); // Render on a corner of the screen
 
 	// Use render to quad shader
 	glUseProgram(quad_program_id);
-
+	glBindVertexArray(VAO);
+	
 	// Bind the texture in Texture Unit 0
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, depth_texture);
 	// Set our "renderedTexture" sampler to use Texture Unit 0
 	glUniform1i(tex_id, 0);
 
-	// 1st attribute buffer : vertices
-	glEnableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
-	glVertexAttribPointer(
-		0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3, // size
-		GL_FLOAT, // type
-		GL_FALSE, // normalized?
-		0, // stride
-		(void*)0 // array buffer offset
-	);
+
 	// Draw the 2 trianges
 	glDrawArrays(GL_TRIANGLES, 0, 6); // 2*3 indices starting at 0 -> 2 triangles
 
-	glDisableVertexAttribArray(0);
+	glBindVertexArray(0);
 }
 
 void DepthTexture::init(unsigned shadow_map_size)
@@ -88,7 +82,7 @@ void DepthTexture::init(unsigned shadow_map_size)
 
 	// Quad program is used to render a texture to the screen
 	quad_program_id = ObjLibrary::ObjShader::initProgramStart(shader_folder + quad_shader_vert,
-	                                                          shader_folder + quad_shader_frag);
+		shader_folder + quad_shader_frag);
 	ObjShader::initProgramEnd(quad_program_id);
 	tex_id = glGetUniformLocation(quad_program_id, "texture1");
 
@@ -113,16 +107,21 @@ void DepthTexture::init(unsigned shadow_map_size)
 	glBindTexture(GL_TEXTURE_2D, depth_texture);
 
 	// Give an empty image to OpenGL ( the last "0" )
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT24, shadow_map_size, shadow_map_size, 0, GL_DEPTH_COMPONENT, GL_FLOAT,
-	             0);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, shadow_map_size, shadow_map_size, 0, GL_DEPTH_COMPONENT, GL_FLOAT, 0);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	//glm::vec4 zeros(1.0f);
+	//glTexParameterfv(GL_TEXTURE_2D, GL_TEXTURE_BORDER_COLOR, &zeros.x);
 
 	//Image filtering
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
+
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE);
 
 	// Set "renderedTexture" as our colour attachement #0
 	glFramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, depth_texture, 0);
@@ -140,7 +139,23 @@ void DepthTexture::init(unsigned shadow_map_size)
 		1.0f, 1.0f, 0.0f,
 	};
 
-	glGenBuffers(1, &quad_vertexbuffer);
-	glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
-	glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+
+			// Configure VAO/VBO for texture quads
+		glGenVertexArrays(1, &VAO);
+		glGenBuffers(1, &quad_vertexbuffer);
+		glBindVertexArray(VAO);
+		glBindBuffer(GL_ARRAY_BUFFER, quad_vertexbuffer);
+		glBufferData(GL_ARRAY_BUFFER, sizeof(g_quad_vertex_buffer_data), g_quad_vertex_buffer_data, GL_STATIC_DRAW);
+		glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(0);
+		glVertexAttribPointer(
+		0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3, // size
+		GL_FLOAT, // type
+		GL_FALSE, // normalized?
+		0, // stride
+		(void*)0 // array buffer offset
+	);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 }

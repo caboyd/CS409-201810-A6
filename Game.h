@@ -56,6 +56,8 @@ private:
 	//The view matrix of the light source that is used for shadows
 	glm::mat4x4 light_view_matrix;
 
+	glm::vec4* shadow_box_points;
+
 public:
 	//Empty Constructor, Init must be used to initialize game
 	Game() = default;

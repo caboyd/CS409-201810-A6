@@ -106,6 +106,19 @@ void Game::init()
 	//LightingManager::setLightAttenuation(1, 1.5f, 0.09f, 0.032f);
 
 
+	const Vector3 forward_vector = active_camera->getForward();
+	const Vector3 up_vector = active_camera->getUp();
+	const Vector3 to_far = forward_vector * shadow_box.SHADOW_DISTANCE;
+	const Vector3 to_near = forward_vector * (shadow_box.CLIP_NEAR);
+
+	const Vector3 center_near = to_near + active_camera->getPosition();
+	const Vector3 center_far = to_far + active_camera->getPosition();
+
+	glm::vec4* points = shadow_box.calculateFrustumVertices(up_vector, forward_vector, center_near,
+		center_far);
+	shadow_box_points = shadow_box.calculateFrustumVertices(up_vector, forward_vector, center_near, center_far);
+
+
 }
 
 void Game::update(double fixed_delta_time)
@@ -164,7 +177,7 @@ void Game::update(double fixed_delta_time)
 
 	if (player.coordinate_system.getForward() != last_player_forward)
 		camera_float = false;
-	
+
 	//Update the animation states for the player
 	if (g_key_pressed['W'] || (g_key_pressed[MOUSE_LEFT] && g_key_pressed[MOUSE_RIGHT]) || g_key_pressed[KEY_UP_ARROW])
 	{
@@ -264,6 +277,45 @@ void Game::update(double fixed_delta_time)
 	//Overview camera follows player position
 	overview_camera.lookAt(player.coordinate_system.getPosition());
 
+
+	if (g_key_pressed['M'])
+	{
+		const Vector3 forward_vector = active_camera->getForward();
+		const Vector3 up_vector = active_camera->getUp();
+		const Vector3 to_far = forward_vector * shadow_box.SHADOW_DISTANCE;
+		const Vector3 to_near = forward_vector * (shadow_box.CLIP_NEAR);
+
+		const Vector3 center_near = to_near + active_camera->getPosition();
+		const Vector3 center_far = to_far + active_camera->getPosition();
+
+		glm::vec4* points = shadow_box.calculateFrustumVertices(up_vector, forward_vector, center_near,
+			center_far);
+		shadow_box_points = shadow_box.calculateFrustumVertices(up_vector, forward_vector, center_near, center_far);
+
+		Vector3 center = -shadow_box.getCenter();
+		Vector3 light_inverse_dir = -SUN_DIR.getNormalized();
+		glm::mat4 lvm = glm::mat4();
+		lvm = glm::translate(lvm, glm::vec3(center.x, center.y, center.z));
+		const float pitch = float(acos(Vector2(light_inverse_dir.x, light_inverse_dir.z).getNorm()));
+		lvm = glm::rotate(lvm, pitch, glm::vec3(1, 0, 0));
+		float yaw = float(atan2(light_inverse_dir.z, light_inverse_dir.x));
+
+		yaw = light_inverse_dir.z > 0 ? yaw - float(MathHelper::M_PI) : yaw;
+		
+		lvm = glm::rotate(lvm, yaw + float(MathHelper::M_PI_2), glm::vec3(0, 1, 0));
+		//lvm = glm::translate(lvm, glm::vec3(-center));
+
+		for (int i = 0; i < 8; i++)
+		{
+
+			shadow_box_points[i] = glm::inverse(light_view_matrix)* shadow_box_points[i];
+			shadow_box_points[i] = lvm * shadow_box_points[i];
+
+
+		}
+
+	}
+
 }
 
 void Game::updateAnimations(double delta_time)
@@ -318,25 +370,29 @@ void Game::display()
 	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
 	glDepthMask(GL_TRUE);
 
+
 	//Draw the world
 	world.drawOptimized(view_matrix, g_projection_matrix, camera_position);
 	pickup_manager.drawOptimized(view_matrix, g_projection_matrix, camera_position);
-	//world.draw(view_matrix, projection_matrix, active_camera->getPosition());
+
+
+	player.draw(view_matrix, g_projection_matrix, camera_position);
 
 
 	const std::string text = "Score: " + std::to_string(pickup_manager.getScore());
 	const float text_width = g_text_renderer.getWidth(text, 0.75f);
-	g_text_renderer.draw(text, float(g_win_width - text_width - 10), float(g_win_height - 40), 0.75f, glm::vec3(1, 1, 1));
+	//g_text_renderer.draw(text, float(g_win_width - text_width - 10), float(g_win_height - 40), 0.75f, glm::vec3(1, 1, 1));
 
 
-	player.draw(view_matrix, g_projection_matrix, camera_position);
+
+
 
 	displayMovementGraph(view_matrix, g_projection_matrix);
 
 
 
 	//Draw the node ids
-	//displayNodeNameplates(view_matrix);
+	//displayNodeNameplates(view_matrix, g_projection_matrix);
 
 	//Draw the Search path for overview camera
 	displaySearchPathSpheres(view_matrix, g_projection_matrix);
@@ -359,16 +415,87 @@ void Game::display()
 	g_text_renderer.draw("Node Links: " + std::to_string(world_graph.getNodeLinkCount()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
 
 
-		//Number of node visits for the ring0 path seach per algorithm
+	//Number of node visits for the ring0 path seach per algorithm
 	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
 		float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + realToString(100 * float(a_visits) / float(d_visits),2) + "%",
+	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + realToString(100 * float(a_visits) / float(d_visits), 2) + "%",
 		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + realToString(100 * float(mm_visits) / float(d_visits),2) + "%",
+	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + realToString(100 * float(mm_visits) / float(d_visits), 2) + "%",
 		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
 
+
+	g_text_renderer.draw("Polygon offset factor: " + realToString(g_polygon_offset_factor, 1), 2, float(g_win_height - 184), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Polygon offset units: " + realToString(g_polygon_offset_units, 1), 2, float(g_win_height - 204), 0.4f, glm::vec3(0, 1, 0));
+
+
+	glm::mat4x4 depthProjectionMatrix;
+	depthProjectionMatrix[0][0] = 2.0f / shadow_box.getWidth();
+	depthProjectionMatrix[1][1] = 2.0f / shadow_box.getHeight();
+	depthProjectionMatrix[2][2] = -2.0f / shadow_box.getLength();
+	depthProjectionMatrix[3][3] = 1;
+
+	const glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
+
+	for (int i = 0; i < 8; i++)
+	{
+
+		float scale = 1.5;
+		glm::vec3 color = glm::vec3(0, 1, 0);
+		if (i >= 4) color = glm::vec3(1, 1, 1);
+		const Vector3& pos = glm::vec3(shadow_box_points[i].x, shadow_box_points[i].y, shadow_box_points[i].z);
+
+		glm::mat4 model = glm::mat4();
+		model = glm::translate(model, glm::vec3(pos));
+		//model = glm::scale(model, glm::vec3(scale, scale, scale));
+		const glm::mat4 mvp_matrix = g_projection_matrix * view_matrix * model;
+		g_sphere_renderer.draw(color, model, view_matrix, mvp_matrix);
+
+		//Dont draw numbers behind camera
+		if (active_camera->getForward().dotProduct(active_camera->getPosition() - pos) <= 0)
+		{
+			glm::mat4 model = glm::mat4();
+			model = glm::translate(model, glm::vec3(pos));
+			model *= view_matrix;
+			const glm::vec3 coord = glm::project(glm::vec3(pos), model, g_projection_matrix, viewport);
+			g_text_renderer.draw(std::to_string(i), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
+		}
+	}
+
+	const glm::vec3 p1 = glm::vec3(shadow_box_points[0].x, shadow_box_points[0].y, shadow_box_points[0].z);
+	const glm::vec3 p2 = glm::vec3(shadow_box_points[1].x, shadow_box_points[1].y, shadow_box_points[1].z);
+	const glm::vec3 p3 = glm::vec3(shadow_box_points[2].x, shadow_box_points[2].y, shadow_box_points[2].z);
+	const glm::vec3 p4 = glm::vec3(shadow_box_points[3].x, shadow_box_points[3].y, shadow_box_points[3].z);
+	const glm::vec3 p5 = glm::vec3(shadow_box_points[4].x, shadow_box_points[4].y, shadow_box_points[4].z);
+	const glm::vec3 p6 = glm::vec3(shadow_box_points[5].x, shadow_box_points[5].y, shadow_box_points[5].z);
+	const glm::vec3 p7 = glm::vec3(shadow_box_points[6].x, shadow_box_points[6].y, shadow_box_points[6].z);
+	const glm::vec3 p8 = glm::vec3(shadow_box_points[7].x, shadow_box_points[7].y, shadow_box_points[7].z);
+	const glm::vec4 color = glm::vec4(1, 1, 1, 1);
+	g_line_renderer.addLine(p1, p2, color);
+	g_line_renderer.addLine(p1, p3, color);
+	g_line_renderer.addLine(p1, p5, color);
+	g_line_renderer.addLine(p2, p4, color);
+	g_line_renderer.addLine(p2, p6, color);
+	g_line_renderer.addLine(p3, p4, color);
+	g_line_renderer.addLine(p3, p7, color);
+	g_line_renderer.addLine(p4, p8, color);
+	g_line_renderer.addLine(p5, p6, color);
+	g_line_renderer.addLine(p5, p7, color);
+	g_line_renderer.addLine(p6, p8, color);
+	g_line_renderer.addLine(p7, p8, color);
+
+	glm::mat4 vp = g_projection_matrix * view_matrix;
+	g_line_renderer.drawLinesAndClear(vp);
+
+	glm::mat4 model = glm::mat4();
+	model = glm::translate(model, glm::vec3(shadow_box.getCenter()));
+	glm::mat4 mvp = g_projection_matrix * view_matrix * model;
+	g_sphere_renderer.draw(glm::vec3(1, 0, 1), model_matrix, view_matrix, mvp);
+
+
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
-	//depth_texture.renderDepthTextureToQuad(0, 0, 512, 512);
+	g_depth_texture.renderDepthTextureToQuad(0, 0, 128, 128);
+
+
 
 
 	// send the current image to the screen - any drawing after here will not display
@@ -491,7 +618,7 @@ void Game::displaySearchPathSpheres(const glm::mat4& view_matrix,
 				float scale = 1.5;
 
 				//If on path make them bigger
-				if(i == start_node_id || i == end_node_id || i == meeting_node_id)
+				if (i == start_node_id || i == end_node_id || i == meeting_node_id)
 					scale = 3.0;
 
 
@@ -528,6 +655,9 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 
 	g_depth_texture.startRenderToDepthTexture();
 	glDisable(GL_CULL_FACE);
+	glEnable(GL_POLYGON_OFFSET_FILL);
+	glPolygonOffset(g_polygon_offset_factor, g_polygon_offset_units);
+
 
 	const Vector3& player_forward = player.coordinate_system.getForward();
 	const Vector3&player_position = player.coordinate_system.getPosition();
@@ -552,10 +682,11 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 	light_view_matrix = glm::mat4();
 	const float pitch = float(acos(Vector2(light_inverse_dir.x, light_inverse_dir.z).getNorm()));
 	light_view_matrix = glm::rotate(light_view_matrix, pitch, glm::vec3(1, 0, 0));
-	float yaw = float(atan2(light_inverse_dir.x, light_inverse_dir.z));
+	float yaw = float(atan2(light_inverse_dir.z, light_inverse_dir.x));
 
 	yaw = light_inverse_dir.z > 0 ? yaw - float(MathHelper::M_PI) : yaw;
-	light_view_matrix = glm::rotate(light_view_matrix, -yaw + float(MathHelper::M_PI), glm::vec3(0, 1, 0));
+
+	light_view_matrix = glm::rotate(light_view_matrix, yaw + float(MathHelper::M_PI_2), glm::vec3(0, 1, 0));
 	light_view_matrix = glm::translate(light_view_matrix, glm::vec3(center.x, center.y, center.z));
 
 	depth_vp = depthProjectionMatrix * light_view_matrix;
@@ -566,6 +697,7 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 	world.drawDepthOptimized(player_position, shadow_box.getShadowFadeDistance(), depth_vp);
 	pickup_manager.drawDepthOptimized(player_position, shadow_box.getShadowFadeDistance(), depth_vp);
 
+	glDisable(GL_POLYGON_OFFSET_FILL);
 }
 
 void Game::destroyIntoNextWorld()

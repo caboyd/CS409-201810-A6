@@ -14,7 +14,7 @@ public:
 	const std::string REDROCKMODEL_FILENAME = "assets/Models/DiskA.obj";
 	const std::string LEAFYMODEL_FILENAME = "assets/Models/DiskB.obj";
 	const std::string ICYMODEL_FILENAME = "assets/Models/DiskC.obj";
-	const std::string SANDYMODEL_FILENAME = "assets/Models/DiskD.obj";
+	const std::string SANDYMODEL_FILENAME = "assets/Models/DiskDSolid.obj";
 	const std::string GREYROCKMODEL_FILENAME = "assets/Models/DiskE.obj";
 	const std::string ROD_FILENAME = "assets/Models/Rod.obj";
 	const std::string RING_FILENAME = "assets/Models/Ring.obj";
