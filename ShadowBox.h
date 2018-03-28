@@ -26,7 +26,7 @@
 #include "CoordinateSystem.h"
 using namespace ObjLibrary;
 
-#define DEFAULT_SHADOW_DISTANCE 25.0
+#define DEFAULT_SHADOW_DISTANCE 45.0
 
 
 
@@ -39,8 +39,8 @@ class ShadowBox
 public:
 	float SHADOW_DISTANCE;
 
-	const float FOV = 45.0f;
-	const float OFFSET = 4.0f;
+	const float FOV = 60.0f;
+	const float OFFSET = 7.0f;
 	const float CLIP_NEAR = 1.0f;
 	const float CLIP_FAR = 96.0f;
 	const float TRANSITION_DISTANCE = 5.0f;

@@ -78,7 +78,7 @@ int main(int argc, char* argv[])
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB | GLUT_MULTISAMPLE);
-	//glutInitContextVersion (4, 4);
+	//glutInitContextVersion (4,6);
 
 	glutInitWindowSize(g_win_width, g_win_height);
 	glutInitWindowPosition(0, 0);

@@ -96,7 +96,7 @@ void main()
 
 	distance1 = distance1 - (shadow_distance - transition_distance);
     distance1 = distance1 / transition_distance;
-    shadow_coord.w = clamp(1.0 - distance1, 0.0, 1.0);
+  //  shadow_coord.w = clamp(1.0 - distance1, 0.0, 1.0);
 }
 
 

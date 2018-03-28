@@ -94,13 +94,6 @@ void main()
 	//Objects not in show have full light
 	float light_factor = 1.0;
 
-	//Computes a z-bias to remove z-fighting and shadow acne
-	vec3 n = normalize( normal_cameraspace);
-    vec3 l = normalize( light_direction_cameraspace );
-	float cosTheta = clamp( dot( n,l ), 0.0,1.0 );
-	float bias = 0.002*tan(acos(cosTheta));
-	bias = clamp(bias, 0.0, 0.005);
-
 	// Sample the shadow map up to 16 times
 	// TODO - Should implement early bailing
 	for (int i=0;i<16;i++)
@@ -122,10 +115,11 @@ void main()
 		//subtract by bias to remove shadow acne and z-fighting
 
 		//NOTE: Use this for Sampler2DShadow textures
-		light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z-bias/shadow_coord.w)) ));
+		float vis = 1.0 - texture(shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z)));
+			light_factor -=shadow_coord.w* vis* (1.0/16.0);
 
 		//NOTE: Use this for Sampler2D textures
-		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z-bias/shadow_coord.w) ){
+		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z) ){
 		//	light_factor-= (shadow_coord.w) * (1.0/16.0);
 		//}
 	}

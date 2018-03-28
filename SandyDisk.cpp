@@ -19,7 +19,7 @@ SandyDisk::SandyDisk(ModelWithShader* model, Vector3 postion, float radius)
 	//p.start();
 	SandyDisk::generateHeightMap();
 	//std::cout << "sandy disk time " << p.getCounter() << std::endl;
-	//Disk::generateHeightMapModel();
+	Disk::generateHeightMapModel();
 }
 
 

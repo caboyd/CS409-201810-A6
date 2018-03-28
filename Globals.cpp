@@ -101,5 +101,5 @@ double g_time_scale = TIME_SCALES[g_time_scale_id];
 
 glm::mat4 g_projection_matrix = glm::mat4();
 
-float g_polygon_offset_factor = 1.75f;
-float g_polygon_offset_units = 1.25f;
+float g_polygon_offset_factor = 2.0f;
+float g_polygon_offset_units = 2.2f;

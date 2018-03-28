@@ -277,45 +277,6 @@ void Game::update(double fixed_delta_time)
 	//Overview camera follows player position
 	overview_camera.lookAt(player.coordinate_system.getPosition());
 
-
-	if (g_key_pressed['M'])
-	{
-		const Vector3 forward_vector = active_camera->getForward();
-		const Vector3 up_vector = active_camera->getUp();
-		const Vector3 to_far = forward_vector * shadow_box.SHADOW_DISTANCE;
-		const Vector3 to_near = forward_vector * (shadow_box.CLIP_NEAR);
-
-		const Vector3 center_near = to_near + active_camera->getPosition();
-		const Vector3 center_far = to_far + active_camera->getPosition();
-
-		glm::vec4* points = shadow_box.calculateFrustumVertices(up_vector, forward_vector, center_near,
-			center_far);
-		shadow_box_points = shadow_box.calculateFrustumVertices(up_vector, forward_vector, center_near, center_far);
-
-		Vector3 center = -shadow_box.getCenter();
-		Vector3 light_inverse_dir = -SUN_DIR.getNormalized();
-		glm::mat4 lvm = glm::mat4();
-		lvm = glm::translate(lvm, glm::vec3(center.x, center.y, center.z));
-		const float pitch = float(acos(Vector2(light_inverse_dir.x, light_inverse_dir.z).getNorm()));
-		lvm = glm::rotate(lvm, pitch, glm::vec3(1, 0, 0));
-		float yaw = float(atan2(light_inverse_dir.z, light_inverse_dir.x));
-
-		yaw = light_inverse_dir.z > 0 ? yaw - float(MathHelper::M_PI) : yaw;
-		
-		lvm = glm::rotate(lvm, yaw + float(MathHelper::M_PI_2), glm::vec3(0, 1, 0));
-		//lvm = glm::translate(lvm, glm::vec3(-center));
-
-		for (int i = 0; i < 8; i++)
-		{
-
-			shadow_box_points[i] = glm::inverse(light_view_matrix)* shadow_box_points[i];
-			shadow_box_points[i] = lvm * shadow_box_points[i];
-
-
-		}
-
-	}
-
 }
 
 void Game::updateAnimations(double delta_time)
@@ -406,8 +367,6 @@ void Game::display()
 		d_visits = world_graph.getMemorizedDijsktraVisits(),
 		mm_visits = world_graph.getMemorizedmmVisits();
 
-
-
 	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Display Rate: " + std::to_string(long(round(g_display_fps))), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Time Scale: " + realToString(g_time_scale, 2) + 'x', 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
@@ -422,75 +381,6 @@ void Game::display()
 		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
 	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + realToString(100 * float(mm_visits) / float(d_visits), 2) + "%",
 		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
-
-
-	g_text_renderer.draw("Polygon offset factor: " + realToString(g_polygon_offset_factor, 1), 2, float(g_win_height - 184), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Polygon offset units: " + realToString(g_polygon_offset_units, 1), 2, float(g_win_height - 204), 0.4f, glm::vec3(0, 1, 0));
-
-
-	glm::mat4x4 depthProjectionMatrix;
-	depthProjectionMatrix[0][0] = 2.0f / shadow_box.getWidth();
-	depthProjectionMatrix[1][1] = 2.0f / shadow_box.getHeight();
-	depthProjectionMatrix[2][2] = -2.0f / shadow_box.getLength();
-	depthProjectionMatrix[3][3] = 1;
-
-	const glm::vec4 viewport = glm::vec4(0, 0, g_win_width, g_win_height);
-
-	for (int i = 0; i < 8; i++)
-	{
-
-		float scale = 1.5;
-		glm::vec3 color = glm::vec3(0, 1, 0);
-		if (i >= 4) color = glm::vec3(1, 1, 1);
-		const Vector3& pos = glm::vec3(shadow_box_points[i].x, shadow_box_points[i].y, shadow_box_points[i].z);
-
-		glm::mat4 model = glm::mat4();
-		model = glm::translate(model, glm::vec3(pos));
-		//model = glm::scale(model, glm::vec3(scale, scale, scale));
-		const glm::mat4 mvp_matrix = g_projection_matrix * view_matrix * model;
-		g_sphere_renderer.draw(color, model, view_matrix, mvp_matrix);
-
-		//Dont draw numbers behind camera
-		if (active_camera->getForward().dotProduct(active_camera->getPosition() - pos) <= 0)
-		{
-			glm::mat4 model = glm::mat4();
-			model = glm::translate(model, glm::vec3(pos));
-			model *= view_matrix;
-			const glm::vec3 coord = glm::project(glm::vec3(pos), model, g_projection_matrix, viewport);
-			g_text_renderer.draw(std::to_string(i), coord.x, coord.y, 0.3f, glm::vec3(0.5, 1, 1));
-		}
-	}
-
-	const glm::vec3 p1 = glm::vec3(shadow_box_points[0].x, shadow_box_points[0].y, shadow_box_points[0].z);
-	const glm::vec3 p2 = glm::vec3(shadow_box_points[1].x, shadow_box_points[1].y, shadow_box_points[1].z);
-	const glm::vec3 p3 = glm::vec3(shadow_box_points[2].x, shadow_box_points[2].y, shadow_box_points[2].z);
-	const glm::vec3 p4 = glm::vec3(shadow_box_points[3].x, shadow_box_points[3].y, shadow_box_points[3].z);
-	const glm::vec3 p5 = glm::vec3(shadow_box_points[4].x, shadow_box_points[4].y, shadow_box_points[4].z);
-	const glm::vec3 p6 = glm::vec3(shadow_box_points[5].x, shadow_box_points[5].y, shadow_box_points[5].z);
-	const glm::vec3 p7 = glm::vec3(shadow_box_points[6].x, shadow_box_points[6].y, shadow_box_points[6].z);
-	const glm::vec3 p8 = glm::vec3(shadow_box_points[7].x, shadow_box_points[7].y, shadow_box_points[7].z);
-	const glm::vec4 color = glm::vec4(1, 1, 1, 1);
-	g_line_renderer.addLine(p1, p2, color);
-	g_line_renderer.addLine(p1, p3, color);
-	g_line_renderer.addLine(p1, p5, color);
-	g_line_renderer.addLine(p2, p4, color);
-	g_line_renderer.addLine(p2, p6, color);
-	g_line_renderer.addLine(p3, p4, color);
-	g_line_renderer.addLine(p3, p7, color);
-	g_line_renderer.addLine(p4, p8, color);
-	g_line_renderer.addLine(p5, p6, color);
-	g_line_renderer.addLine(p5, p7, color);
-	g_line_renderer.addLine(p6, p8, color);
-	g_line_renderer.addLine(p7, p8, color);
-
-	glm::mat4 vp = g_projection_matrix * view_matrix;
-	g_line_renderer.drawLinesAndClear(vp);
-
-	glm::mat4 model = glm::mat4();
-	model = glm::translate(model, glm::vec3(shadow_box.getCenter()));
-	glm::mat4 mvp = g_projection_matrix * view_matrix * model;
-	g_sphere_renderer.draw(glm::vec3(1, 0, 1), model_matrix, view_matrix, mvp);
-
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	g_depth_texture.renderDepthTextureToQuad(0, 0, 128, 128);
