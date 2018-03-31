@@ -89,23 +89,23 @@ void World::init(const std::string& filename)
 		if (radius < 8)
 		{
 			type = RED_ROCK;
-			disks.push_back(std::make_unique<RedRockDisk>(&this->RedRockModel, pos, radius));
+			disks.push_back(std::make_unique<RedRockDisk>(RedRockModel, pos, radius));
 		} else if (radius <= 12)
 		{
 			type = LEAFY;
-			disks.push_back(std::make_unique<LeafyDisk>(&this->LeafyModel, pos, radius));
+			disks.push_back(std::make_unique<LeafyDisk>(LeafyModel, pos, radius));
 		} else if (radius <= 20)
 		{
 			type = ICY;
-			disks.push_back(std::make_unique<IcyDisk>(&this->IcyModel, pos, radius));
+			disks.push_back(std::make_unique<IcyDisk>(IcyModel, pos, radius));
 		} else if (radius <= 30)
 		{
 			type = SANDY;
-			disks.push_back(std::make_unique<SandyDisk>(&this->SandyModel, pos, radius));
+			disks.push_back(std::make_unique<SandyDisk>(SandyModel, pos, radius));
 		} else if (radius > 30)
 		{
 			type = GREY_ROCK;
-			disks.push_back(std::make_unique<GreyRockDisk>(&this->GreyRockModel, pos, radius));
+			disks.push_back(std::make_unique<GreyRockDisk>(GreyRockModel, pos, radius));
 		}
 		disksSorted[type].push_back(disks.back().get());
 		pos.y = double(disks.back()->getHeightAtPosition(float(pos.x), float(pos.z)));

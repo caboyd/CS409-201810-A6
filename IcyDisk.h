@@ -10,7 +10,7 @@ class IcyDisk : public Disk
 private:
 	const unsigned int HEIGHTMAP_SIZE = 48;
 public:
-	IcyDisk(ModelWithShader* model, Vector3 postion, float radius);
+	IcyDisk(const ModelWithShader& model, Vector3 postion, float radius);
 	~IcyDisk() override  = default ;
 
 	//Generates a pointy heightmap using 200 points with random heights

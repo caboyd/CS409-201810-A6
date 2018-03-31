@@ -151,6 +151,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Bat.cpp" />
     <ClCompile Include="CoordinateSystem.cpp" />
     <ClCompile Include="DepthTexture.cpp" />
     <ClCompile Include="Disk.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="World.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Bat.h" />
     <ClInclude Include="Collision.h" />
     <ClInclude Include="CoordinateSystem.h" />
     <ClInclude Include="DepthTexture.h" />

@@ -7,9 +7,9 @@
 using namespace MathHelper;
 
 
-SandyDisk::SandyDisk(ModelWithShader* model, Vector3 postion, float radius)
+SandyDisk::SandyDisk(const ModelWithShader& model, Vector3 postion, float radius)
 {
-	this->model = model;
+	this->model = &model;
 	this->position = postion;
 	this->radius = radius;
 	this->type = SANDY;

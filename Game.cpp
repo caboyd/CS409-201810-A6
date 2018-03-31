@@ -5,6 +5,7 @@
 #include "WindowsHelperFunctions.h"
 #include "Globals.h"
 #include "MathHelper.h"
+#include "Random.h"
 
 //Matrix to help with calculating depth texture
 const glm::mat4 BIAS_MATRIX(
@@ -32,6 +33,18 @@ void Game::initWorldGraphPointLine()
 	}
 }
 
+void Game::initBats()
+{
+	for (auto && disk : world.disks)
+	{
+		float r = sqrt(Random::randf(0, 1)) * world.worldRadius;
+		double t = Random::randd(0, MathHelper::M_2PI);
+		Vector3 pos(r*cos(t), 15.0f, r*sin(t));
+		bats.emplace_back(bat_model, player, world, pos);
+	}
+}
+
+
 void Game::init()
 {
 	ObjShader::load();
@@ -43,6 +56,8 @@ void Game::init()
 	this->ring_model = model.getModelWithShader();
 	model.load(SKYBOX_FILENAME);
 	skybox_model = model.getModelWithShader();
+	model.load(BAT_FILENAME);
+	bat_model = model.getModelWithShader();
 
 #ifdef  _WIN32
 	//Load the file names of all of the worlds
@@ -76,9 +91,10 @@ void Game::init()
 
 	active_camera = &player_camera;
 
-	pickup_manager.init(&world, &world_graph, &rod_model, &ring_model);
+	pickup_manager.init(world, world_graph, rod_model, ring_model);
 	player.init(world);
-	player.coordinate_system.setPosition(world.disks[0]->position);
+
+	initBats();
 
 	//Initialize for shadows
 	//Pass the light view matrix to the shadow box
@@ -155,6 +171,10 @@ void Game::update(double fixed_delta_time)
 	//Update the player
 	player.update(world, delta_time_seconds);
 
+	for (auto && bat : bats)
+	{
+		bat.update(delta_time);
+	}
 
 	//Reset player position and orientation to defaults
 	if (g_key_pressed['R'])
@@ -337,20 +357,15 @@ void Game::display()
 	pickup_manager.drawOptimized(view_matrix, g_projection_matrix, camera_position);
 
 
-	player.draw(view_matrix, g_projection_matrix, camera_position);
+	displayBats(view_matrix, g_projection_matrix, camera_position);
 
+	player.draw(view_matrix, g_projection_matrix, camera_position);
 
 	const std::string text = "Score: " + std::to_string(pickup_manager.getScore());
 	const float text_width = g_text_renderer.getWidth(text, 0.75f);
 	//g_text_renderer.draw(text, float(g_win_width - text_width - 10), float(g_win_height - 40), 0.75f, glm::vec3(1, 1, 1));
 
-
-
-
-
 	displayMovementGraph(view_matrix, g_projection_matrix);
-
-
 
 	//Draw the node ids
 	//displayNodeNameplates(view_matrix, g_projection_matrix);
@@ -391,6 +406,52 @@ void Game::display()
 	// send the current image to the screen - any drawing after here will not display
 }
 
+void Game::displayBats(const glm::mat4x4& view_matrix,
+	const glm::mat4x4& projection_matrix,
+	const glm::vec3& camera_position)
+{
+	const ObjLibrary::ObjShader::ShaderUniforms& uniforms = ObjLibrary::ObjShader::activateShader();
+	bat_model.getMaterial(0).activate(uniforms);;
+
+	const  glm::mat4 vp_matrix = projection_matrix * view_matrix;
+
+	glUniformMatrix4fv(uniforms.m_view_matrix, 1, false, &(view_matrix[0][0]));
+	glUniform3fv(uniforms.m_camera_pos, 1, &(camera_position.x));
+	
+
+	for (auto const& bat : bats)
+	{
+		glm::mat4 model_matrix = glm::mat4();
+		model_matrix = translate(model_matrix, glm::vec3(bat.coordinate_system.position));
+		model_matrix = rotate(model_matrix, (float(atan2(bat.coordinate_system.forward.x, bat.coordinate_system.forward.z)) - float(MathHelper::M_PI_2)),
+			glm::vec3(bat.coordinate_system.getUp()));
+		model_matrix = glm::scale(model_matrix, glm::vec3(bat.model_scalar));
+		const glm::mat4 mvp_matrix = projection_matrix * view_matrix * model_matrix;
+
+		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
+		glUniformMatrix4fv(uniforms.m_model_view_projection_matrix, 1, false, &(mvp_matrix[0][0]));
+		bat_model.drawCurrentMaterial(0);
+	}
+
+}
+
+void Game::displayBatsToDepthTexture(const glm::mat4& depth_view_projection_matrix)
+{
+	MeshWithShader mesh = bat_model.getMesh(0, 0);
+
+	for (auto const& bat : bats)
+	{
+		glm::mat4 model_matrix = glm::mat4();
+		model_matrix = translate(model_matrix, glm::vec3(bat.coordinate_system.position));
+		model_matrix = rotate(model_matrix, (float(atan2(bat.coordinate_system.forward.x, bat.coordinate_system.forward.z)) - float(MathHelper::M_PI_2)),
+			glm::vec3(bat.coordinate_system.getUp()));
+		model_matrix = glm::scale(model_matrix, glm::vec3(bat.model_scalar));
+
+		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
+		g_depth_texture.setDepthMVP(depth_mvp);
+		mesh.draw();
+	}
+}
 
 
 void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
@@ -414,8 +475,8 @@ void Game::displayRingZeroPath(const glm::mat4& view_matrix,
 	const Ring& ring = pickup_manager.rings[0];
 	const glm::vec3 offset(0, 1.0, 0);
 	g_line_renderer.preAllocateLine(path.size() * 2 + 6);
-	g_line_renderer.addLine(glm::vec3(ring.position), glm::vec3(ring.position + offset), glm::vec4(1, 1, 1, 1));
-	g_line_renderer.addLine(glm::vec3(ring.position + offset), glm::vec3(ring.targetPosition + offset), glm::vec4(1, 1, 1, 1));
+	g_line_renderer.addLine(glm::vec3(ring.coordinate_system.position), glm::vec3(ring.coordinate_system.position + offset), glm::vec4(1, 1, 1, 1));
+	g_line_renderer.addLine(glm::vec3(ring.coordinate_system.position + offset), glm::vec3(ring.targetPosition + offset), glm::vec4(1, 1, 1, 1));
 	if (!path.empty())
 	{
 		g_line_renderer.addLine(
@@ -583,6 +644,11 @@ void Game::renderToDepthTexture(glm::mat4& depth_vp)
 
 	player.drawToDepth(depth_vp);
 
+	for (auto && bat : bats)
+	{
+		bat.drawToDepth(depth_vp);
+	}
+
 	//Draw the world to the depth texture
 	world.drawDepthOptimized(player_position, shadow_box.getShadowFadeDistance(), depth_vp);
 	pickup_manager.drawDepthOptimized(player_position, shadow_box.getShadowFadeDistance(), depth_vp);
@@ -594,6 +660,7 @@ void Game::destroyIntoNextWorld()
 {
 #ifdef  _WIN32
 
+	bats.clear();
 	world.destroy();
 	world_graph.destroy();
 	world.init(WORLD_FOLDER + levels[level++]);
@@ -601,10 +668,12 @@ void Game::destroyIntoNextWorld()
 	initWorldGraphPointLine();
 	if (level >= levels.size()) level = 0;
 	pickup_manager.destroy();
-	pickup_manager.init(&world, &world_graph, &rod_model, &ring_model);
+	pickup_manager.init(world, world_graph, rod_model, ring_model);
+	initBats();
 	player.reset(world);
 #endif
 }
+
 
 void Game::playerAccelerateForward(float delta_time)
 {

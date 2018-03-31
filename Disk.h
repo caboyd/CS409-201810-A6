@@ -21,7 +21,7 @@ enum DiskType
 class Disk
 {
 public:
-	ObjLibrary::ModelWithShader* model{};
+	ObjLibrary::ModelWithShader const* model{};
 	ObjLibrary::ModelWithShader heightMapModel{};
 	std::vector<std::vector<float>> heightMap{};
 	unsigned int heightMapSize{};

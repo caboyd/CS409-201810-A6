@@ -6,28 +6,24 @@
 #include "MathHelper.h"
 
 
-Ring::Ring(unsigned i, World* w, MovementGraph* mg, ModelWithShader* model) : Entity(model)
+Ring::Ring(unsigned i, const World& w, MovementGraph* mg, const ModelWithShader& model) : Entity(model)
 {
 	index = i;
-	scalar = { 1, 1, 1 };
-	forward = { 0, 0, -1 };
-	pointValue = 1;
+
 	pickedUp = false;
-	world = w;
+	world = &w;
 	world_graph = mg;
-	radius = 0.7f;
-	halfHeight = 0.1f;
-	velocity = 2.5f / 1000.0f;
-	rotVelocity = 1.3f;
+
 	curr_node_id = Random::randu(world_graph->getNodeList().size() - 1);;
 	target_node_id = curr_node_id;
 	targetPosition = world_graph->getNodeList()[target_node_id].position;
-	position = targetPosition;
-	this->position.y += 0.1f;
+	coordinate_system.setPosition({targetPosition.x, targetPosition.y + 0.1f, targetPosition.z});
+	coordinate_system.setOrientation({0,0,-1},{0,1,0});
 }
 
 inline void Ring::update(double delta_time)
 {
+	const Vector3& position = coordinate_system.getPosition();
 	Vector3 direction = targetPosition - position;
 	direction.normalizeSafe();
 
@@ -60,23 +56,22 @@ inline void Ring::update(double delta_time)
 			center_to_ring.rotateY(-angle);
 
 
-		position = center + center_to_ring;
-
 		//To Make sure we don't drift off the radius
-		position = center + center_to_ring.getNormalized() * rad;
+		coordinate_system.position = center + center_to_ring.getNormalized() * rad;
 
 	} else
 	{
 		//Move direct to another disk
 
-		position += direction * distance;
+		coordinate_system.position += direction * distance;
 	}
 
 	//Rotate the ring's forward based on how much we moved
-	forward.rotateY(rotVelocity * distance);
-
+	coordinate_system.forward.rotateY(rotVelocity * distance);
+	
 	//Set the rings height based on the world height at the position
-	position.y = world->getHeightAtCirclePosition(float(position.x), float(position.z), radius) + 0.1f;
+	coordinate_system.position.y = world->getHeightAtCirclePosition(float(position.x), float(position.z), radius) + 0.1f;
+
 
 	//If on center of disk get new target
 	if (Collision::pointCircleIntersection(float(targetPosition.x), float(targetPosition.z), float(position.x), float(position.z), 0.1f))

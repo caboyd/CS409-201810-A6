@@ -11,7 +11,7 @@ class RedRockDisk: public Disk
 private:
 	const unsigned int HEIGHTMAP_SIZE = 16;
 public:
-	RedRockDisk(ModelWithShader* model, Vector3 postion, float radius);
+	RedRockDisk(const ModelWithShader& model, Vector3 postion, float radius);
 	~RedRockDisk() override = default;
 
 	//Generates a pyramid style heightmap

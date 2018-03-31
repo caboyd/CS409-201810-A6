@@ -6,9 +6,9 @@
 
 using namespace MathHelper;
 
-LeafyDisk::LeafyDisk(ModelWithShader* model, Vector3 postion, float radius)
+LeafyDisk::LeafyDisk(const ModelWithShader& model, Vector3 postion, float radius)
 {
-	this->model = model;
+	this->model = &model;
 	this->position = postion;
 	this->radius = radius;
 	this->type = LEAFY;

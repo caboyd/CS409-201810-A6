@@ -13,15 +13,15 @@ extern DepthTexture g_depth_texture;
 PickupManager::PickupManager()
 {}
 
-void PickupManager::init(World* w, MovementGraph* mg, ModelWithShader* rod, ModelWithShader* ring)
+void PickupManager::init(const World& w, MovementGraph& mg, const ModelWithShader& rod, const ModelWithShader& ring)
 {
-	assert(w->isInitialized());
+	assert(w.isInitialized());
 
 	score = 0;
-	world = w;
-	world_graph = mg;
-	rod_model = rod;
-	ring_model = ring;
+	world = &w;
+	world_graph = &mg;
+	rod_model = &rod;
+	ring_model = &ring;
 
 	//Init disks and rods
 	for (auto& ptr : world->disks)
@@ -47,7 +47,7 @@ void PickupManager::checkForPickups(Vector3 player_position)
 	for (auto& ring : rings)
 	{
 		if (!ring.pickedUp)
-			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, ring.position, ring.radius, ring.halfHeight))
+			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, ring.coordinate_system.position, ring.radius, ring.halfHeight))
 			{
 				ring.pickedUp = true;
 				score += ring.pointValue;
@@ -57,7 +57,7 @@ void PickupManager::checkForPickups(Vector3 player_position)
 	for (auto& rod : rods)
 	{
 		if (!rod.pickedUp)
-			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, rod.position, rod.radius, rod.halfHeight))
+			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, rod.coordinate_system.position, rod.radius, rod.halfHeight))
 			{
 				rod.pickedUp = true;
 				score += rod.pointValue;
@@ -72,12 +72,12 @@ int PickupManager::getScore() const
 
 void PickupManager::addRod(Vector3 pos, unsigned score_value)
 {
-	rods.emplace_back(rod_model, pos, score_value);
+	rods.emplace_back(*rod_model, pos, score_value);
 }
 
 void PickupManager::addRing()
 {
-	rings.emplace_back(rings.size(), world, world_graph, ring_model);
+	rings.emplace_back(rings.size(), *world, world_graph, *ring_model);
 }
 
 void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix) const
@@ -92,7 +92,7 @@ void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& proj
 	{
 		if (rod.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.coordinate_system.position));
 		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 
 		rod_model->draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
@@ -101,8 +101,8 @@ void PickupManager::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& proj
 	{
 		if (ring.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.coordinate_system.position));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.coordinate_system.forward.x, ring.coordinate_system.forward.z))), glm::vec3(0, 1, 0));
 		glm::mat4x4 mvp_matrix = projection_matrix * view_matrix *  model_matrix;
 		ring_model->draw(model_matrix, view_matrix, mvp_matrix, camera_pos);
 	}
@@ -135,7 +135,7 @@ void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat
 {
 	const ObjLibrary::ObjShader::ShaderUniforms& uniforms = ObjLibrary::ObjShader::activateShader();
 	rod_model->getMaterial(0).activate(uniforms);;
-
+	glUniform3fv(uniforms.m_camera_pos, 1, &(camera_pos.x));
 	const  glm::mat4 vp_matrix = projection_matrix * view_matrix;
 
 	//Call draw on each rod
@@ -143,7 +143,7 @@ void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat
 	{
 		if (rod.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.coordinate_system.position));
 		glm::mat4x4 mvp_matrix = vp_matrix *  model_matrix;
 
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
@@ -157,8 +157,8 @@ void PickupManager::drawOptimized(const glm::mat4x4& view_matrix, const glm::mat
 	{
 		if (ring.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
-		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.forward.x, ring.forward.z))), glm::vec3(0, 1, 0));
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.coordinate_system.position));
+		model_matrix = glm::rotate(model_matrix, (float(atan2(ring.coordinate_system.forward.x, ring.coordinate_system.forward.z))), glm::vec3(0, 1, 0));
 		glm::mat4x4 mvp_matrix = vp_matrix *  model_matrix;
 
 		glUniformMatrix4fv(uniforms.m_model_matrix, 1, false, &(model_matrix[0][0]));
@@ -177,7 +177,7 @@ void PickupManager::drawDepth(const glm::mat4x4& depth_view_projection_matrix) c
 	{
 		if (ring.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.coordinate_system.position));
 		
 		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
 		g_depth_texture.setDepthMVP(depth_mvp);
@@ -189,7 +189,7 @@ void PickupManager::drawDepth(const glm::mat4x4& depth_view_projection_matrix) c
 	{
 		if (rod.pickedUp) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.coordinate_system.position));
 	
 		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
 		g_depth_texture.setDepthMVP(depth_mvp);
@@ -204,9 +204,9 @@ void PickupManager::drawDepthOptimized(const Vector3& position, float radius, co
 	for (auto const& ring : rings)
 	{
 		if (ring.pickedUp) continue;
-		if(position.getDistanceSquared(ring.position) > pow(radius + ring.radius, 2)) continue;
+		if(position.getDistanceSquared(ring.coordinate_system.position) > pow(radius + ring.radius, 2)) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(ring.position));
+		model_matrix = glm::translate(model_matrix, glm::vec3(ring.coordinate_system.position));
 		
 		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
 		g_depth_texture.setDepthMVP(depth_mvp);
@@ -217,9 +217,9 @@ void PickupManager::drawDepthOptimized(const Vector3& position, float radius, co
 	for (auto const& rod : rods)
 	{
 		if (rod.pickedUp) continue;
-		if(position.getDistanceSquared(rod.position) > pow(radius + rod.radius, 2)) continue;
+		if(position.getDistanceSquared(rod.coordinate_system.position) > pow(radius + rod.radius, 2)) continue;
 		glm::mat4x4 model_matrix = glm::mat4();
-		model_matrix = glm::translate(model_matrix, glm::vec3(rod.position));
+		model_matrix = glm::translate(model_matrix, glm::vec3(rod.coordinate_system.position));
 	
 		glm::mat4x4 depth_mvp = depth_view_projection_matrix * model_matrix;
 		g_depth_texture.setDepthMVP(depth_mvp);

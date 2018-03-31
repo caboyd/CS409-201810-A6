@@ -9,7 +9,7 @@ class GreyRockDisk : public Disk
 private:
 	const unsigned int HEIGHTMAP_SIZE = 80;
 public:
-	GreyRockDisk(ModelWithShader* model, Vector3 postion, float radius);
+	GreyRockDisk(const ModelWithShader& model, Vector3 postion, float radius);
 
 	//Generates a rocky looking height map using the NoiseField's perlin noise
 	void generateHeightMap() override;

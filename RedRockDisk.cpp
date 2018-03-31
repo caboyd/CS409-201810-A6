@@ -6,9 +6,9 @@
 #include "Random.h"
 
 
-RedRockDisk::RedRockDisk(ModelWithShader* model, Vector3 postion, float radius)
+RedRockDisk::RedRockDisk(const ModelWithShader& model, Vector3 postion, float radius)
 {
-	this->model = model;
+	this->model = &model;
 	this->position = postion;
 	this->radius = radius;
 	this->type = RED_ROCK;

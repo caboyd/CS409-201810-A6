@@ -8,9 +8,9 @@
 
 using namespace MathHelper;
 
-IcyDisk::IcyDisk(ModelWithShader* model, Vector3 postion, float radius)
+IcyDisk::IcyDisk(const ModelWithShader& model, Vector3 postion, float radius)
 {
-	this->model = model;
+	this->model = &model;
 	this->position = postion;
 	this->radius = radius;
 	this->type = ICY;

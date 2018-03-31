@@ -13,22 +13,22 @@
 class PickupManager
 {
 private:
-	ModelWithShader* rod_model;
-	ModelWithShader* ring_model;
+	ModelWithShader const* rod_model;
+	ModelWithShader const* ring_model;
 
 public:
 	std::vector<Ring> rings;
 private:
 	std::vector<Rod> rods;
 
-	World* world;
+	World const* world;
 	MovementGraph* world_graph;
 	unsigned int score;
 public:
 	PickupManager();
 
 	//Initialize all the rings and rods using data from the world and movementgraph
-	void init(World* w, MovementGraph* mg, ModelWithShader* rod, ModelWithShader* ring);
+	void init(const World& w, MovementGraph& mg, const ModelWithShader& rod, const ModelWithShader& ring);
 
 	//Updates every the position of each ring that hasnt been picked up
 	//Uses data from the world

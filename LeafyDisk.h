@@ -11,7 +11,7 @@ class LeafyDisk : public Disk
 private:
 	const unsigned int HEIGHTMAP_SIZE = 32;
 public:
-	LeafyDisk(ModelWithShader* model, Vector3 postion, float radius);
+	LeafyDisk(const ModelWithShader& model, Vector3 postion, float radius);
 	~LeafyDisk() override = default;
 
 	//Generates a hilly heightmap using a complex algorithm

@@ -9,20 +9,22 @@ class Ring : public Entity
 {
 public:
 	unsigned index;
-	unsigned int pointValue;
-	float velocity;
-	float rotVelocity;
-	float radius;
-	float halfHeight;
+	World const* world;
+	MovementGraph* world_graph;
+	
+	const int pointValue = 1;
+	const float velocity = 2.5f / 1000.0f;
+	const float rotVelocity = 1.3f;
+	const float radius = 0.7f;
+	const float halfHeight = 0.1f;
 	bool pickedUp;
 	Vector3 targetPosition;
-	World *world;
-	MovementGraph* world_graph;
+
 	std::deque<unsigned> path;
 	unsigned curr_node_id;
 	unsigned target_node_id;
 
-	Ring(unsigned i, World* w, MovementGraph* mg, ModelWithShader* model);;
+	explicit Ring(unsigned i, const World& w, MovementGraph* mg, const ModelWithShader& model);;
 
 	void update(double delta_time) override;
 };

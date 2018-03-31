@@ -11,7 +11,7 @@ class SandyDisk : public Disk
 private:
 	const unsigned int HEIGHTMAP_SIZE = 64;
 public:
-	SandyDisk(ModelWithShader* model, Vector3 postion, float radius);
+	SandyDisk(const ModelWithShader& model, Vector3 postion, float radius);
 	~SandyDisk() override = default;
 
 	//Generates a roundish height map using the NoiseField's perlin noise

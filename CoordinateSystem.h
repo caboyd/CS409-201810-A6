@@ -7,7 +7,7 @@
 
 class CoordinateSystem
 {
-private:
+public:
 	//Camera position
 	ObjLibrary::Vector3 position;
 	//Camera forward
@@ -15,7 +15,6 @@ private:
 	//Camera up
 	ObjLibrary::Vector3 up;
 
-public:
 	explicit CoordinateSystem();
 	//Initializing Contructor
 	explicit CoordinateSystem(

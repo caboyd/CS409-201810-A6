@@ -126,7 +126,7 @@ void main()
 		//NOTE: Use this for Sampler2DShadow textures
 		//light_factor -= (shadow_coord.w) * (1.0/16.0)*(1.0-texture( shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z)) ));
 		float vis = 1.0 - texture(shadow_map, vec3(shadow_coord.xy + poissonDisk[index]/3000.0,  (shadow_coord.z)));
-			light_factor -=shadow_coord.w* vis* (1.0/16.0);
+			light_factor -= shadow_coord.w * vis * (1.0/16.0);
 		//NOTE: Use this for Sampler2D textures
 		//if ( texture( shadow_map, shadow_coord.xy + poissonDisk[index]/3000.0).z  <  (shadow_coord.z) ){
 		//	light_factor -= (shadow_coord.w) * (1.0/16.0);

@@ -23,7 +23,7 @@ public:
 	CoordinateSystem coordinate_system;
 
 private:
-		PlayerAnimatedModel model;
+	PlayerAnimatedModel model;
 	Vector3 velocity;
 	const float radius = 0.25;
 	bool jumping;

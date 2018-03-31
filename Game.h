@@ -5,6 +5,7 @@
 #include "Player.h"
 #include "MovementGraph.h"
 #include "LineRenderer.h"
+#include "Bat.h"
 
 /**
  *	Overarching Game class
@@ -19,18 +20,21 @@ private:
 	const std::string ROD_FILENAME = "assets/Models/Rod.obj";
 	const std::string RING_FILENAME = "assets/Models/Ring.obj";
 	const std::string SKYBOX_FILENAME = "assets/Models/Skybox.obj";
+	const std::string BAT_FILENAME = "assets/Models/BrownBat.obj";
 	const std::string WORLD_FOLDER = "assets/Worlds/";
 
 	//Game object models for drawing
 	ModelWithShader skybox_model;
 	ModelWithShader rod_model;
 	ModelWithShader ring_model;
+	ModelWithShader bat_model;
 
 	//Game Objects
 	World world;
 	MovementGraph world_graph;
 	Player player;
 	PickupManager pickup_manager;
+	std::vector<Bat> bats;
 
 	//Camerars for behind the player and overview
 	CoordinateSystem player_camera;
@@ -63,6 +67,7 @@ public:
 	Game() = default;
 
 	void initWorldGraphPointLine();
+	void initBats();
 	//Initialize The models, player,world, pickup manager, shadow box
 	//lighting and camera.
 	void init();
@@ -85,14 +90,20 @@ public:
 	//Draws the UI
 	void display();
 
+	void displayBats(const glm::mat4x4& view_matrix,
+		const glm::mat4x4& projection_matrix, const glm::vec3& camera_position);
+
+	void displayBatsToDepthTexture(const glm::mat4& depth_view_projection_matrix);
+
 	//Destory the current world and loads the next one from the worlds folder
 	//Rebuilds the movement graph and world and resets player position and score
 	void destroyIntoNextWorld();
+	void destroyBats();
 
 private:
 	//Draws a line btween each node on the path for ring 0
 	void displayRingZeroPath(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
-	
+
 	//Draws the id number of the node as text above each node for debugging purposes
 	void displayNodeNameplates(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
 
