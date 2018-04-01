@@ -1,8 +1,16 @@
 
 #pragma once
 #include <vector>
+#include "lib/glm/glm.hpp"
+#include "lib/ObjLibrary/ModelWithShader.h"
 #include "Ring.h"
 #include "Rod.h"
+
+using ObjLibrary::ModelWithShader;
+
+class World;
+class MovementGraph;
+class Player;
 
 
 //Contains the rings and rods pickups
@@ -36,12 +44,12 @@ public:
 
 	//Checks if a position has collided with a ring or rod to know if they have been picked
 	//up and increments the score and marks them to no longer be drawn or updated
-	void checkForPickups(Vector3 player_position);
+	void checkForPickups(const Player& player);
 
 	int getScore()const;
 
 	//Adds a new rod at a position with a score value
-	void addRod(Vector3 pos, unsigned int score_value);
+	void addRod(ObjLibrary::Vector3 pos, unsigned int score_value);
 
 	//Adds a ring, rings are given random positions from the movement graph
 	void addRing();
@@ -61,7 +69,7 @@ public:
 
 	//Draws the rings and rods that are only within a radius of a position (most likely player position)
 	//If they are outside radius they will not be in the shadow map anyway so we don't need to draw them
-	void drawDepthOptimized(const Vector3& position, float radius, const glm::mat4x4& depth_view_projection_matrix) const;
+	void drawDepthOptimized(const ObjLibrary::Vector3& position, float radius, const glm::mat4x4& depth_view_projection_matrix) const;
 
 	//Destroys the vectors of rings and rods and reset score
 	void destroy();

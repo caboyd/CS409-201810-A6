@@ -1,14 +1,19 @@
 #include "PickupManager.h"
 #include "Collision.h"
-#include "lib/glm/glm.hpp"
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "LineRenderer.h"
 #include "DepthTexture.h"
 #include "World.h"
+#include "Player.h"
+#include "lib/ObjLibrary/Vector3.h"
+#include "Ring.h"
+#include "Rod.h"
 #include "cassert"
 
+using ObjLibrary::Vector3;
+
 extern LineRenderer g_line_renderer;
-extern DepthTexture g_depth_texture;
+
 
 PickupManager::PickupManager()
 {}
@@ -42,12 +47,12 @@ void PickupManager::update(const double delta_time)
 	}
 }
 
-void PickupManager::checkForPickups(Vector3 player_position)
+void PickupManager::checkForPickups(const Player& player)
 {
 	for (auto& ring : rings)
 	{
 		if (!ring.pickedUp)
-			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, ring.coordinate_system.position, ring.radius, ring.halfHeight))
+			if (Collision::cylinderIntersection(player.coordinate_system.getPosition(), player.getRadius(), player.getHalfHeight(), ring.coordinate_system.position, ring.radius, ring.halfHeight))
 			{
 				ring.pickedUp = true;
 				score += ring.pointValue;
@@ -57,7 +62,7 @@ void PickupManager::checkForPickups(Vector3 player_position)
 	for (auto& rod : rods)
 	{
 		if (!rod.pickedUp)
-			if (Collision::cylinderIntersection(player_position, 0.25f, 0.8f, rod.coordinate_system.position, rod.radius, rod.halfHeight))
+			if (Collision::cylinderIntersection(player.coordinate_system.getPosition(), player.getRadius(), player.getHalfHeight(), rod.coordinate_system.position, rod.radius, rod.halfHeight))
 			{
 				rod.pickedUp = true;
 				score += rod.pointValue;

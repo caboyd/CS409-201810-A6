@@ -5,6 +5,8 @@
 #include "WindowsHelperFunctions.h"
 #include "Globals.h"
 #include "MathHelper.h"
+#include "Ring.h"
+#include "Rod.h"
 #include "Random.h"
 
 //Matrix to help with calculating depth texture
@@ -37,9 +39,8 @@ void Game::initBats()
 {
 	for (auto && disk : world.disks)
 	{
-		float r = sqrt(Random::randf(0, 1)) * world.worldRadius;
-		double t = Random::randd(0, MathHelper::M_2PI);
-		Vector3 pos(r*cos(t), 15.0f, r*sin(t));
+		Vector3 pos = world.getRandomXZPosition();
+		pos.y = 15.0f;
 		bats.emplace_back(bat_model, player, world, pos);
 	}
 }
@@ -173,8 +174,10 @@ void Game::update(double fixed_delta_time)
 
 	for (auto && bat : bats)
 	{
-		bat.update(delta_time);
+		bat.update(delta_time_seconds);
 	}
+
+	batPlayerCollisions();
 
 	//Reset player position and orientation to defaults
 	if (g_key_pressed['R'])
@@ -187,7 +190,7 @@ void Game::update(double fixed_delta_time)
 	pickup_manager.update(fixed_delta_time);
 
 	//Do collision detection for player and rings/rods
-	pickup_manager.checkForPickups(player.coordinate_system.getPosition());
+	pickup_manager.checkForPickups(player);
 
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
 	if (player.coordinate_system.getPosition() != last_player_pos)
@@ -417,7 +420,7 @@ void Game::displayBats(const glm::mat4x4& view_matrix,
 
 	glUniformMatrix4fv(uniforms.m_view_matrix, 1, false, &(view_matrix[0][0]));
 	glUniform3fv(uniforms.m_camera_pos, 1, &(camera_position.x));
-	
+
 
 	for (auto const& bat : bats)
 	{
@@ -466,6 +469,7 @@ void Game::displayMovementGraph(const glm::mat4x4& view_matrix,
 	g_line_renderer.drawPointList(world_graph_point_line, vp);
 	glEnable(GL_DEPTH_TEST);
 }
+
 
 void Game::displayRingZeroPath(const glm::mat4& view_matrix,
 	const glm::mat4x4& projection_matrix) const
@@ -723,6 +727,27 @@ void Game::playerTurnRight(float delta_time)
 {
 	const float player_turn = float(TURNING_DEGREES * delta_time);
 	player.coordinate_system.rotateAroundUp(-player_turn);
+}
+
+void Game::batPlayerCollisions()
+{
+	for (auto && bat : bats)
+	{
+		if (bat.ignore_timer > 0) continue;
+		//Collision with player
+		if (Collision::cylinderIntersection(bat.coordinate_system.position, bat.radius, bat.half_height,
+			player.coordinate_system.position, player.getRadius(), player.getHalfHeight()))
+		{
+			player.hitByBat(bat.velocity);
+
+			bat.velocity = Vector3(0, bat.S_MAX, 0);
+
+			bat.ignore_timer = 1.0f;
+
+
+		}
+	}
+
 }
 
 

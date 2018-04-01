@@ -100,6 +100,7 @@ public:
 	void destroyIntoNextWorld();
 	void destroyBats();
 
+
 private:
 	//Draws a line btween each node on the path for ring 0
 	void displayRingZeroPath(const glm::mat4& view_matrix, const glm::mat4x4& projection_matrix) const;
@@ -121,6 +122,7 @@ private:
 	void playerTurnLeft(float delta_time);
 	void playerTurnRight(float delta_time);
 
+	void batPlayerCollisions();
 
 
 

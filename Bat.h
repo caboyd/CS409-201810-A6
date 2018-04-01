@@ -26,8 +26,11 @@ public:
 	Vector3 target_position;
 
 	//Collision properties
-	float radius = 0.5f;
-	float half_height = 0.05f;
+	const float radius = 0.5f;
+	const float half_height = 0.05f;
+	const float S_MAX = 5.0f;
+	const float S_MIN = 1.0f;
+	const float A_MAX = 8.0f;
 
 	//A timer in milliseconds
 	//When bat hits a player the time is set to 1 second
@@ -44,4 +47,8 @@ public:
 		const glm::vec3& camera_position) const;
 
 	void drawToDepth(const glm::mat4x4& depth_view_projection_matrix) const;
+
+	void seek(double delta_time_seconds);
+	void explore(double delta_time_seconds);
+	void pursue(double delta_time_seconds);
 };

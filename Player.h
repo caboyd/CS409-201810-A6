@@ -25,7 +25,8 @@ public:
 private:
 	PlayerAnimatedModel model;
 	Vector3 velocity;
-	const float radius = 0.25;
+	const float radius = 0.25f;
+	const float half_height = 0.8f;
 	bool jumping;
 
 public:
@@ -44,6 +45,7 @@ public:
 
 	void setPosition(Vector3 pos);
 	Vector3 getPosition() const;
+	Vector3 getVelocity() const;
 
 	void draw(const glm::mat4x4& view_matrix,
 		const glm::mat4x4& projection_matrix,
@@ -52,8 +54,10 @@ public:
 	void drawToDepth(const glm::mat4x4& depth_view_projection_matrix) const;
 
 	float getRadius() const;
+	float getHalfHeight() const;
 
 	void addAcceleration(const Vector3& a);
 	void jump();
 
+	void hitByBat(const Vector3& bat_velocity);
 };

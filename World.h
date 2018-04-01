@@ -84,8 +84,10 @@ public:
 	float getSlopeFactorAtPosition(float x, float z) const;
 
 
+
 	//Returns the center position of a random disk
-	Vector3& getRandomDiskPosition();
+	Vector3& getRandomDiskPosition() const;
+	Vector3 getRandomXZPosition() const;
 
 	bool isInitialized() const;
 };

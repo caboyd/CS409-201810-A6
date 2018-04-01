@@ -343,10 +343,18 @@ float World::getSlopeFactorAtPosition(float x, float z)const
 	return 0.0001f;
 }
 
-Vector3& World::getRandomDiskPosition()
+Vector3& World::getRandomDiskPosition() const
 {
 	const unsigned int i = Random::randu(disks.size() - 1);
 	return disks[i]->position;
+}
+
+Vector3 World::getRandomXZPosition() const
+{
+	float r = sqrt(Random::randf(0, 1)) * worldRadius;
+	double t = Random::randd(0, MathHelper::M_2PI);
+	Vector3 pos(r*cos(t), 15.0f, r*sin(t));
+	return pos;
 }
 
 bool World::isInitialized() const

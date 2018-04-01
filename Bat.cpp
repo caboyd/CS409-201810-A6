@@ -4,6 +4,7 @@
 #include "lib/glm/gtc/matrix_transform.hpp"
 #include "MathHelper.h"
 #include "SphereRenderer.h"
+#include "Collision.h"
 
 extern SphereRenderer g_sphere_renderer;
 
@@ -12,21 +13,52 @@ Bat::Bat(const ModelWithShader& model, const Player& player, const World& world,
 	this->model = &model;
 	this->player = &player;
 	this->world = &world;
-	this->coordinate_system.setPosition(position);
-	this->coordinate_system.setOrientation(Vector3(0, 0, -1), Vector3(0, 1, 0));
-	this->state = Bat_State::EXPLORE;
 	this->model_scalar = Vector3(1, 1, 1);
+	this->state = Bat_State::EXPLORE;
+
+	this->coordinate_system.setPosition(position);
+	this->velocity = Vector3::getRandomUnitVectorXZ() * S_MAX;
+	this->coordinate_system.setOrientation(velocity.getNormalized());
+	this->target_position = world.getRandomXZPosition();
+	this->target_position.y = 15.0f;
 }
 
-void Bat::update(double delta_time)
+void Bat::update(double delta_time_seconds)
 {
+	if (state == Bat_State::DEAD) return;
+	ignore_timer -= delta_time_seconds;
+	if (ignore_timer < 0) ignore_timer = 0;
+
+
+	if(world->isCylinderCollisionWithDisk(coordinate_system.position,radius,0))
+	{
+		state = Bat_State::DEAD;
+		ignore_timer = 1.0f;
+		return;
+	}
+
+	if (Collision::cylinderIntersection(coordinate_system.position, radius + 20.0f, half_height + 20.0f,
+		player->coordinate_system.position, player->getRadius(), player->getHalfHeight()))
+	{
+		state = Bat_State::PURSUE;
+	} else
+	{
+		state = Bat_State::EXPLORE;
+	}
+
 	switch (state)
 	{
 	case Bat_State::EXPLORE:
 	{
-
+		explore(delta_time_seconds);
 		break;
 	}
+	case Bat_State::PURSUE:
+	{
+		pursue(delta_time_seconds);
+		break;
+	}
+	default:;
 	}
 }
 
@@ -75,4 +107,53 @@ void Bat::drawToDepth(const glm::mat4x4& depth_view_projection_matrix) const
 		}
 
 	}
+}
+
+void Bat::seek(double delta_time_seconds)
+{
+	Vector3 R = target_position - coordinate_system.position;
+	Vector3 D = R.getNormalized() * S_MAX;
+
+	//Desired steering velocity
+	Vector3 S = D - velocity;// + Vector3::getRandomInRange(0.0001f);
+
+
+	//Desired Acceleration in steering direction
+	Vector3 A_desired = S / delta_time_seconds;
+
+	//Actual Acceleration
+	Vector3 A = MathHelper::truncate(A_desired, A_MAX);
+
+	//Update velocity and position
+	velocity = MathHelper::truncate(velocity + A * delta_time_seconds, S_MAX);
+	//velocity = MathHelper::minVector(velocity, S_MIN);
+	coordinate_system.position += velocity * delta_time_seconds;
+
+	coordinate_system.forward = velocity.getNormalized();
+
+}
+
+void Bat::explore(double delta_time_seconds)
+{
+	if (Collision::cylinderIntersection(coordinate_system.position, radius, half_height,
+		target_position, 2.0f, 1.0f))
+	{
+		target_position = world->getRandomXZPosition();
+		target_position.y = 15.0f;
+	}
+	seek(delta_time_seconds);
+}
+
+void Bat::pursue(double delta_time_seconds)
+{
+	//Determine how many seconds away from target
+	Vector3 d = player->getPosition() - coordinate_system.position;
+	float s = d.getNorm() * 0.3f;
+
+	//predicted player position
+	Vector3 T = player->getPosition() + player->getVelocity() * s;
+
+	target_position = T;
+	target_position.y += player->getHalfHeight();
+	seek(delta_time_seconds);
 }

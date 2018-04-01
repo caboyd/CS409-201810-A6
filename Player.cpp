@@ -29,10 +29,10 @@ void Player::update(const World& world, double delta_time_seconds)
 	if (jumping)
 	{
 
-		velocity = velocity + Vector3(0, -9.8,0) * delta_time_seconds;
+		velocity = velocity + Vector3(0, -9.8, 0) * delta_time_seconds;
 
 		//Check collision with disk
-		if (world.isCylinderCollisionWithDisk(Vector3(new_pos.x, new_pos.y , new_pos.z) + PLAYER_OFFSET, radius, 0.8f))
+		if (world.isCylinderCollisionWithDisk(Vector3(new_pos.x, new_pos.y, new_pos.z) + PLAYER_OFFSET, radius, 0.8f))
 		{
 			if (world.isCylinderCollisionWithDisk(Vector3(old_pos.x, old_pos.y, old_pos.z) + PLAYER_OFFSET, radius, 0.8f))
 			{
@@ -70,11 +70,11 @@ void Player::update(const World& world, double delta_time_seconds)
 			float player_height = float(new_pos.y);
 			float min_height = float(new_pos.y);
 			Vector2 min_dir;
-			
+
 			for (unsigned int i = 0; i < 60; i++)
 			{
 				Vector2 dir(1, 0);
-				dir.rotate(MathHelper::M_2PI * (i/60.0));
+				dir.rotate(MathHelper::M_2PI * (i / 60.0));
 				const Vector2 pos(new_pos.x + dir.x * 0.01, new_pos.z + dir.y * 0.01);
 				float h = world.getHeightAtPointPosition(float(pos.x), float(pos.y));
 				if (h < min_height)
@@ -88,7 +88,7 @@ void Player::update(const World& world, double delta_time_seconds)
 
 			if (slope > min_slope)
 			{
-				float a =( (slope - min_slope) * 10.0f) * float(delta_time_seconds);
+				float a = ((slope - min_slope) * 10.0f) * float(delta_time_seconds);
 				Vector3 accel(min_dir.x, 0, min_dir.y);
 				accel *= a;
 				addAcceleration(accel);
@@ -114,8 +114,8 @@ void Player::update(const World& world, double delta_time_seconds)
 
 void Player::reset(const World& world)
 {
-	Vector3 pos =world.disks[0]->position;
-	pos.y = world.getHeightAtPointPosition(float(pos.x),float(pos.z));
+	Vector3 pos = world.disks[0]->position;
+	pos.y = world.getHeightAtPointPosition(float(pos.x), float(pos.z));
 	coordinate_system.setPosition(pos);
 	coordinate_system.setOrientation(PLAYER_INIT_FORWARD);
 	velocity = Vector3::ZERO;
@@ -130,7 +130,7 @@ void Player::transitionAnimationTo(Player_State state)
 
 bool Player::isStanding() const
 {
-	return ( model.getState() == Player_State::Standing);
+	return (model.getState() == Player_State::Standing);
 }
 
 void Player::setPosition(Vector3 pos)
@@ -141,6 +141,11 @@ void Player::setPosition(Vector3 pos)
 Vector3 Player::getPosition() const
 {
 	return coordinate_system.getPosition();
+}
+
+Vector3 Player::getVelocity() const
+{
+	return velocity;
 }
 
 void Player::draw(const glm::mat4x4& view_matrix, const glm::mat4x4& projection_matrix,
@@ -179,6 +184,11 @@ float Player::getRadius() const
 	return radius;
 }
 
+float Player::getHalfHeight() const
+{
+	return half_height;
+}
+
 void Player::addAcceleration(const Vector3& a)
 {
 	if (!jumping)
@@ -187,9 +197,26 @@ void Player::addAcceleration(const Vector3& a)
 
 void Player::jump()
 {
-	if(jumping) return;
+	if (jumping) return;
 	velocity = coordinate_system.getForward() * JUMP_FORWARD_SPEED + Vector3(0, JUMP_UP_SPEED, 0);
 	model.transitionTo(Player_State::Jumping);
 	jumping = true;
 
+}
+
+void Player::hitByBat(const Vector3& bat_velocity)
+{
+	
+	if (jumping)
+	{
+		velocity += bat_velocity.getNormalized() * 7.0f;
+	} else
+	{
+		Vector3 bat_vel = bat_velocity;
+		bat_vel.y = 0;
+		velocity = bat_vel.getNormalized() * 5.0f;
+		velocity.y = 5.0f;
+		model.transitionTo(Player_State::Jumping);
+		jumping = true;
+	}
 }

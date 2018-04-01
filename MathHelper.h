@@ -1,9 +1,9 @@
 #pragma once
 #include <emmintrin.h>
 #include "lib/ObjLibrary/Vector2.h"
-
+#include "lib/ObjLibrary/Vector3.h"
 using ObjLibrary::Vector2;
-
+using ObjLibrary::Vector3;
 namespace MathHelper
 {
 
@@ -46,6 +46,28 @@ namespace MathHelper
 		v = float((d11 * d20 - d01 * d21) * inv_denom);
 		w = float((d00 * d21 - d01 * d20) * inv_denom);
 		u = float(1.0f - v - w);
+	}
+
+	inline Vector3 truncate(const Vector3& v, const float max)
+	{
+		if(v.getNorm() <= max)
+		{
+			return v;
+		}else
+		{
+			return v.getNormalized() * max;
+		}
+	}
+
+	inline Vector3 minVector(const Vector3& v, const float min)
+	{
+		if(v.getNorm() < min)
+		{
+			return v.getNormalized() * min;
+		}else
+		{
+			return v;
+		}
 	}
 }
 
