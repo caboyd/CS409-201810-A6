@@ -1,7 +1,7 @@
 /*
  *
  *	Main.cpp
- *	Assignment 5
+ *	Assignment 6
  *	Author: Chris Boyd, 200225231
  *
  *	Description:
@@ -15,6 +15,9 @@
  *		Rings and rods are worth points. The player can collect them for points.
  *		Player has acceleration and can slide down steep slopes
  *		Player can jump and fall off of disks.
+ *		
+ *		Bats fly around and can bump into the player knocking the player and itself back.
+ *		If bats collide into the ground they will die and stick in the ground.	
  *		
  *		A graph is built from the world and displayed using colored lines depeding on the weight.
  *		Rings choose a random node destination and use Meet in the middle pathfinding to find a path
@@ -154,19 +157,6 @@ void keyboard(unsigned char key, int x, int y)
 	//These should only happen on key down not hold
 	switch (key)
 	{
-	case '9':
-		g_polygon_offset_factor -= 0.1f;
-		break;
-	case '0':
-		g_polygon_offset_factor += 0.1f;
-		break;
-	case '1':
-		g_polygon_offset_units -= 0.1f;
-		break;
-	case '2':
-		g_polygon_offset_units += 0.1f;
-		break;
-
 	case '+':
 		if (!g_key_pressed['+'])
 		{

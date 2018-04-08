@@ -83,14 +83,14 @@ void ParticleEmitter::addEffect(unsigned num_particles, glm::vec3 position, floa
 			p.velocity = glm::normalize(glm::vec3(Random::randf(-1, 1), Random::randf(-1, 1), Random::randf(-1, 1))) * velocity_factor *  Random::randf(0,1);
 		}else if (pattern == Particle_Pattern::Up)
 		{
-			p.velocity = glm::normalize(glm::vec3(Random::randf(-1, 1), Random::randf(Random::randf(0,0.7), 1), Random::randf(-1, 1))) * velocity_factor * Random::randf(0,1);
+			p.velocity = glm::normalize(glm::vec3(Random::randf(-1, 1), Random::randf(Random::randf(0,0.7f), 1), Random::randf(-1, 1))) * velocity_factor * Random::randf(0,1);
 		}
 
 
 	}
 }
 
-void ParticleEmitter::update(float delta_time_ms, const glm::vec3& camera_position)
+void ParticleEmitter::update(double delta_time_ms, const glm::vec3& camera_position)
 {
 	particle_count = 0;
 	for (int i = 0; i < MAX_PARTICLES; i++)
@@ -101,13 +101,13 @@ void ParticleEmitter::update(float delta_time_ms, const glm::vec3& camera_positi
 		if (p.life <= 0.0f) continue;
 
 		// Decrease life
-		p.life -= delta_time_ms;
+		p.life -= float(delta_time_ms);
 		if (p.life > 0.0f)
 		{
 
 			// Simulate simple physics : gravity only, no collisions
-			p.velocity += glm::vec3(0.0f, -9.80f/1000.0, 0.0f) * (float)delta_time_ms * p.gravity_factor;
-			p.data.position += p.velocity * (float)delta_time_ms / 1000.0f;
+			p.velocity += glm::vec3(0.0f, -9.80f/1000.0, 0.0f) * float(delta_time_ms) * p.gravity_factor;
+			p.data.position += p.velocity * float(delta_time_ms) / 1000.0f;
 			p.camera_distance = glm::length2(p.data.position - camera_position);
 			p.data.color.a = p.life/ p.duration_ms;
 			//ParticlesContainer[i].pos += glm::vec3(0.0f,10.0f, 0.0f) * (float)delta;

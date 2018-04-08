@@ -352,7 +352,7 @@ void Game::display()
 	glm::mat4 mvp_matrix = g_projection_matrix * view_matrix * model_matrix;
 
 	glDepthMask(GL_FALSE);
-	//skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
+	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
 	glDepthMask(GL_TRUE);
 
 
@@ -388,20 +388,20 @@ void Game::display()
 		d_visits = world_graph.getMemorizedDijsktraVisits(),
 		mm_visits = world_graph.getMemorizedmmVisits();
 
-	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 24), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Display Rate: " + std::to_string(long(round(g_display_fps))), 2, float(g_win_height - 44), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Time Scale: " + realToString(g_time_scale, 2) + 'x', 2, float(g_win_height - 64), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Nodes: " + std::to_string(world_graph.getNodeCount()), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Node Links: " + std::to_string(world_graph.getNodeLinkCount()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Update Rate: " + std::to_string(long(round(g_update_fps))), 2, float(g_win_height - 20), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Display Rate: " + std::to_string(long(round(g_display_fps))), 2, float(g_win_height - 40), 0.4f, glm::vec3(0, 1, 0));
+	g_text_renderer.draw("Time Scale: " + realToString(g_time_scale, 2) + 'x', 2, float(g_win_height - 60), 0.4f, glm::vec3(0, 1, 0));
+	//g_text_renderer.draw("Nodes: " + std::to_string(world_graph.getNodeCount()), 2, float(g_win_height - 84), 0.4f, glm::vec3(0, 1, 0));
+	//g_text_renderer.draw("Node Links: " + std::to_string(world_graph.getNodeLinkCount()), 2, float(g_win_height - 104), 0.4f, glm::vec3(0, 1, 0));
 
 
 	//Number of node visits for the ring0 path seach per algorithm
-	g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
-		float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + realToString(100 * float(a_visits) / float(d_visits), 2) + "%",
-		2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
-	g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + realToString(100 * float(mm_visits) / float(d_visits), 2) + "%",
-		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
+	//g_text_renderer.draw("Dijkstra Visits: " + std::to_string(d_visits) + " 100%", 2,
+	//	float(g_win_height - 124), 0.4f, glm::vec3(0, 1, 0));
+	//g_text_renderer.draw("A* Visits: " + std::to_string(world_graph.getMemorizedAStarVisits()) + " " + realToString(100 * float(a_visits) / float(d_visits), 2) + "%",
+	//	2, float(g_win_height - 144), 0.4f, glm::vec3(0, 1, 0));
+	//g_text_renderer.draw("Meet in the middle Visits: " + std::to_string(mm_visits) + " " + realToString(100 * float(mm_visits) / float(d_visits), 2) + "%",
+	//	2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
 	//g_depth_texture.renderDepthTextureToQuad(0, 0, 128, 128);
@@ -744,7 +744,7 @@ void Game::batPlayerCollisions()
 			bat.ignore_timer = 1.0f;
 
 			glm::vec3 pos(player.getPosition().x, player.getPosition().y + player.getHalfHeight(), player.getPosition().z);
-			g_particle_emitter.addEffect(500,pos,0.03,glm::vec4(1,1,0.3,1),500,Particle_Pattern::Random,2.0,0.0);
+			g_particle_emitter.addEffect(500,pos,0.03f,glm::vec4(1,1,0.3,1),600,Particle_Pattern::Random,2.0f,0.0f);
 
 		}
 	}

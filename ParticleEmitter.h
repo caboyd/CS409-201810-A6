@@ -69,7 +69,7 @@ public:
 
 	void addEffect(unsigned num_particles, glm::vec3 position, float size, glm::vec4 color, float duration, Particle_Pattern pattern, float velocity_factor, float gravity_factor);
 
-	void update(float delta_time_ms, const glm::vec3& camera_position);
+	void update(double delta_time_ms, const glm::vec3& camera_position);
 
 	void draw(const glm::mat4& view_matrix, const glm::mat4& projection_matrix) const;
 private:

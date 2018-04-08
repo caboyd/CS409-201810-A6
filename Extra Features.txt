@@ -1,0 +1,38 @@
+Extra Features
+
+Feature 1:
+Shadows
+
+This feature creates shadows from the player, the ring and rod pick-ups, the bats and the disks. Shadows can be toggled on and off with the 'L' key.
+
+Relevant Classes:
+ShadowBox - This class creates sort of a cubular area such that the cube encompasses the view camera. This allows the game to have the smallest possible area to draw into the depth texture, allowing for higher resolution shadows when the view camera only sees a small area of the world.
+DepthTexture - This class is a texture that gets written to that contains the depths of each object. It is used to determine what fragments are in a shadow and should have reduced lightning.
+
+Feature 2:
+Smooth Animations
+
+This feature uses keyframe interpolation between models to have smoother animation regardless of how fast the game is updating. The animation update every frame displayed independently of the game update rate.
+You can not this feature by decreasing or increasing the game speed using the '+' and '-' keys.
+This is only implemented for the running states of the player model because it requires all the models to have the same faces referring to the same vertex data. The jump and stand models have misaligned data and can't blend properly
+
+Relevant Classes:
+Player - The player class contains the PlayerAnimatedModel and transitions it to different states based on what the player is doing
+PlayerAnimatedModel - This class has the different states of the player model and moves through the states as it is in the animations correctly drawing the interpolated models.
+KeyframeModelWithShader - This class is a modified ModelWithShader from the ObjLibrary that has data for two separate model with matching faces but different vertex information. When they are drawn a tween_factor can be specified which blends the vertices of the two models allowing for smooth animations.
+
+
+Feature 3:
+Pick-up Particles
+
+This features creates a rainbow particle explosion when the player picks up rods or rings. You can test it by running into the rods or rings.
+
+Relevant Classes:
+ParticleEmitter - This class draws a number of particles to the screen. The particles have a colour, position, lifetime and can be affected by gravity.
+PickupManager - This class initiates the effect of the particle emitter.
+
+Feature 4:
+Bat and Player Collision Particles
+
+This feature creates a yellow particle explosion when a bat collides with the player. You can test it by letting a bat collide into you. 
+Game - This class initiates the effect of the particle emitter.

@@ -26,7 +26,7 @@ Bat::Bat(const ModelWithShader& model, const Player& player, const World& world,
 void Bat::update(double delta_time_seconds)
 {
 	if (state == Bat_State::DEAD) return;
-	ignore_timer -= delta_time_seconds;
+	ignore_timer -= float(delta_time_seconds);
 	if (ignore_timer < 0) ignore_timer = 0;
 
 
@@ -148,7 +148,7 @@ void Bat::pursue(double delta_time_seconds)
 {
 	//Determine how many seconds away from target
 	Vector3 d = player->getPosition() - coordinate_system.position;
-	float s = d.getNorm() * 0.3f;
+	float s = float(d.getNorm()) * 0.3f;
 
 	//predicted player position
 	Vector3 T = player->getPosition() + player->getVelocity() * s;
