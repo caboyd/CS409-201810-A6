@@ -60,6 +60,7 @@
 #include "PerformanceCounter.h"
 #include "LineRenderer.h"
 #include "TextRenderer.h"
+#include "ParticleEmitter.h"
 #include "Globals.h"
 #include "main.h"
 
@@ -78,7 +79,7 @@ int main(int argc, char* argv[])
 
 	glutInit(&argc, argv);
 	glutInitDisplayMode(GLUT_DOUBLE | GLUT_DEPTH | GLUT_RGB | GLUT_MULTISAMPLE);
-	//glutInitContextVersion (4,6);
+	glutInitContextVersion (4,3);
 
 	glutInitWindowSize(g_win_width, g_win_height);
 	glutInitWindowPosition(0, 0);
@@ -131,6 +132,7 @@ void init()
 	g_line_renderer.init();
 	g_depth_texture.init();
 	g_sphere_renderer.init();
+	g_particle_emitter.init();
 
 	//Initialize Game
 	game.init();

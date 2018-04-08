@@ -4,6 +4,7 @@
 #include "LineRenderer.h"
 #include "DepthTexture.h"
 #include "PerformanceCounter.h"
+#include "ParticleEmitter.h"
 
 
 //Global External constants available to all files
@@ -67,6 +68,8 @@ TextRenderer g_text_renderer;
 LineRenderer g_line_renderer;
 SphereRenderer g_sphere_renderer;
 DepthTexture g_depth_texture;
+
+ParticleEmitter g_particle_emitter;
 
 //High precision timer for calculated delta time
 PerformanceCounter g_time_counter;

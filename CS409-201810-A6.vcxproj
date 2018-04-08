@@ -185,6 +185,7 @@
     <ClCompile Include="LeafyDisk.cpp" />
     <ClCompile Include="MovementGraph.cpp" />
     <ClCompile Include="NoiseField.cpp" />
+    <ClCompile Include="ParticleEmitter.cpp" />
     <ClCompile Include="PickupManager.cpp" />
     <ClCompile Include="Player.cpp" />
     <ClCompile Include="PlayerAnimatedModel.cpp" />
@@ -237,6 +238,7 @@
     <ClInclude Include="main.h" />
     <ClInclude Include="MovementGraph.h" />
     <ClInclude Include="NoiseField.h" />
+    <ClInclude Include="ParticleEmitter.h" />
     <ClInclude Include="PerformanceCounter.h" />
     <ClInclude Include="PickupManager.h" />
     <ClInclude Include="Player.h" />
@@ -260,6 +262,8 @@
     <None Include="assets\Shaders\depthRTT.vert" />
     <None Include="assets\Shaders\line.frag" />
     <None Include="assets\Shaders\line.vert" />
+    <None Include="assets\Shaders\particle.frag" />
+    <None Include="assets\Shaders\particle.vert" />
     <None Include="assets\Shaders\Passthrough.vert" />
     <None Include="assets\Shaders\SimpleTexture.frag" />
     <None Include="assets\Shaders\text.frag" />

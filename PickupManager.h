@@ -41,6 +41,7 @@ public:
 	//Updates every the position of each ring that hasnt been picked up
 	//Uses data from the world
 	void update(double delta_time);
+	void pickupParticleExplosion(const glm::vec3& position);
 
 	//Checks if a position has collided with a ring or rod to know if they have been picked
 	//up and increments the score and marks them to no longer be drawn or updated

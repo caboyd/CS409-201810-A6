@@ -147,6 +147,12 @@
     <ClCompile Include="LineRenderer.cpp">
       <Filter>ObjLibrary</Filter>
     </ClCompile>
+    <ClCompile Include="Bat.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ParticleEmitter.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Sleep.h">
@@ -320,6 +326,12 @@
     <ClInclude Include="SphereRenderer.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Bat.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ParticleEmitter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="lib\ObjLibrary\ObjVbo.inl">
@@ -360,6 +372,12 @@
     </None>
     <None Include="UpdatablePriorityQueue.inl">
       <Filter>Header Files</Filter>
+    </None>
+    <None Include="assets\Shaders\particle.frag">
+      <Filter>Resource Files</Filter>
+    </None>
+    <None Include="assets\Shaders\particle.vert">
+      <Filter>Resource Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

@@ -14,6 +14,7 @@ class TextRenderer;
 class DepthTexture;
 class LineRenderer;
 class PerformanceCounter;
+class ParticleEmitter;
 
 using ObjLibrary::Vector3;
 
@@ -80,6 +81,8 @@ global_extern int g_win_height;
 global_extern TextRenderer g_text_renderer;
 global_extern LineRenderer g_line_renderer;
 global_extern SphereRenderer g_sphere_renderer;
+
+global_extern ParticleEmitter g_particle_emitter;
 
 //Texture used for shadow mapping
 global_extern DepthTexture g_depth_texture;

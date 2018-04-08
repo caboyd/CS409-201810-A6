@@ -9,11 +9,12 @@
 #include "Ring.h"
 #include "Rod.h"
 #include "cassert"
+#include "ParticleEmitter.h"
 
 using ObjLibrary::Vector3;
 
 extern LineRenderer g_line_renderer;
-
+extern ParticleEmitter g_particle_emitter;
 
 PickupManager::PickupManager()
 {}
@@ -47,6 +48,20 @@ void PickupManager::update(const double delta_time)
 	}
 }
 
+void PickupManager::pickupParticleExplosion(const glm::vec3& position)
+{
+	float gravity = 0.15f;
+	float size = 0.03f;
+	float duration = 2500.0f;
+	float velocity = 1.5f;
+	g_particle_emitter.addEffect(500,position,size,glm::vec4(0.5,1,0.5,1),duration,Particle_Pattern::Random,velocity,gravity);
+	g_particle_emitter.addEffect(500,position,size,glm::vec4(1,0.5,0.5,1),duration,Particle_Pattern::Random,velocity,gravity);
+	g_particle_emitter.addEffect(500,position,size,glm::vec4(0.5,0.5,1,1),duration,Particle_Pattern::Random,velocity,gravity);
+	g_particle_emitter.addEffect(500,position,size,glm::vec4(1,1,0.5,1),duration,Particle_Pattern::Random,velocity,gravity);
+	g_particle_emitter.addEffect(500,position,size,glm::vec4(0.5,1,1,1),duration,Particle_Pattern::Random,velocity,gravity);
+	g_particle_emitter.addEffect(500,position,size,glm::vec4(1,0.5,1,1),duration,Particle_Pattern::Random,velocity,gravity);
+}
+
 void PickupManager::checkForPickups(const Player& player)
 {
 	for (auto& ring : rings)
@@ -56,6 +71,7 @@ void PickupManager::checkForPickups(const Player& player)
 			{
 				ring.pickedUp = true;
 				score += ring.pointValue;
+				pickupParticleExplosion(glm::vec3(ring.coordinate_system.position));
 			}
 	}
 
@@ -66,6 +82,7 @@ void PickupManager::checkForPickups(const Player& player)
 			{
 				rod.pickedUp = true;
 				score += rod.pointValue;
+				pickupParticleExplosion(glm::vec3(rod.coordinate_system.position));
 			}
 	}
 }

@@ -6,8 +6,7 @@
 #include "Globals.h"
 #include "MathHelper.h"
 #include "Ring.h"
-#include "Rod.h"
-#include "Random.h"
+#include "ParticleEmitter.h"
 
 //Matrix to help with calculating depth texture
 const glm::mat4 BIAS_MATRIX(
@@ -192,6 +191,8 @@ void Game::update(double fixed_delta_time)
 	//Do collision detection for player and rings/rods
 	pickup_manager.checkForPickups(player);
 
+	g_particle_emitter.update(fixed_delta_time, active_camera->getPosition());
+
 	//If player is moving/turning then lock the camera behind the player by turning camera_float off
 	if (player.coordinate_system.getPosition() != last_player_pos)
 	{
@@ -351,7 +352,7 @@ void Game::display()
 	glm::mat4 mvp_matrix = g_projection_matrix * view_matrix * model_matrix;
 
 	glDepthMask(GL_FALSE);
-	skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
+	//skybox_model.draw(model_matrix, view_matrix, mvp_matrix, camera_position);
 	glDepthMask(GL_TRUE);
 
 
@@ -363,6 +364,8 @@ void Game::display()
 	displayBats(view_matrix, g_projection_matrix, camera_position);
 
 	player.draw(view_matrix, g_projection_matrix, camera_position);
+
+	g_particle_emitter.draw(view_matrix,g_projection_matrix);
 
 	const std::string text = "Score: " + std::to_string(pickup_manager.getScore());
 	const float text_width = g_text_renderer.getWidth(text, 0.75f);
@@ -401,12 +404,8 @@ void Game::display()
 		2, float(g_win_height - 164), 0.4f, glm::vec3(0, 1, 0));
 
 	//Render depth texture to screen - **Changes required to shader and Depth Texture to work
-	g_depth_texture.renderDepthTextureToQuad(0, 0, 128, 128);
+	//g_depth_texture.renderDepthTextureToQuad(0, 0, 128, 128);
 
-
-
-
-	// send the current image to the screen - any drawing after here will not display
 }
 
 void Game::displayBats(const glm::mat4x4& view_matrix,
@@ -744,6 +743,8 @@ void Game::batPlayerCollisions()
 
 			bat.ignore_timer = 1.0f;
 
+			glm::vec3 pos(player.getPosition().x, player.getPosition().y + player.getHalfHeight(), player.getPosition().z);
+			g_particle_emitter.addEffect(500,pos,0.03,glm::vec4(1,1,0.3,1),500,Particle_Pattern::Random,2.0,0.0);
 
 		}
 	}

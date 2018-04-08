@@ -40,7 +40,7 @@ public:
 	Bat(const ModelWithShader& model, const Player& player, const World& world, const Vector3& position);
 	~Bat() = default;
 
-	void update(double delta_time) override;
+	void update(double delta_time_seconds) override;
 
 	void draw(const glm::mat4x4& view_matrix,
 		const glm::mat4x4& projection_matrix,
