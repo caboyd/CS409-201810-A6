@@ -109,11 +109,12 @@ void Game::init()
 	//Set the shadow light to be a direction light where the sun is
 	LightingManager::setLightEnabled(0, true);
 	LightingManager::setLightDirectional(0, SUN_DIR);
-	LightingManager::setLightColour(0, Vector3(1.0, 1.0, 1.0));
+	LightingManager::setLightAttenuationNone(0);
+	LightingManager::setLightColour(0, Vector3(1.6, 1.6, 1.6),Vector3(1.2,1.2,1.2),Vector3::ZERO);
 
 	//Set an ambient light with full strength
-	LightingManager::setLightEnabled(2, true);
-	LightingManager::setLightColour(2, Vector3(1.0, 1.0, 1.0));
+	//LightingManager::setLightEnabled(2, true);
+	//LightingManager::setLightColour(2, Vector3(1.0, 1.0, 1.0));
 
 	//Set a positional light at the players location
 	//LightingManager::setLightEnabled(1, true);

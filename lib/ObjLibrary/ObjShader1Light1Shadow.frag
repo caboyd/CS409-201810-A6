@@ -22,6 +22,8 @@
 //  http://infiniplix.ca/resources/obj_library/
 //
 
+const int LIGHT_COUNT = 8;
+
 uniform float transparency;
 uniform vec3  emission_colour;
 uniform vec3   ambient_colour;
@@ -44,7 +46,7 @@ uniform int          shininess_channel;
 
 uniform bool[6]   a_is_texture_active;
 
-uniform vec4 light_position;
+uniform vec4 light_position[LIGHT_COUNT];
 uniform vec3 light_ambient;
 uniform vec3 light_diffuse;
 uniform vec3 light_specular;
@@ -155,11 +157,11 @@ void main()
 
 	vec3 light_direction_from;
 	float attenuation = 1.0;
-	if(light_position.w == 0)
-		light_direction_from = normalize(light_position.xyz);
+	if(light_position[0].w == 0)
+		light_direction_from = normalize(light_position[0].xyz);
 	else
 	{
-		vec3 offset_position = light_position.xyz - position;
+		vec3 offset_position = light_position[0].xyz - position;
 		light_direction_from = normalize(offset_position);
 		float light_distance = length(offset_position);
 		attenuation = 1.0 / (light_attenuation.x +

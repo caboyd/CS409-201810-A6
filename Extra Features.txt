@@ -6,7 +6,7 @@ Shadows
 This feature creates shadows from the player, the ring and rod pick-ups, the bats and the disks. Shadows can be toggled on and off with the 'L' key.
 
 Relevant Classes:
-ShadowBox - This class creates sort of a cubular area such that the cube encompasses the view camera. This allows the game to have the smallest possible area to draw into the depth texture, allowing for higher resolution shadows when the view camera only sees a small area of the world.
+ShadowBox - This class creates a bounding box area such that the box encompasses the view of the camera. This allows the game to have the smallest possible area to draw into the depth texture, allowing for higher resolution shadows when the view camera only sees a small area of the world.
 DepthTexture - This class is a texture that gets written to that contains the depths of each object. It is used to determine what fragments are in a shadow and should have reduced lightning.
 
 Feature 2:
@@ -29,10 +29,10 @@ This features creates a rainbow particle explosion when the player picks up rods
 
 Relevant Classes:
 ParticleEmitter - This class draws a number of particles to the screen. The particles have a colour, position, lifetime and can be affected by gravity.
-PickupManager - This class initiates the effect of the particle emitter.
+PickupManager - This class initiates the effect of the particle emitter when the player collides with a pick up.
 
 Feature 4:
 Bat and Player Collision Particles
 
 This feature creates a yellow particle explosion when a bat collides with the player. You can test it by letting a bat collide into you. 
-Game - This class initiates the effect of the particle emitter.
+Game - This class initiates the effect of the particle emitter when a bat collides with the player.
